@@ -91,7 +91,7 @@
     }
     window.currentUser = currentUser;
 
-    handlePostAuthRedirect();
+    handlePostAuthRedirect(false);
     return currentUser;
   }
 
@@ -99,11 +99,7 @@
     var result = await window.Supabase.client.auth.signUp({
       email: email,
       password: password,
-      options: {
-        data: {
-          display_name: displayName
-        }
-      }
+      options: { data: { display_name: displayName } }
     });
 
     if (result.error) {
@@ -126,7 +122,7 @@
       return { user: currentUser, requiresConfirmation: true };
     }
 
-    handlePostAuthRedirect();
+    handlePostAuthRedirect(true);
     return { user: currentUser, requiresConfirmation: false };
   }
 
@@ -136,19 +132,7 @@
     var result = await window.Supabase.client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + window.location.pathname + (redirect ? '?redirect=' + encodeURIComponent(redirect) : window.location.search)
-      }
-    });
-    if (result.error) throw mapAuthError(result.error.message);
-  }
-
-  async function signInWithX() {
-    var params = new URLSearchParams(window.location.search);
-    var redirect = params.get('redirect');
-    var result = await window.Supabase.client.auth.signInWithOAuth({
-      provider: 'x',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname + (redirect ? '?redirect=' + encodeURIComponent(redirect) : window.location.search)
+        redirectTo: window.location.origin + '/verify.html' + (redirect ? '?redirect=' + encodeURIComponent(redirect) : '')
       }
     });
     if (result.error) throw mapAuthError(result.error.message);
@@ -196,6 +180,8 @@
             window.currentUser = currentUser;
           }
         });
+        var isNewUser = isNewSignup(session.user);
+        handlePostAuthRedirect(isNewUser);
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         window.currentUser = null;
@@ -204,11 +190,20 @@
     });
   }
 
-  function handlePostAuthRedirect() {
+  function isNewSignup(user) {
+    if (!user || !user.created_at || !user.last_sign_in_at) return false;
+    var created = new Date(user.created_at).getTime();
+    var lastSignIn = new Date(user.last_sign_in_at).getTime();
+    return Math.abs(lastSignIn - created) < 60000;
+  }
+
+  function handlePostAuthRedirect(isNewUser) {
     var params = new URLSearchParams(window.location.search);
     var redirect = params.get('redirect');
     if (isValidRedirect(redirect)) {
       window.location.href = redirect;
+    } else if (isNewUser) {
+      window.location.href = 'verify.html';
     } else {
       window.location.href = 'dashboard.html';
     }
@@ -243,12 +238,12 @@
     signIn: signIn,
     signUp: signUp,
     signInWithGoogle: signInWithGoogle,
-    signInWithX: signInWithX,
     signOut: signOut,
     resetPassword: resetPassword,
     updatePassword: updatePassword,
     getUser: getUser,
     getSession: getSession,
-    onAuthChange: onAuthChange
+    onAuthChange: onAuthChange,
+    isNewSignup: isNewSignup
   };
 })();
