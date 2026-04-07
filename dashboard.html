@@ -166,13 +166,32 @@
     (function () {
       'use strict';
 
+      /* Reusable DOM element for HTML escaping — avoids per-call allocation */
+      var _escapeDiv = document.createElement('div');
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        _escapeDiv.textContent = str;
+        return _escapeDiv.innerHTML;
+      }
+
+      /* Safe avatar URL attribute builder */
+      function avatarSrc(url) {
+        return 'src="' + escapeHtml(url) + '"';
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
-        Auth.requireAuth().then(function (user) {
+        Manifest.load().then(function () {
+          return Auth.requireAuth();
+        }).then(function (user) {
           if (!user) return;
           renderUser(user);
           loadStats(user.id);
           loadContinueReading(user.id);
           loadBookmarks(user.id);
+        }).catch(function (err) {
+          console.error('Dashboard initialization error:', err);
+          App.showToast('Failed to load dashboard. Please refresh.');
         });
       });
 
@@ -184,7 +203,8 @@
         Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
       });
 
-      document.getElementById('header-avatar').addEventListener('click', function (e) {
+      /* Event delegation on avatar wrapper — survives innerHTML replacement */
+      document.getElementById('avatar-wrapper').addEventListener('click', function (e) {
         e.stopPropagation();
         document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
       });
@@ -195,38 +215,67 @@
 
       function renderUser(user) {
         var profile = user.profile || {};
-        var name = profile.display_name || user.email.split('@')[0];
+        var email = user.email || '';
+        var name = profile.display_name || (email ? email.split('@')[0] : 'Reader');
         var initials = Manifest.getInitials(name);
 
         document.getElementById('greeting-title').textContent = 'Welcome back, ' + name.split(' ')[0];
         document.getElementById('menu-name').textContent = name;
-        document.getElementById('menu-email').textContent = user.email;
+        document.getElementById('menu-email').textContent = email;
         document.getElementById('avatar-initials').textContent = initials;
         document.getElementById('sidebar-name').textContent = name;
-        document.getElementById('sidebar-email').textContent = user.email;
+        document.getElementById('sidebar-email').textContent = email;
         document.getElementById('sidebar-initials').textContent = initials;
 
         if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
+          /* Use img element construction instead of innerHTML to preserve event listeners */
+          var headerAvatar = document.getElementById('header-avatar');
+          headerAvatar.innerHTML = '';
+          var headerImg = document.createElement('img');
+          headerImg.setAttribute('src', profile.avatar_url);
+          headerImg.setAttribute('alt', name);
+          headerAvatar.appendChild(headerImg);
+
+          var sidebarAvatar = document.getElementById('sidebar-avatar');
+          sidebarAvatar.innerHTML = '';
+          var sidebarImg = document.createElement('img');
+          sidebarImg.setAttribute('src', profile.avatar_url);
+          sidebarImg.setAttribute('alt', name);
+          sidebarAvatar.appendChild(sidebarImg);
         }
       }
 
       async function loadStats(userId) {
-        var totalArticles = (window.ARTICLES || []).length;
-        var readCount = await Supabase.getTotalReadCount(userId);
-        var bookmarks = await Supabase.getBookmarks(userId);
-        var streak = await Supabase.getCurrentStreak(userId);
+        try {
+          var totalArticles = (window.ARTICLES || []).length;
+          var readCount = await Supabase.getTotalReadCount(userId);
+          var bookmarks = await Supabase.getBookmarks(userId);
+          var streak = await Supabase.getCurrentStreak(userId);
 
-        document.getElementById('stat-total').textContent = totalArticles;
-        document.getElementById('stat-read').textContent = readCount;
-        document.getElementById('stat-bookmarks').textContent = bookmarks.length;
-        document.getElementById('stat-streak').textContent = streak + (streak === 1 ? ' day' : ' days');
+          document.getElementById('stat-total').textContent = totalArticles;
+          document.getElementById('stat-read').textContent = readCount;
+          document.getElementById('stat-bookmarks').textContent = bookmarks.length;
+          document.getElementById('stat-streak').textContent = streak + (streak === 1 ? ' day' : ' days');
+        } catch (err) {
+          console.error('Error loading stats:', err);
+          document.getElementById('stat-total').textContent = '—';
+          document.getElementById('stat-read').textContent = '—';
+          document.getElementById('stat-bookmarks').textContent = '—';
+          document.getElementById('stat-streak').textContent = '—';
+          App.showToast('Unable to load stats. Please try again.');
+        }
       }
 
       async function loadContinueReading(userId) {
         var container = document.getElementById('continue-reading-list');
-        var history = await Supabase.getReadingHistory(userId);
+        try {
+          var history = await Supabase.getReadingHistory(userId);
+        } catch (err) {
+          console.error('Error loading reading history:', err);
+          container.innerHTML = '<div class="empty-state"><p class="empty-state__title">Unable to load reading history</p><p class="empty-state__text">Please try refreshing the page.</p></div>';
+          return;
+        }
+
         var incomplete = history.filter(function (h) { return !h.completed_at; });
 
         if (incomplete.length === 0) {
@@ -246,11 +295,12 @@
             '</div>';
             return;
           }
+          var progress = (entry.progress_percent != null) ? entry.progress_percent : 0;
           html += '<div class="history-item" style="margin-bottom:var(--space-3);cursor:pointer;" data-slug="' + escapeHtml(entry.article_slug) + '">' +
             '<div class="history-item__body">' +
               '<div class="history-item__title">' + escapeHtml(article.title) + '</div>' +
-              '<div class="progress-bar" style="margin-bottom:var(--space-2);"><div class="progress-bar__fill" style="width:' + entry.progress_percent + '%;"></div></div>' +
-              '<div class="history-item__meta">' + entry.progress_percent + '% complete</div>' +
+              '<div class="progress-bar" style="margin-bottom:var(--space-2);"><div class="progress-bar__fill" style="width:' + progress + '%;"></div></div>' +
+              '<div class="history-item__meta">' + progress + '% complete</div>' +
             '</div>' +
           '</div>';
         });
@@ -267,7 +317,13 @@
 
       async function loadBookmarks(userId) {
         var container = document.getElementById('bookmarks-grid');
-        var bookmarks = await Supabase.getBookmarks(userId);
+        try {
+          var bookmarks = await Supabase.getBookmarks(userId);
+        } catch (err) {
+          console.error('Error loading bookmarks:', err);
+          container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p class="empty-state__title">Unable to load bookmarks</p><p class="empty-state__text">Please try refreshing the page.</p></div>';
+          return;
+        }
 
         if (bookmarks.length === 0) {
           container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p class="empty-state__title">No bookmarks yet</p><p class="empty-state__text"><a href="articles.html" style="color:var(--accent);">Browse articles</a> and bookmark ones you want to revisit.</p></div>';
@@ -277,6 +333,7 @@
         var articles = window.ARTICLES || [];
         var html = '';
         var bookmarkIndex = 0;
+        var totalBookmarks = bookmarks.length;
 
         bookmarks.slice(0, 3).forEach(function (b) {
           var article = articles.find(function (a) { return a.slug === b.article_slug; });
@@ -288,14 +345,14 @@
           var url = App.getArticleUrl(article.slug);
           var hasImage = article.coverImage && article.coverImage.length > 0;
           var imageHtml = hasImage
-            ? '<img class="article-card__image" src="' + article.coverImage + '" alt="' + escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
-            : '<div class="article-card__image article-card__image--placeholder">' + initials + '</div>';
+            ? '<img class="article-card__image" src="' + escapeHtml(article.coverImage) + '" alt="' + escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
+            : '<div class="article-card__image article-card__image--placeholder">' + escapeHtml(initials) + '</div>';
 
           html += '<article class="article-card bookmark-card" data-slug="' + escapeHtml(article.slug) + '" style="transition-delay:' + (bookmarkIndex * 0.06) + 's">' +
             '<button class="bookmark-card__remove" data-slug="' + escapeHtml(article.slug) + '" aria-label="Remove bookmark">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
             '</button>' +
-            '<a href="' + url + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+            '<a href="' + escapeHtml(url) + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
             '<div class="article-card__body">' +
               '<span class="article-card__category">' + escapeHtml(article.category) + '</span>' +
               '<h3 class="article-card__title">' + escapeHtml(article.title) + '</h3>' +
@@ -311,6 +368,10 @@
           '</article>';
           bookmarkIndex++;
         });
+
+        if (totalBookmarks > 3) {
+          html += '<p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;grid-column:1/-1;margin-top:var(--space-2);">Showing 3 of ' + totalBookmarks + ' — <a href="bookmarks.html" style="color:var(--accent);text-decoration:underline;">View all</a></p>';
+        }
 
         container.innerHTML = html;
 
@@ -331,6 +392,7 @@
                 App.showToast('Unable to remove bookmark. Please try again.');
                 return;
               }
+              App.showToast('Bookmark removed');
               var card = btn.closest('.article-card');
               if (card) {
                 card.style.opacity = '0';
@@ -340,12 +402,6 @@
             });
           });
         });
-      }
-
-      function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
       }
     })();
   </script>

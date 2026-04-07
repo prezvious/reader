@@ -202,6 +202,8 @@
       }
 
       function showSuccess(message) {
+        /* Clear any visible error banner before showing success */
+        errorBanner.classList.remove('alert--visible');
         successBanner.textContent = message;
         successBanner.classList.add('alert--visible');
       }

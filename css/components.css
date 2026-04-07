@@ -664,8 +664,16 @@
   z-index: 2;
 }
 
-.bookmark-card:hover .bookmark-card__remove {
+.bookmark-card:hover .bookmark-card__remove,
+.bookmark-card .bookmark-card__remove--visible {
   opacity: 1;
+}
+
+/* Always show remove button on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .bookmark-card .bookmark-card__remove {
+    opacity: 1;
+  }
 }
 
 .bookmark-card__remove:hover {

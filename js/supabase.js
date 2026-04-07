@@ -213,9 +213,6 @@
       if (diff === 0) {
         streak++;
         expected.setDate(expected.getDate() - 1);
-      } else if (diff === 1) {
-        streak++;
-        expected.setDate(expected.getDate() - 1);
       } else {
         break;
       }

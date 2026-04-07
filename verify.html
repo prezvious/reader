@@ -268,9 +268,15 @@
       var emailEl = document.getElementById('verify-email');
       var badgeContainer = document.getElementById('provider-badge-container');
       var continueBtn = document.getElementById('continue-btn');
+      var isProcessing = false;
+
+      /* Guard against double-initialization from Supabase onAuthStateChange */
+      if (window.__verifyInitialized) return;
+      window.__verifyInitialized = true;
 
       Auth.requireAuth().then(function (user) {
-        if (!user) return;
+        if (!user || isProcessing) return;
+        isProcessing = true;
 
         var displayName = user.user_metadata.display_name || user.user_metadata.full_name || user.user_metadata.name || 'Reader';
         var email = user.email || user.user_metadata.email || '';
@@ -284,7 +290,7 @@
           messageEl.textContent = 'You are now signed in with your Google account. Start exploring your personalized reading experience.';
           renderProviderBadge('google');
         } else if (provider === 'email') {
-          var isNew = Auth.isNewSignup ? Auth.isNewSignup(user) : false;
+          var isNew = Auth.isNewSignup(user);
           if (isNew) {
             titleEl.textContent = 'Account Created Successfully';
             messageEl.textContent = 'Welcome aboard, ' + displayName.split(' ')[0] + '! Your account is ready. Dive into your reading journey.';

@@ -61,7 +61,7 @@
   }
 
   function redirectIfLoggedIn() {
-    if (!window.Supabase) return Promise.resolve();
+    if (!window.Supabase) return Promise.resolve(false);
 
     return window.Supabase.client.auth.getSession().then(function (result) {
       if (result.data.session) {
@@ -139,10 +139,21 @@
   }
 
   async function signOut() {
-    var result = await window.Supabase.client.auth.signOut();
-    if (result.error) throw mapAuthError(result.error.message);
+    /* Clear local state immediately — even if the server call fails */
+    var prevUser = currentUser;
     currentUser = null;
     window.currentUser = null;
+
+    try {
+      var result = await window.Supabase.client.auth.signOut();
+      if (result.error) throw mapAuthError(result.error.message);
+    } catch (error) {
+      /* Restore state on failure so the app remains consistent */
+      currentUser = prevUser;
+      window.currentUser = prevUser;
+      throw error;
+    }
+
     window.location.href = 'signin.html';
   }
 
@@ -170,6 +181,10 @@
 
   function onAuthChange(callback) {
     if (!window.Supabase) return null;
+    /* Track whether we have already processed the initial SIGNED_IN event
+       to prevent handlePostAuthRedirect from firing on every token refresh. */
+    var hasHandledInitialAuth = false;
+
     return window.Supabase.client.auth.onAuthStateChange(function (event, session) {
       if (event === 'SIGNED_IN' && session) {
         currentUser = session.user;
@@ -180,8 +195,14 @@
             window.currentUser = currentUser;
           }
         });
-        var isNewUser = isNewSignup(session.user);
-        handlePostAuthRedirect(isNewUser);
+
+        /* Only perform the redirect flow once, on the initial sign-in.
+           Token refresh (TOKEN_REFRESHED) should NOT trigger a redirect. */
+        if (!hasHandledInitialAuth) {
+          hasHandledInitialAuth = true;
+          var isNewUser = isNewSignup(session.user);
+          handlePostAuthRedirect(isNewUser);
+        }
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         window.currentUser = null;
