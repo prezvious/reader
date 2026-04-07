@@ -228,6 +228,67 @@
     return trimmed.indexOf('http://') === 0 || trimmed.indexOf('https://') === 0;
   }
 
+  /* =========================================
+     ARTICLE CRUD (admin-published articles)
+     ========================================= */
+  async function publishArticle(articleData) {
+    var { data, error } = await client
+      .from('articles')
+      .insert([articleData])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateArticle(slug, updates) {
+    var { data, error } = await client
+      .from('articles')
+      .update(updates)
+      .eq('slug', slug)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deleteArticle(slug) {
+    var { error } = await client
+      .from('articles')
+      .delete()
+      .eq('slug', slug);
+    if (error) throw error;
+  }
+
+  async function getPublishedArticles() {
+    var { data, error } = await client
+      .from('articles')
+      .select('id, slug, title, excerpt, category, category_slug, author_name, author_avatar, author_bio, cover_image, cover_image_alt, published_at, featured')
+      .order('published_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function getArticleContent(slug) {
+    var { data, error } = await client
+      .from('articles')
+      .select('content_html, custom_css')
+      .eq('slug', slug)
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function getArticleBySlug(slug) {
+    var { data, error } = await client
+      .from('articles')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+    if (error) return null;
+    return data;
+  }
+
   window.Supabase = {
     client: client,
     getProfile: getProfile,
@@ -247,6 +308,12 @@
     hasReacted: hasReacted,
     getTotalReadCount: getTotalReadCount,
     getCurrentStreak: getCurrentStreak,
-    isValidAvatarUrl: isValidAvatarUrl
+    isValidAvatarUrl: isValidAvatarUrl,
+    publishArticle: publishArticle,
+    updateArticle: updateArticle,
+    deleteArticle: deleteArticle,
+    getPublishedArticles: getPublishedArticles,
+    getArticleContent: getArticleContent,
+    getArticleBySlug: getArticleBySlug
   };
 })();

@@ -818,7 +818,7 @@
       /* =============================================
          PUBLISH
          ============================================= */
-      function publishArticle() {
+      async function publishArticle() {
         /* Validate */
         var title = document.getElementById('meta-title').value.trim();
         if (!title) {
@@ -843,157 +843,65 @@
         var featured = document.getElementById('meta-featured').checked;
         var useCustomStyle = document.getElementById('use-custom-style').checked;
 
-        /* Generate article HTML */
+        /* Parse content to HTML */
         var articleHTML = parseArticleContent(content);
 
-        /* Generate manifest entry */
-        var existingArticles = window.ARTICLES || [];
-        var maxId = 0;
-        for (var a = 0; a < existingArticles.length; a++) {
-          if (existingArticles[a].id > maxId) maxId = existingArticles[a].id;
-        }
-
-        var manifestEntry = {
-          id: maxId + 1,
+        /* Build the database row */
+        var articleData = {
           slug: slug,
           title: title,
-          excerpt: excerpt,
+          excerpt: excerpt || null,
           category: category,
-          categorySlug: generateSlug(category),
-          author: {
-            name: authorName,
-            avatar: '',
-            bio: authorBio
-          },
-          coverImage: '',
-          coverImageAlt: '',
-          publishedAt: publishDate,
+          category_slug: generateSlug(category),
+          author_name: authorName,
+          author_bio: authorBio || null,
+          published_at: publishDate,
           featured: featured,
-          folder: 'articles/' + slug + '/'
+          content_html: articleHTML,
+          custom_css: (useCustomStyle && customCSSApplied && customCSSContent) ? customCSSContent : null
         };
 
-        /* Show publish modal */
-        showPublishModal({
-          slug: slug,
-          title: title,
-          articleHTML: articleHTML,
-          manifestEntry: manifestEntry,
-          customCSS: useCustomStyle && customCSSApplied ? customCSSContent : null
-        });
-      }
+        /* Disable button to prevent double-clicks */
+        var publishBtn = document.getElementById('publish-btn');
+        var originalText = publishBtn.innerHTML;
+        publishBtn.disabled = true;
+        publishBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Publishing...';
 
-      function showPublishModal(data) {
-        var overlay = document.getElementById('publish-modal-overlay');
+        try {
+          /* Check if article with this slug already exists */
+          var existing = await Supabase.getArticleBySlug(slug);
 
-        var modalHTML = '<div class="compose-modal-overlay" id="modal-overlay-inner">';
-        modalHTML += '<div class="compose-modal">';
-        modalHTML += '<div class="compose-modal__header">';
-        modalHTML += '<h2 class="compose-modal__title">Article Generated</h2>';
-        modalHTML += '<button class="compose-modal__close" id="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-        modalHTML += '</div>';
+          if (existing) {
+            /* Update existing article */
+            await Supabase.updateArticle(slug, articleData);
+            App.showToast('Article updated successfully!');
+          } else {
+            /* Insert new article */
+            await Supabase.publishArticle(articleData);
+            App.showToast('Article published successfully!');
+          }
 
-        modalHTML += '<div class="compose-modal__body">';
+          /* Redirect to the article page after a brief delay */
+          setTimeout(function () {
+            window.location.href = 'article.html?slug=' + encodeURIComponent(slug);
+          }, 1200);
 
-        /* Instructions */
-        modalHTML += '<div class="compose-modal__instructions">';
-        modalHTML += '<strong>How to publish:</strong><br>';
-        modalHTML += '1. Create the folder <code>articles/' + App.escapeHtml(data.slug) + '/</code><br>';
-        modalHTML += '2. Save the article HTML below as <code>index.html</code> in that folder<br>';
-        if (data.customCSS) {
-          modalHTML += '3. Save the custom CSS as <code>style.css</code> in the same folder<br>';
-          modalHTML += '4. Add the manifest entry to <code>manifest.json</code>';
-        } else {
-          modalHTML += '3. Add the manifest entry to <code>manifest.json</code>';
+        } catch (error) {
+          console.error('Publish error:', error);
+          var msg = error.message || 'Failed to publish.';
+
+          /* Check for common errors */
+          if (msg.indexOf('duplicate') !== -1 || msg.indexOf('unique') !== -1) {
+            App.showToast('An article with this slug already exists. Change the slug or edit the existing one.');
+          } else if (msg.indexOf('policy') !== -1 || msg.indexOf('denied') !== -1) {
+            App.showToast('Permission denied. Only admins can publish articles.');
+          } else {
+            App.showToast('Publish failed: ' + msg);
+          }
+
+          publishBtn.disabled = false;
+          publishBtn.innerHTML = originalText;
         }
-        modalHTML += '</div>';
-
-        /* File: index.html */
-        modalHTML += '<div class="compose-file">';
-        modalHTML += '<div class="compose-file__header">';
-        modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>articles/' + App.escapeHtml(data.slug) + '/index.html</span>';
-        modalHTML += '<button class="compose-file__copy" data-copy="article-html">Copy</button>';
-        modalHTML += '</div>';
-        modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="article-html-output">' + App.escapeHtml(data.articleHTML) + '</pre></div>';
-        modalHTML += '</div>';
-
-        /* File: style.css (if applicable) */
-        if (data.customCSS) {
-          modalHTML += '<div class="compose-file">';
-          modalHTML += '<div class="compose-file__header">';
-          modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>articles/' + App.escapeHtml(data.slug) + '/style.css</span>';
-          modalHTML += '<button class="compose-file__copy" data-copy="style-css">Copy</button>';
-          modalHTML += '</div>';
-          modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="style-css-output">' + App.escapeHtml(data.customCSS) + '</pre></div>';
-          modalHTML += '</div>';
-        }
-
-        /* File: manifest entry */
-        var manifestJSON = JSON.stringify(data.manifestEntry, null, 2);
-        modalHTML += '<div class="compose-file">';
-        modalHTML += '<div class="compose-file__header">';
-        modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>manifest.json entry</span>';
-        modalHTML += '<button class="compose-file__copy" data-copy="manifest-entry">Copy</button>';
-        modalHTML += '</div>';
-        modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="manifest-entry-output">' + App.escapeHtml(manifestJSON) + '</pre></div>';
-        modalHTML += '</div>';
-
-        modalHTML += '</div>'; /* End body */
-
-        /* Footer */
-        modalHTML += '<div class="compose-modal__footer">';
-        modalHTML += '<button class="btn btn--ghost" id="modal-done-btn">Done</button>';
-        modalHTML += '</div>';
-
-        modalHTML += '</div>'; /* End modal */
-        modalHTML += '</div>'; /* End overlay */
-
-        overlay.innerHTML = modalHTML;
-        overlay.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-
-        /* Store raw content for copy buttons */
-        overlay._data = {
-          'article-html': data.articleHTML,
-          'style-css': data.customCSS || '',
-          'manifest-entry': manifestJSON
-        };
-
-        /* Close handlers */
-        document.getElementById('modal-close').addEventListener('click', closePublishModal);
-        document.getElementById('modal-done-btn').addEventListener('click', closePublishModal);
-        document.getElementById('modal-overlay-inner').addEventListener('click', function (e) {
-          if (e.target === this) closePublishModal();
-        });
-
-        /* Copy handlers */
-        overlay.querySelectorAll('.compose-file__copy').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var key = btn.getAttribute('data-copy');
-            var content = overlay._data[key] || '';
-            navigator.clipboard.writeText(content).then(function () {
-              btn.textContent = 'Copied!';
-              setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
-            }).catch(function () {
-              /* Fallback */
-              var ta = document.createElement('textarea');
-              ta.value = content;
-              ta.style.cssText = 'position:fixed;top:-9999px;';
-              document.body.appendChild(ta);
-              ta.select();
-              document.execCommand('copy');
-              ta.remove();
-              btn.textContent = 'Copied!';
-              setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
-            });
-          });
-        });
-      }
-
-      function closePublishModal() {
-        var overlay = document.getElementById('publish-modal-overlay');
-        overlay.style.display = 'none';
-        overlay.innerHTML = '';
-        document.body.style.overflow = '';
       }
 
       /* =============================================
@@ -1059,11 +967,18 @@
           document.getElementById('fullpreview-body').appendChild(fullPreviewStyle);
         }
 
-        document.getElementById('fullpreview-close').addEventListener('click', closePublishModal);
-        document.getElementById('fullpreview-done').addEventListener('click', closePublishModal);
+        document.getElementById('fullpreview-close').addEventListener('click', closeModal);
+        document.getElementById('fullpreview-done').addEventListener('click', closeModal);
         document.getElementById('fullpreview-overlay-inner').addEventListener('click', function (e) {
-          if (e.target === this) closePublishModal();
+          if (e.target === this) closeModal();
         });
+      }
+
+      function closeModal() {
+        var overlay = document.getElementById('publish-modal-overlay');
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+        document.body.style.overflow = '';
       }
 
       /* =============================================

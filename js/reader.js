@@ -106,6 +106,13 @@
     var container = document.getElementById('article-body');
     if (!container) return;
 
+    /* DB-sourced article: load from Supabase */
+    if (article.source === 'db') {
+      loadDbArticleContent(article, container);
+      return;
+    }
+
+    /* Static article: load from folder */
     var folder = article.folder || '';
     if (!folder) {
       container.innerHTML = '<p class="article-error__text">Unable to load this article. The article content is not available.</p>';
@@ -129,6 +136,35 @@
       })
       .catch(function (error) {
         console.error('Article content load error:', error);
+        container.innerHTML = '<p class="article-error__text">Unable to load this article. Please try again later.</p>';
+      });
+  }
+
+  function loadDbArticleContent(article, container) {
+    Supabase.getArticleContent(article.slug)
+      .then(function (data) {
+        if (!data || !data.content_html) {
+          container.innerHTML = '<p class="article-error__text">Unable to load this article. The article content is not available.</p>';
+          return;
+        }
+
+        container.innerHTML = data.content_html;
+
+        var readTime = Manifest.calcReadTimeFromText(container.textContent || '');
+        updateBylineReadTime(readTime);
+
+        /* Inject custom CSS if present */
+        if (data.custom_css) {
+          var style = document.createElement('style');
+          style.textContent = data.custom_css;
+          style.id = 'article-custom-style';
+          document.head.appendChild(style);
+        }
+
+        initReadingProgress();
+      })
+      .catch(function (error) {
+        console.error('DB article content load error:', error);
         container.innerHTML = '<p class="article-error__text">Unable to load this article. Please try again later.</p>';
       });
   }

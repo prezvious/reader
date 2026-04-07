@@ -1,4 +1,10 @@
 /* ===== COMPOSE PAGE ===== */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .compose-page {
   padding-top: var(--space-10);
   padding-bottom: var(--space-16);
