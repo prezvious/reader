@@ -1,46 +1,306 @@
-/* ===== ARTICLE HERO ===== */
-.article-hero {
-  position: relative;
-  width: 100%;
-  margin-bottom: var(--space-8);
+/* =============================================================
+   ARTICLE PAGE — SCOPED TYPOGRAPHY + LAYOUT VARIANTS
+   =============================================================
+   Layout "center"  — articles WITHOUT a cover photo
+   Layout "photo"   — articles WITH a cover photo
+   ============================================================= */
+
+/* ===== ARTICLE-BODY SCOPED TYPOGRAPHY ===== */
+/* These rules were previously global; now they only apply
+   inside the article content area so other pages stay clean. */
+
+.article-body h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2.5em;
+  margin-bottom: 0.5em;
 }
 
-.article-hero__image {
+.article-body h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+.article-body h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.article-body p {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  margin-bottom: 1.5em;
+  color: var(--text-primary);
+}
+
+.article-body blockquote {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--accent);
+  padding-left: var(--space-6);
+  margin: 2em 0;
+}
+
+.article-body code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85em;
+  background: var(--bg-tertiary);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+.article-body pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.article-body pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.article-body table {
   width: 100%;
-  height: 55vh;
-  max-height: 560px;
-  min-height: 280px;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.9rem;
+}
+
+.article-body th,
+.article-body td {
+  border: 1px solid var(--border);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+}
+
+.article-body th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.article-body tr:hover td {
+  background: var(--bg-secondary);
+}
+
+.article-body ul,
+.article-body ol {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  padding-left: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.article-body ul { list-style: disc; }
+.article-body ol { list-style: decimal; }
+
+.article-body li {
+  margin-bottom: 0.5em;
+}
+
+.article-body li > ul,
+.article-body li > ol {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+}
+
+.article-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5em 0;
+}
+
+.article-body hr.dotted {
+  border-top-style: dotted;
+  border-top-width: 2px;
+}
+
+.article-body figure {
+  margin: 2em 0;
+}
+
+.article-body figcaption {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--space-3);
+  font-style: italic;
+}
+
+.article-body img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin: 1.5em 0;
+}
+
+.article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.article-body a:hover {
+  color: var(--accent-hover);
+}
+
+
+/* =============================================================
+   LAYOUT: CENTER (no cover image)
+   =============================================================
+   [Title]
+   [Subtitle]  (optional)
+   [space]
+   [name, date, reading time, profile picture]
+   [space]
+   [bookmark-btn, share-copy]
+   [space]
+   [article text]
+   ============================================================= */
+
+.article-hero--center {
+  margin-bottom: 0;
+}
+
+.article-hero--center .article-hero__content {
+  padding: var(--space-16) var(--space-6) var(--space-4);
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.article-hero--center .article-hero__badge {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid transparent;
+  display: inline-block;
+  margin-bottom: var(--space-4);
+}
+
+/* Title & subtitle styles are INTENTIONALLY unchanged per user request */
+.article-hero--center .article-hero__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  max-width: 800px;
+}
+
+.article-hero--center .article-hero__subtitle {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+/* Byline in center layout */
+[data-layout="center"] .article-byline {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0 0;
+  margin-bottom: var(--space-6);
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+  flex-wrap: wrap;
+}
+
+/* Actions in center layout */
+[data-layout="center"] .article-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: 0;
+  margin-bottom: var(--space-8);
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+}
+
+
+/* =============================================================
+   LAYOUT: PHOTO (with cover image)
+   =============================================================
+   Full-bleed hero image with gradient overlay.
+   Title + subtitle float over the image.
+   Floating metadata card overlaps the hero bottom edge.
+   ============================================================= */
+
+.article-hero--photo {
+  position: relative;
+  width: 100%;
+  margin-bottom: calc(var(--space-16) + 20px); /* extra room for the floating card */
+}
+
+.article-hero--photo .article-hero__image {
+  width: 100%;
+  height: 60vh;
+  max-height: 600px;
+  min-height: 300px;
   object-fit: cover;
   display: block;
 }
 
-.article-hero__image--placeholder {
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.article-hero__overlay {
+.article-hero--photo .article-hero__overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: var(--space-10) var(--space-8);
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  padding: var(--space-16) var(--space-8) var(--space-12);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.5) 40%,
+    rgba(0, 0, 0, 0.15) 70%,
+    transparent 100%
+  );
 }
 
-.article-hero__badge {
+.article-hero--photo .article-hero__badge {
   display: inline-block;
   margin-bottom: var(--space-4);
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #FFFFFF;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
 }
 
-.article-hero__title {
+/* Title & subtitle styles are INTENTIONALLY unchanged per user request */
+.article-hero--photo .article-hero__title {
   font-family: 'Fraunces', Georgia, serif;
   font-size: 2.75rem;
   font-weight: 600;
@@ -50,28 +310,57 @@
   max-width: 800px;
 }
 
-.article-hero__subtitle {
+.article-hero--photo .article-hero__subtitle {
   font-family: 'Lora', Georgia, serif;
   font-size: 1.15rem;
   font-style: italic;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   max-width: 600px;
 }
 
-/* ===== ARTICLE BYLINE ===== */
-.article-byline {
+/* ----------- Floating Metadata Card ----------- */
+.article-meta-card {
   position: relative;
+  max-width: var(--content-max);
+  margin: -48px auto 0;
+  padding: var(--space-6);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 4px 24px var(--shadow-md),
+    0 1px 4px var(--shadow-sm);
+  z-index: 10;
+  margin-inline: auto;
+  /* Horizontal padding so it doesn't slam against viewport edges */
+}
+
+/* On narrow screens, add side padding to the card wrapper */
+[data-layout="photo"] .article-meta-card-wrapper {
+  padding: 0 var(--space-6);
+}
+
+.article-meta-card .article-byline {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-3) 0 0;
-  margin-bottom: var(--space-6);
+  padding: 0;
+  margin-bottom: var(--space-4);
   flex-wrap: wrap;
 }
 
+.article-meta-card .article-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  margin-bottom: 0;
+}
 
 
+/* ===== ARTICLE BYLINE (shared base) ===== */
 .article-byline__avatar {
   flex-shrink: 0;
 }
@@ -112,14 +401,6 @@
   height: 14px;
 }
 
-/* ===== ARTICLE ACTIONS BAR ===== */
-.article-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-top: 0;
-  margin-bottom: var(--space-8);
-}
 
 /* ===== ARTICLE BODY ===== */
 .article-body {
@@ -128,83 +409,6 @@
   padding: 0 var(--space-6);
 }
 
-.article-body p {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  margin-bottom: 1.5em;
-  color: var(--text-primary);
-}
-
-.article-body h2 {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin-top: 2.5em;
-  margin-bottom: 0.5em;
-}
-
-.article-body h3 {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-top: 2em;
-  margin-bottom: 0.5em;
-}
-
-.article-body blockquote {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  margin: 2em 0;
-  padding-left: var(--space-6);
-}
-
-.article-body img {
-  width: 100%;
-  border-radius: var(--radius-md);
-  margin: 1.5em 0;
-}
-
-.article-body figure {
-  margin: 2em 0;
-}
-
-.article-body figcaption {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  text-align: center;
-  margin-top: var(--space-3);
-  font-style: italic;
-}
-
-.article-body ul,
-.article-body ol {
-  font-size: 1.125rem;
-  line-height: 1.8;
-}
-
-.article-body code {
-  font-size: 0.85em;
-}
-
-.article-body pre {
-  border-radius: var(--radius-md);
-}
-
-.article-body table {
-  font-size: 0.9rem;
-}
-
-.article-body hr {
-  margin: 2.5em 0;
-}
-
-.article-body a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
 
 /* ===== ARTICLE FOOTER ===== */
 .article-footer {
@@ -212,7 +416,6 @@
   margin: var(--space-16) auto 0;
   padding: 0 var(--space-6);
 }
-
 
 
 /* ===== RELATED SECTION ===== */
@@ -245,6 +448,7 @@
   }
 }
 
+
 /* ===== BACK LINK ===== */
 .back-link {
   display: inline-flex;
@@ -273,6 +477,7 @@
   transform: translateX(-3px);
 }
 
+
 /* ===== ERROR STATE ===== */
 .article-error {
   text-align: center;
@@ -300,51 +505,49 @@
   margin-bottom: var(--space-6);
 }
 
-/* ===== NO COVER IMAGE VARIANT ===== */
-.article-hero--no-image {
-  margin-bottom: 0;
-}
 
-.article-hero--no-image .article-hero__content {
-  padding: var(--space-16) var(--space-6) var(--space-6);
-  max-width: var(--content-max);
-  margin: 0 auto;
-}
-
-.article-hero--no-image .article-hero__badge {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  border: 1px solid transparent;
-}
-
-.article-hero--no-image .article-hero__title {
-  color: var(--text-primary);
-  font-size: 2.5rem;
-}
-
-.article-hero--no-image .article-hero__subtitle {
-  color: var(--text-secondary);
-}
-
-/* ===== RESPONSIVE ===== */
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
 @media (max-width: 767px) {
-  .article-hero__image {
+  /* --- Photo layout mobile --- */
+  .article-hero--photo .article-hero__image {
     height: 45vh;
     min-height: 220px;
   }
 
-  .article-hero__overlay {
-    padding: var(--space-6) var(--space-5);
+  .article-hero--photo .article-hero__overlay {
+    padding: var(--space-8) var(--space-5) var(--space-10);
   }
 
-  .article-hero__title {
+  .article-hero--photo .article-hero__title {
     font-size: 1.75rem;
   }
 
-  .article-hero__subtitle {
+  .article-hero--photo .article-hero__subtitle {
     font-size: 1rem;
   }
 
+  .article-hero--photo {
+    margin-bottom: calc(var(--space-12) + 20px);
+  }
+
+  .article-meta-card {
+    margin-top: -36px;
+    padding: var(--space-5);
+  }
+
+  /* --- Center layout mobile --- */
+  .article-hero--center .article-hero__content {
+    padding: var(--space-8) 0 var(--space-2);
+    padding-inline: var(--space-6);
+  }
+
+  .article-hero--center .article-hero__title {
+    font-size: 1.75rem;
+  }
+
+  /* --- Shared mobile --- */
   .article-body p {
     font-size: 1.05rem;
   }
@@ -361,25 +564,17 @@
     font-size: 1.1rem;
   }
 
-  .article-hero--no-image .article-hero__content {
-    padding: var(--space-8) 0 var(--space-2);
-  }
-
-  .article-hero--no-image .article-hero__title {
-    font-size: 1.75rem;
-  }
-
   .article-byline {
     gap: var(--space-3);
   }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .article-hero__title {
+  .article-hero--photo .article-hero__title {
     font-size: 2.25rem;
   }
 
-  .article-hero--no-image .article-hero__title {
+  .article-hero--center .article-hero__title {
     font-size: 2.25rem;
   }
 }

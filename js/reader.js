@@ -46,19 +46,10 @@
     var hero = document.getElementById('article-hero');
     if (!hero) return;
 
+    var mainEl = document.querySelector('main');
     var initials = Manifest.getInitials(article.author.name);
     var date = Manifest.formatDate(article.publishedAt);
     var hasImage = article.coverImage && article.coverImage.length > 0;
-
-    var heroClass = hasImage ? 'article-hero' : 'article-hero article-hero--no-image';
-    hero.className = heroClass;
-
-    var imageHtml;
-    if (hasImage) {
-      imageHtml = '<img class="article-hero__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '">';
-    } else {
-      imageHtml = '<div class="article-hero__image article-hero__image--placeholder"></div>';
-    }
 
     var avatarHtml;
     if (article.author.avatar) {
@@ -67,38 +58,86 @@
       avatarHtml = '<div class="article-byline__avatar avatar">' + App.escapeHtml(initials) + '</div>';
     }
 
-    hero.innerHTML =
-      imageHtml +
-      '<div class="article-hero__overlay">' +
-        '<span class="badge article-hero__badge">' + App.escapeHtml(article.category) + '</span>' +
-        '<h1 class="article-hero__title">' + App.escapeHtml(article.title) + '</h1>' +
-        (article.excerpt ? '<p class="article-hero__subtitle">' + App.escapeHtml(article.excerpt) + '</p>' : '') +
+    var bylineInnerHtml =
+      avatarHtml +
+      '<div class="article-byline__info">' +
+        '<div class="article-byline__author">' + App.escapeHtml(article.author.name) + '</div>' +
+        '<div class="article-byline__meta">' +
+          '<span>' + date + '</span>' +
+          '<span class="article-byline__divider">&middot;</span>' +
+          '<span class="article-byline__read-time">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
+            (article.readTime || '—') + ' min read' +
+          '</span>' +
+        '</div>' +
       '</div>';
 
-    if (!hasImage) {
+    if (hasImage) {
+      /* ===== PHOTO LAYOUT ===== */
+      if (mainEl) mainEl.setAttribute('data-layout', 'photo');
+      hero.className = 'article-hero article-hero--photo';
+
+      hero.innerHTML =
+        '<img class="article-hero__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '">' +
+        '<div class="article-hero__overlay">' +
+          '<span class="badge article-hero__badge">' + App.escapeHtml(article.category) + '</span>' +
+          '<h1 class="article-hero__title">' + App.escapeHtml(article.title) + '</h1>' +
+          (article.excerpt ? '<p class="article-hero__subtitle">' + App.escapeHtml(article.excerpt) + '</p>' : '') +
+        '</div>';
+
+      /* Build floating metadata card — replaces separate byline + actions */
+      var bylineEl = document.getElementById('article-byline');
+      var actionsEl = document.getElementById('article-actions');
+
+      if (bylineEl && actionsEl) {
+        /* Create wrapper */
+        var cardWrapper = document.createElement('div');
+        cardWrapper.className = 'article-meta-card-wrapper';
+
+        var card = document.createElement('div');
+        card.className = 'article-meta-card';
+
+        /* Move byline into card */
+        bylineEl.className = 'article-byline';
+        bylineEl.removeAttribute('style');
+        bylineEl.innerHTML = bylineInnerHtml;
+        card.appendChild(bylineEl);
+
+        /* Move actions into card */
+        actionsEl.className = 'article-actions';
+        actionsEl.removeAttribute('style');
+        card.appendChild(actionsEl);
+
+        cardWrapper.appendChild(card);
+
+        /* Insert card wrapper right after the hero */
+        hero.insertAdjacentElement('afterend', cardWrapper);
+      }
+
+    } else {
+      /* ===== CENTER LAYOUT ===== */
+      if (mainEl) mainEl.setAttribute('data-layout', 'center');
+      hero.className = 'article-hero article-hero--center';
+
       hero.innerHTML =
         '<div class="article-hero__content">' +
           '<span class="badge article-hero__badge">' + App.escapeHtml(article.category) + '</span>' +
           '<h1 class="article-hero__title">' + App.escapeHtml(article.title) + '</h1>' +
           (article.excerpt ? '<p class="article-hero__subtitle">' + App.escapeHtml(article.excerpt) + '</p>' : '') +
         '</div>';
-    }
 
-    var byline = document.getElementById('article-byline');
-    if (byline) {
-      byline.innerHTML =
-        avatarHtml +
-        '<div class="article-byline__info">' +
-          '<div class="article-byline__author">' + App.escapeHtml(article.author.name) + '</div>' +
-          '<div class="article-byline__meta">' +
-            '<span>' + date + '</span>' +
-            '<span class="article-byline__divider">&middot;</span>' +
-            '<span class="article-byline__read-time">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
-              (article.readTime || '—') + ' min read' +
-            '</span>' +
-          '</div>' +
-        '</div>';
+      /* Populate byline in its existing container */
+      var byline = document.getElementById('article-byline');
+      if (byline) {
+        byline.removeAttribute('style');
+        byline.innerHTML = bylineInnerHtml;
+      }
+
+      /* Clean up actions container */
+      var actions = document.getElementById('article-actions');
+      if (actions) {
+        actions.removeAttribute('style');
+      }
     }
   }
 
