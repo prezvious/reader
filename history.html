@@ -135,64 +135,40 @@
     (function () {
       'use strict';
 
+      var currentUser = null;
+
       document.addEventListener('DOMContentLoaded', function () {
         Auth.requireAuth().then(function (user) {
           if (!user) return;
-          renderUser(user);
+          currentUser = user;
+          App.renderUser(user);
           loadHistory(user.id);
         });
       });
 
-      document.getElementById('menu-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-      document.getElementById('sidebar-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-
-      document.getElementById('header-avatar').addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
-      });
-      document.addEventListener('click', function () {
-        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
-      });
-
       document.getElementById('clear-history-btn').addEventListener('click', function () {
         if (confirm('Clear all reading history? This cannot be undone.')) {
-          var user = window.currentUser;
-          if (!user) return;
-          Supabase.clearHistory(user.id).then(function (err) {
+          if (!currentUser) return;
+          Supabase.clearHistory(currentUser.id).then(function (err) {
             if (err) {
               App.showToast('Unable to clear history. Please try again.');
               return;
             }
-            loadHistory(user.id);
+            loadHistory(currentUser.id);
           });
         }
       });
 
-      function renderUser(user) {
-        var profile = user.profile || {};
-        var name = profile.display_name || user.email.split('@')[0];
-        var initials = Manifest.getInitials(name);
-
-        document.getElementById('menu-name').textContent = name;
-        document.getElementById('menu-email').textContent = user.email;
-        document.getElementById('avatar-initials').textContent = initials;
-        document.getElementById('sidebar-name').textContent = name;
-        document.getElementById('sidebar-email').textContent = user.email;
-        document.getElementById('sidebar-initials').textContent = initials;
-
-        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-        }
-      }
-
       async function loadHistory(userId) {
         var container = document.getElementById('history-list');
-        var history = await Supabase.getReadingHistory(userId);
+        var history;
+        try {
+          history = await Supabase.getReadingHistory(userId);
+        } catch (err) {
+          console.error('Error loading reading history:', err);
+          container.innerHTML = '<div class="empty-state"><p class="empty-state__title">Unable to load reading history</p><p class="empty-state__text">Please try refreshing the page.</p></div>';
+          return;
+        }
 
         if (history.length === 0) {
           container.innerHTML = '<div class="empty-state"><p class="empty-state__title">No reading history yet</p><p class="empty-state__text"><a href="articles.html" style="color:var(--accent);">Browse articles</a> to start tracking your reading.</p></div>';
@@ -219,21 +195,22 @@
           var dateStr = Manifest.formatDate(lastRead.toISOString());
           var actionText = isComplete ? 'Read Again' : 'Continue Reading';
           var actionUrl = App.getArticleUrl(entry.article_slug);
+          var progress = (entry.progress_percent != null) ? entry.progress_percent : 0;
 
           html += '<div class="history-item" style="margin-bottom:var(--space-3);">' +
-            '<div class="history-item__body" style="cursor:pointer;" data-slug="' + escapeHtml(entry.article_slug) + '">' +
-              '<div class="history-item__title">' + escapeHtml(article.title) + '</div>';
+            '<div class="history-item__body" style="cursor:pointer;" data-slug="' + App.escapeHtml(entry.article_slug) + '">' +
+              '<div class="history-item__title">' + App.escapeHtml(article.title) + '</div>';
 
           if (isComplete) {
             html += '<div class="history-item__badge">Completed</div>';
           } else {
-            html += '<div class="progress-bar" style="margin-bottom:var(--space-2);"><div class="progress-bar__fill" style="width:' + entry.progress_percent + '%;"></div></div>';
+            html += '<div class="progress-bar" style="margin-bottom:var(--space-2);"><div class="progress-bar__fill" style="width:' + progress + '%;"></div></div>';
           }
 
           html += '<div class="history-item__meta">' + (isComplete ? 'Completed' : 'Last read') + ' &middot; ' + dateStr + '</div>' +
             '</div>' +
             '<div class="history-item__actions">' +
-              '<a href="' + actionUrl + '" class="btn btn--ghost" style="font-size:0.8rem;padding:var(--space-2) var(--space-4);white-space:nowrap;">' + actionText + '</a>' +
+              '<a href="' + App.escapeHtml(actionUrl) + '" class="btn btn--ghost" style="font-size:0.8rem;padding:var(--space-2) var(--space-4);white-space:nowrap;">' + actionText + '</a>' +
             '</div>' +
           '</div>';
         });
@@ -246,12 +223,6 @@
             if (slug) window.location.href = App.getArticleUrl(slug);
           });
         });
-      }
-
-      function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
       }
     })();
   </script>

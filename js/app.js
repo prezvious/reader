@@ -1,6 +1,105 @@
 (function () {
   'use strict';
 
+  /* ===== SHARED UTILITIES ===== */
+
+  /* Reusable DOM element for HTML escaping — avoids per-call allocation */
+  var _escapeDiv = document.createElement('div');
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    _escapeDiv.textContent = str;
+    return _escapeDiv.innerHTML;
+  }
+
+  /* Shared renderUser — null-safe email, uses createElement to preserve listeners */
+  function renderUser(user) {
+    var profile = user.profile || {};
+    var email = user.email || '';
+    var name = profile.display_name || (email ? email.split('@')[0] : 'Reader');
+    var initials = Manifest.getInitials(name);
+
+    var greetingEl = document.getElementById('greeting-title');
+    if (greetingEl) {
+      greetingEl.textContent = 'Welcome back, ' + name.split(' ')[0];
+    }
+
+    var menuNameEl = document.getElementById('menu-name');
+    if (menuNameEl) menuNameEl.textContent = name;
+
+    var menuEmailEl = document.getElementById('menu-email');
+    if (menuEmailEl) menuEmailEl.textContent = email;
+
+    var avatarInitialsEl = document.getElementById('avatar-initials');
+    if (avatarInitialsEl) avatarInitialsEl.textContent = initials;
+
+    var sidebarNameEl = document.getElementById('sidebar-name');
+    if (sidebarNameEl) sidebarNameEl.textContent = name;
+
+    var sidebarEmailEl = document.getElementById('sidebar-email');
+    if (sidebarEmailEl) sidebarEmailEl.textContent = email;
+
+    var sidebarInitialsEl = document.getElementById('sidebar-initials');
+    if (sidebarInitialsEl) sidebarInitialsEl.textContent = initials;
+
+    if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
+      var headerAvatar = document.getElementById('header-avatar');
+      if (headerAvatar) {
+        headerAvatar.innerHTML = '';
+        var headerImg = document.createElement('img');
+        headerImg.setAttribute('src', profile.avatar_url);
+        headerImg.setAttribute('alt', name);
+        headerAvatar.appendChild(headerImg);
+      }
+
+      var sidebarAvatar = document.getElementById('sidebar-avatar');
+      if (sidebarAvatar) {
+        sidebarAvatar.innerHTML = '';
+        var sidebarImg = document.createElement('img');
+        sidebarImg.setAttribute('src', profile.avatar_url);
+        sidebarImg.setAttribute('alt', name);
+        sidebarAvatar.appendChild(sidebarImg);
+      }
+    }
+  }
+
+  /* Initialize avatar click via event delegation on the wrapper — survives innerHTML changes */
+  function initAvatarMenu() {
+    var wrapper = document.getElementById('avatar-wrapper');
+    if (!wrapper) return;
+
+    wrapper.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var menu = document.getElementById('avatar-menu');
+      if (menu) menu.classList.toggle('avatar-dropdown__menu--open');
+    });
+  }
+
+  /* Initialize signout buttons (menu + sidebar) */
+  function initSignOutButtons() {
+    var menuBtn = document.getElementById('menu-signout');
+    if (menuBtn) {
+      menuBtn.addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+    }
+
+    var sidebarBtn = document.getElementById('sidebar-signout');
+    if (sidebarBtn) {
+      sidebarBtn.addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+    }
+  }
+
+  /* Close avatar menu when clicking outside */
+  function initAvatarMenuClose() {
+    document.addEventListener('click', function () {
+      var menu = document.getElementById('avatar-menu');
+      if (menu) menu.classList.remove('avatar-dropdown__menu--open');
+    });
+  }
+
   /* ===== THEME ===== */
   function initTheme() {
     var stored = null;
@@ -162,6 +261,9 @@
     setActiveNav();
     initShareButtons();
     initScrollReveal();
+    initAvatarMenu();
+    initAvatarMenuClose();
+    initSignOutButtons();
 
     var themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
@@ -174,6 +276,8 @@
     copyLink: copyLink,
     showToast: showToast,
     getArticleUrl: getArticleUrl,
-    getCurrentSlug: getCurrentSlug
+    getCurrentSlug: getCurrentSlug,
+    escapeHtml: escapeHtml,
+    renderUser: renderUser
   };
 })();

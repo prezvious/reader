@@ -159,7 +159,7 @@
       <div class="danger-zone">
         <h3 class="danger-zone__title">Danger Zone</h3>
         <p style="font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--text-secondary);margin-bottom:var(--space-4);">Once you delete your account, there is no going back. Please be certain.</p>
-        <p style="font-family:'Inter',sans-serif;font-size:0.85rem;color:var(--text-secondary);">Account deletion requires server-side verification. Please <a href="mailto:support@reader.com" style="color:var(--accent);">contact support</a> to delete your account.</p>
+        <p style="font-family:'Inter',sans-serif;font-size:0.85rem;color:var(--text-secondary);">Account deletion requires server-side verification. Please <a href="mailto:saxumfluens@gmail.com" style="color:var(--accent);">contact support</a> to delete your account.</p>
       </div>
     </section>
   </main>
@@ -186,24 +186,9 @@
         Auth.requireAuth().then(function (user) {
           if (!user) return;
           currentUser = user;
-          renderUser(user);
+          App.renderUser(user);
           loadProfile(user.id);
         });
-      });
-
-      document.getElementById('menu-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-      document.getElementById('sidebar-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-
-      document.getElementById('header-avatar').addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
-      });
-      document.addEventListener('click', function () {
-        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
       });
 
       document.getElementById('profile-form').addEventListener('submit', function (e) {
@@ -232,7 +217,7 @@
             if (!updated) { showError('Unable to save changes. Please try again.'); return; }
             currentUser.profile = updated;
             window.currentUser = currentUser;
-            renderUser(currentUser);
+            App.renderUser(currentUser);
             showSuccess('Profile updated successfully.');
           })
           .catch(function () { showError('Unable to save changes. Please try again.'); })
@@ -270,24 +255,6 @@
           });
       });
 
-      function renderUser(user) {
-        var profile = user.profile || {};
-        var name = profile.display_name || user.email.split('@')[0];
-        var initials = Manifest.getInitials(name);
-
-        document.getElementById('menu-name').textContent = name;
-        document.getElementById('menu-email').textContent = user.email;
-        document.getElementById('avatar-initials').textContent = initials;
-        document.getElementById('sidebar-name').textContent = name;
-        document.getElementById('sidebar-email').textContent = user.email;
-        document.getElementById('sidebar-initials').textContent = initials;
-
-        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-        }
-      }
-
       function loadProfile(userId) {
         Supabase.getProfile(userId).then(function (profile) {
           if (!profile) return;
@@ -304,6 +271,8 @@
       }
 
       function showSuccess(message) {
+        var errEl = document.getElementById('error-banner');
+        errEl.classList.remove('alert--visible');
         var el = document.getElementById('success-banner');
         el.textContent = message;
         el.classList.add('alert--visible');
@@ -312,12 +281,6 @@
       function clearBanners() {
         document.getElementById('error-banner').classList.remove('alert--visible');
         document.getElementById('success-banner').classList.remove('alert--visible');
-      }
-
-      function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
       }
     })();
   </script>

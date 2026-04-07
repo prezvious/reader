@@ -72,8 +72,10 @@
       return readTimeCache[slug];
     }
 
+    var folder = article.folder || '';
+    if (!folder) return null;
+
     try {
-      var folder = article.folder || '';
       var response = await fetch(folder + 'index.html');
       if (!response.ok) return null;
       var html = await response.text();

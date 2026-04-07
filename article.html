@@ -192,25 +192,10 @@
         Auth.requireAuth().then(function (user) {
           if (!user) return;
           currentUser = user;
-          renderUser(user);
+          App.renderUser(user);
           currentSlug = App.getCurrentSlug();
           if (currentSlug) loadArticleInteractions(user.id, currentSlug);
         });
-      });
-
-      document.getElementById('menu-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-      document.getElementById('sidebar-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-
-      document.getElementById('header-avatar').addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
-      });
-      document.addEventListener('click', function () {
-        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
       });
 
       document.getElementById('like-btn').addEventListener('click', function () {
@@ -301,24 +286,6 @@
         }
       });
 
-      function renderUser(user) {
-        var profile = user.profile || {};
-        var name = profile.display_name || user.email.split('@')[0];
-        var initials = Manifest.getInitials(name);
-
-        document.getElementById('menu-name').textContent = name;
-        document.getElementById('menu-email').textContent = user.email;
-        document.getElementById('avatar-initials').textContent = initials;
-        document.getElementById('sidebar-name').textContent = name;
-        document.getElementById('sidebar-email').textContent = user.email;
-        document.getElementById('sidebar-initials').textContent = initials;
-
-        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
-        }
-      }
-
       function loadArticleInteractions(userId, slug) {
         Supabase.getReactionCount(slug).then(function (count) {
           document.getElementById('like-count').textContent = count;
@@ -370,12 +337,6 @@
         var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         var docHeight = document.documentElement.scrollHeight - window.innerHeight;
         return docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
-      }
-
-      function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
       }
     })();
   </script>

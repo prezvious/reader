@@ -55,32 +55,32 @@
 
     var imageHtml;
     if (hasImage) {
-      imageHtml = '<img class="article-hero__image" src="' + article.coverImage + '" alt="' + escapeHtml(article.coverImageAlt || article.title) + '">';
+      imageHtml = '<img class="article-hero__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '">';
     } else {
       imageHtml = '<div class="article-hero__image article-hero__image--placeholder"></div>';
     }
 
     var avatarHtml;
     if (article.author.avatar) {
-      avatarHtml = '<div class="article-byline__avatar avatar"><img src="' + article.author.avatar + '" alt="' + escapeHtml(article.author.name) + '"></div>';
+      avatarHtml = '<div class="article-byline__avatar avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '"></div>';
     } else {
-      avatarHtml = '<div class="article-byline__avatar avatar">' + initials + '</div>';
+      avatarHtml = '<div class="article-byline__avatar avatar">' + App.escapeHtml(initials) + '</div>';
     }
 
     hero.innerHTML =
       imageHtml +
       '<div class="article-hero__overlay">' +
-        '<span class="badge article-hero__badge">' + escapeHtml(article.category) + '</span>' +
-        '<h1 class="article-hero__title">' + escapeHtml(article.title) + '</h1>' +
-        (article.excerpt ? '<p class="article-hero__subtitle">' + escapeHtml(article.excerpt) + '</p>' : '') +
+        '<span class="badge article-hero__badge">' + App.escapeHtml(article.category) + '</span>' +
+        '<h1 class="article-hero__title">' + App.escapeHtml(article.title) + '</h1>' +
+        (article.excerpt ? '<p class="article-hero__subtitle">' + App.escapeHtml(article.excerpt) + '</p>' : '') +
       '</div>';
 
     if (!hasImage) {
       hero.innerHTML =
         '<div class="article-hero__content">' +
-          '<span class="badge article-hero__badge">' + escapeHtml(article.category) + '</span>' +
-          '<h1 class="article-hero__title">' + escapeHtml(article.title) + '</h1>' +
-          (article.excerpt ? '<p class="article-hero__subtitle">' + escapeHtml(article.excerpt) + '</p>' : '') +
+          '<span class="badge article-hero__badge">' + App.escapeHtml(article.category) + '</span>' +
+          '<h1 class="article-hero__title">' + App.escapeHtml(article.title) + '</h1>' +
+          (article.excerpt ? '<p class="article-hero__subtitle">' + App.escapeHtml(article.excerpt) + '</p>' : '') +
         '</div>';
     }
 
@@ -89,7 +89,7 @@
       byline.innerHTML =
         avatarHtml +
         '<div class="article-byline__info">' +
-          '<div class="article-byline__author">' + escapeHtml(article.author.name) + '</div>' +
+          '<div class="article-byline__author">' + App.escapeHtml(article.author.name) + '</div>' +
           '<div class="article-byline__meta">' +
             '<span>' + date + '</span>' +
             '<span class="article-byline__divider">&middot;</span>' +
@@ -107,6 +107,11 @@
     if (!container) return;
 
     var folder = article.folder || '';
+    if (!folder) {
+      container.innerHTML = '<p class="article-error__text">Unable to load this article. The article content is not available.</p>';
+      return;
+    }
+
     var url = folder + 'index.html';
 
     fetch(url)
@@ -204,22 +209,22 @@
 
         var imageHtml;
         if (hasImage) {
-          imageHtml = '<img class="article-card__image" src="' + a.coverImage + '" alt="' + escapeHtml(a.coverImageAlt || a.title) + '" loading="lazy">';
+          imageHtml = '<img class="article-card__image" src="' + App.escapeHtml(a.coverImage) + '" alt="' + App.escapeHtml(a.coverImageAlt || a.title) + '" loading="lazy">';
         } else {
-          imageHtml = '<div class="article-card__image article-card__image--placeholder">' + initials + '</div>';
+          imageHtml = '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
         }
 
-        html += '<article class="article-card">' +
-          '<a href="' + url + '" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+        html += '<article class="article-card" data-slug="' + App.escapeHtml(a.slug) + '">' +
+          '<a href="' + App.escapeHtml(url) + '" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
           '<div class="article-card__body">' +
-            '<span class="article-card__category">' + escapeHtml(a.category) + '</span>' +
-            '<h3 class="article-card__title">' + escapeHtml(a.title) + '</h3>' +
+            '<span class="article-card__category">' + App.escapeHtml(a.category) + '</span>' +
+            '<h3 class="article-card__title">' + App.escapeHtml(a.title) + '</h3>' +
             '<div class="article-card__meta">' +
               '<div class="article-card__info">' +
-                '<div class="article-card__author">' + escapeHtml(a.author.name) + '</div>' +
+                '<div class="article-card__author">' + App.escapeHtml(a.author.name) + '</div>' +
                 '<div class="article-card__date">' + Manifest.formatDate(a.publishedAt) + '</div>' +
               '</div>' +
-              '<span class="article-card__read-time">' + a.readTime + ' min read</span>' +
+              '<span class="article-card__read-time">' + (a.readTime || '—') + ' min read</span>' +
             '</div>' +
           '</div>' +
         '</article>';
@@ -251,17 +256,11 @@
       body.innerHTML =
         '<div class="article-error">' +
           '<svg class="article-error__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-          '<h2 class="article-error__title">' + escapeHtml(title) + '</h2>' +
-          '<p class="article-error__text">' + escapeHtml(text) + '</p>' +
+          '<h2 class="article-error__title">' + App.escapeHtml(title) + '</h2>' +
+          '<p class="article-error__text">' + App.escapeHtml(text) + '</p>' +
           '<a href="articles.html" class="btn btn--primary">Browse all articles</a>' +
         '</div>';
     }
-  }
-
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   document.addEventListener('DOMContentLoaded', init);

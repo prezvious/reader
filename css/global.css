@@ -288,7 +288,11 @@ figcaption {
 }
 
 /* ===== THEME TRANSITION ===== */
-*, *::before, *::after {
+a, button, input, textarea, select,
+.article-card, .header__avatar, .header__link,
+.sidebar__link, .theme-toggle, .mobile-menu-btn,
+.bookmark-btn, .reaction-btn, .btn,
+.avatar-dropdown__item {
   transition: background-color var(--transition-base), color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 

@@ -36,31 +36,31 @@
 
     var imageHtml;
     if (hasImage) {
-      imageHtml = '<img class="article-card__image" src="' + article.coverImage + '" alt="' + (article.coverImageAlt || article.title) + '" loading="lazy">';
+      imageHtml = '<img class="article-card__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">';
     } else {
-      imageHtml = '<div class="article-card__image article-card__image--placeholder">' + initials + '</div>';
+      imageHtml = '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
     }
 
     var avatarHtml;
     if (article.author.avatar) {
-      avatarHtml = '<div class="article-card__avatar"><img src="' + article.author.avatar + '" alt="' + article.author.name + '"></div>';
+      avatarHtml = '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '"></div>';
     } else {
-      avatarHtml = '<div class="article-card__avatar">' + initials + '</div>';
+      avatarHtml = '<div class="article-card__avatar">' + App.escapeHtml(initials) + '</div>';
     }
 
-    return '<article class="article-card reveal" data-slug="' + article.slug + '" style="transition-delay:' + (index * 0.06) + 's">' +
-      '<a href="' + url + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+    return '<article class="article-card reveal" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (index * 0.06) + 's">' +
+      '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
       '<div class="article-card__body">' +
-        '<span class="article-card__category">' + escapeHtml(article.category) + '</span>' +
-        '<h3 class="article-card__title">' + escapeHtml(article.title) + '</h3>' +
-        '<p class="article-card__excerpt">' + escapeHtml(article.excerpt) + '</p>' +
+        '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
+        '<h3 class="article-card__title">' + App.escapeHtml(article.title) + '</h3>' +
+        '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
         '<div class="article-card__meta">' +
           avatarHtml +
           '<div class="article-card__info">' +
-            '<div class="article-card__author">' + escapeHtml(article.author.name) + '</div>' +
+            '<div class="article-card__author">' + App.escapeHtml(article.author.name) + '</div>' +
             '<div class="article-card__date">' + date + '</div>' +
           '</div>' +
-          '<span class="article-card__read-time">' + article.readTime + ' min read</span>' +
+          '<span class="article-card__read-time">' + (article.readTime || '—') + ' min read</span>' +
         '</div>' +
       '</div>' +
     '</article>';
@@ -74,7 +74,7 @@
     var html = '<button class="category-filter__btn category-filter__btn--active" data-category="">All</button>';
 
     categories.forEach(function (cat) {
-      html += '<button class="category-filter__btn" data-category="' + escapeHtml(cat.slug) + '">' + escapeHtml(cat.name) + '</button>';
+      html += '<button class="category-filter__btn" data-category="' + App.escapeHtml(cat.slug) + '">' + App.escapeHtml(cat.name) + '</button>';
     });
 
     container.innerHTML = html;
@@ -96,12 +96,6 @@
     } else {
       renderArticles(Manifest.getByCategory(category));
     }
-  }
-
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   function initScrollReveal() {

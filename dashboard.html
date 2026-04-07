@@ -166,26 +166,12 @@
     (function () {
       'use strict';
 
-      /* Reusable DOM element for HTML escaping — avoids per-call allocation */
-      var _escapeDiv = document.createElement('div');
-
-      function escapeHtml(str) {
-        if (str == null) return '';
-        _escapeDiv.textContent = str;
-        return _escapeDiv.innerHTML;
-      }
-
-      /* Safe avatar URL attribute builder */
-      function avatarSrc(url) {
-        return 'src="' + escapeHtml(url) + '"';
-      }
-
       document.addEventListener('DOMContentLoaded', function () {
         Manifest.load().then(function () {
           return Auth.requireAuth();
         }).then(function (user) {
           if (!user) return;
-          renderUser(user);
+          App.renderUser(user);
           loadStats(user.id);
           loadContinueReading(user.id);
           loadBookmarks(user.id);
@@ -194,56 +180,6 @@
           App.showToast('Failed to load dashboard. Please refresh.');
         });
       });
-
-      document.getElementById('menu-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-
-      document.getElementById('sidebar-signout').addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
-      });
-
-      /* Event delegation on avatar wrapper — survives innerHTML replacement */
-      document.getElementById('avatar-wrapper').addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
-      });
-
-      document.addEventListener('click', function () {
-        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
-      });
-
-      function renderUser(user) {
-        var profile = user.profile || {};
-        var email = user.email || '';
-        var name = profile.display_name || (email ? email.split('@')[0] : 'Reader');
-        var initials = Manifest.getInitials(name);
-
-        document.getElementById('greeting-title').textContent = 'Welcome back, ' + name.split(' ')[0];
-        document.getElementById('menu-name').textContent = name;
-        document.getElementById('menu-email').textContent = email;
-        document.getElementById('avatar-initials').textContent = initials;
-        document.getElementById('sidebar-name').textContent = name;
-        document.getElementById('sidebar-email').textContent = email;
-        document.getElementById('sidebar-initials').textContent = initials;
-
-        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-          /* Use img element construction instead of innerHTML to preserve event listeners */
-          var headerAvatar = document.getElementById('header-avatar');
-          headerAvatar.innerHTML = '';
-          var headerImg = document.createElement('img');
-          headerImg.setAttribute('src', profile.avatar_url);
-          headerImg.setAttribute('alt', name);
-          headerAvatar.appendChild(headerImg);
-
-          var sidebarAvatar = document.getElementById('sidebar-avatar');
-          sidebarAvatar.innerHTML = '';
-          var sidebarImg = document.createElement('img');
-          sidebarImg.setAttribute('src', profile.avatar_url);
-          sidebarImg.setAttribute('alt', name);
-          sidebarAvatar.appendChild(sidebarImg);
-        }
-      }
 
       async function loadStats(userId) {
         try {
@@ -296,9 +232,9 @@
             return;
           }
           var progress = (entry.progress_percent != null) ? entry.progress_percent : 0;
-          html += '<div class="history-item" style="margin-bottom:var(--space-3);cursor:pointer;" data-slug="' + escapeHtml(entry.article_slug) + '">' +
+          html += '<div class="history-item" style="margin-bottom:var(--space-3);cursor:pointer;" data-slug="' + App.escapeHtml(entry.article_slug) + '">' +
             '<div class="history-item__body">' +
-              '<div class="history-item__title">' + escapeHtml(article.title) + '</div>' +
+              '<div class="history-item__title">' + App.escapeHtml(article.title) + '</div>' +
               '<div class="progress-bar" style="margin-bottom:var(--space-2);"><div class="progress-bar__fill" style="width:' + progress + '%;"></div></div>' +
               '<div class="history-item__meta">' + progress + '% complete</div>' +
             '</div>' +
@@ -345,21 +281,21 @@
           var url = App.getArticleUrl(article.slug);
           var hasImage = article.coverImage && article.coverImage.length > 0;
           var imageHtml = hasImage
-            ? '<img class="article-card__image" src="' + escapeHtml(article.coverImage) + '" alt="' + escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
-            : '<div class="article-card__image article-card__image--placeholder">' + escapeHtml(initials) + '</div>';
+            ? '<img class="article-card__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
+            : '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
 
-          html += '<article class="article-card bookmark-card" data-slug="' + escapeHtml(article.slug) + '" style="transition-delay:' + (bookmarkIndex * 0.06) + 's">' +
-            '<button class="bookmark-card__remove" data-slug="' + escapeHtml(article.slug) + '" aria-label="Remove bookmark">' +
+          html += '<article class="article-card bookmark-card" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (bookmarkIndex * 0.06) + 's">' +
+            '<button class="bookmark-card__remove" data-slug="' + App.escapeHtml(article.slug) + '" aria-label="Remove bookmark">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
             '</button>' +
-            '<a href="' + escapeHtml(url) + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+            '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
             '<div class="article-card__body">' +
-              '<span class="article-card__category">' + escapeHtml(article.category) + '</span>' +
-              '<h3 class="article-card__title">' + escapeHtml(article.title) + '</h3>' +
-              '<p class="article-card__excerpt">' + escapeHtml(article.excerpt) + '</p>' +
+              '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
+              '<h3 class="article-card__title">' + App.escapeHtml(article.title) + '</h3>' +
+              '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
               '<div class="article-card__meta">' +
                 '<div class="article-card__info">' +
-                  '<div class="article-card__author">' + escapeHtml(article.author.name) + '</div>' +
+                  '<div class="article-card__author">' + App.escapeHtml(article.author.name) + '</div>' +
                   '<div class="article-card__date">' + Manifest.formatDate(article.publishedAt) + '</div>' +
                 '</div>' +
                 '<span class="article-card__read-time">' + (article.readTime || '—') + ' min read</span>' +
