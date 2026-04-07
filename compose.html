@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Compose and publish new articles.">
+  <title>Compose — Reader</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/article.css">
+  <link rel="stylesheet" href="css/compose.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
+</head>
+<body data-page="compose">
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">Reader</a>
+      <nav class="header__nav">
+        <a href="index.html" class="header__link">Home</a>
+        <a href="articles.html" class="header__link">Articles</a>
+        <a href="dashboard.html" class="header__link">Dashboard</a>
+      </nav>
+      <div class="header__actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="header__avatar-wrapper" id="avatar-wrapper">
+          <div class="header__avatar" id="header-avatar">
+            <span id="avatar-initials">?</span>
+          </div>
+          <div class="avatar-dropdown__menu" id="avatar-menu">
+            <div class="avatar-dropdown__header">
+              <div class="avatar-dropdown__name" id="menu-name">Loading...</div>
+              <div class="avatar-dropdown__email" id="menu-email"></div>
+            </div>
+            <div class="avatar-dropdown__list">
+              <a href="dashboard.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </a>
+              <a href="bookmarks.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Bookmarks
+              </a>
+              <a href="history.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Reading History
+              </a>
+              <a href="profile.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile Settings
+              </a>
+              <div class="avatar-dropdown__divider"></div>
+              <button class="avatar-dropdown__item avatar-dropdown__item--danger" id="menu-signout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar__logo">Reader</a>
+    <div class="sidebar__user" id="sidebar-user">
+      <div class="sidebar__user-avatar" id="sidebar-avatar">
+        <span id="sidebar-initials">?</span>
+      </div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar__user-email" id="sidebar-email"></div>
+      </div>
+    </div>
+    <div class="sidebar__nav">
+      <a href="index.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="articles.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Articles
+      </a>
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="bookmarks.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Bookmarks
+      </a>
+      <a href="history.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Reading History
+      </a>
+      <a href="profile.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+    <button class="sidebar__signout" id="sidebar-signout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </nav>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <main>
+    <!-- Access denied state (shown to non-admins) -->
+    <div class="compose-gate" id="compose-gate" style="display:none;">
+      <svg class="compose-gate__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <h2 class="compose-gate__title">Admin Access Required</h2>
+      <p class="compose-gate__text">You don't have permission to compose articles.</p>
+      <a href="dashboard.html" class="btn btn--primary">Back to Dashboard</a>
+    </div>
+
+    <!-- Compose page (shown to admins) -->
+    <section class="container compose-page" id="compose-page" style="display:none;">
+      <div class="dashboard-greeting">
+        <h1 class="dashboard-greeting__title">Compose Article</h1>
+        <p class="dashboard-greeting__subtitle">Write and publish a new article to Reader.</p>
+      </div>
+
+      <!-- ===== METADATA FORM ===== -->
+      <div class="compose-meta" id="compose-meta">
+        <div class="compose-meta__field compose-meta__field--full">
+          <label class="compose-meta__label" for="meta-title">Title *</label>
+          <input class="compose-meta__input" type="text" id="meta-title" placeholder="Your article title" required>
+        </div>
+        <div class="compose-meta__field compose-meta__field--full">
+          <label class="compose-meta__label" for="meta-excerpt">Subtitle / Excerpt</label>
+          <textarea class="compose-meta__textarea" id="meta-excerpt" rows="2" placeholder="A short description of the article (optional)"></textarea>
+        </div>
+        <div class="compose-meta__field">
+          <label class="compose-meta__label" for="meta-category">Category</label>
+          <input class="compose-meta__input" type="text" id="meta-category" placeholder="e.g. Education, Science">
+        </div>
+        <div class="compose-meta__field">
+          <label class="compose-meta__label" for="meta-slug">Slug</label>
+          <input class="compose-meta__input" type="text" id="meta-slug" placeholder="auto-generated-from-title">
+        </div>
+        <div class="compose-meta__field">
+          <label class="compose-meta__label" for="meta-author">Author Name</label>
+          <input class="compose-meta__input" type="text" id="meta-author" placeholder="Your name">
+        </div>
+        <div class="compose-meta__field">
+          <label class="compose-meta__label" for="meta-date">Publish Date</label>
+          <input class="compose-meta__input" type="date" id="meta-date">
+        </div>
+        <div class="compose-meta__field">
+          <label class="compose-meta__label" for="meta-author-bio">Author Bio</label>
+          <input class="compose-meta__input" type="text" id="meta-author-bio" placeholder="Brief author description (optional)">
+        </div>
+        <div class="compose-meta__field">
+          <div class="compose-meta__check-row">
+            <input class="compose-meta__checkbox" type="checkbox" id="meta-featured">
+            <label class="compose-meta__check-label" for="meta-featured">Featured Article</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOM STYLE ===== -->
+      <div class="compose-style" id="compose-style-section">
+        <div class="compose-style__toggle">
+          <input class="compose-style__checkbox" type="checkbox" id="use-custom-style">
+          <label class="compose-style__label" for="use-custom-style">Use custom style</label>
+        </div>
+        <div id="custom-css-area" style="display:none;">
+          <div class="compose-style__area">
+            <p class="compose-style__hint">Paste your CSS stylesheet below. It will be applied to the editor and preview, and saved as the article's <code>style.css</code>.</p>
+            <textarea class="compose-style__css-input" id="custom-css-input" placeholder="/* Paste your CSS here */&#10;&#10;.article-body h2 {&#10;  color: #2563eb;&#10;}"></textarea>
+            <div class="compose-style__actions">
+              <button class="btn btn--primary" id="apply-css-btn" style="font-size:0.8rem;padding:var(--space-2) var(--space-5);">Apply Style</button>
+              <span class="compose-style__status" id="css-status"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== EDITOR ===== -->
+      <div class="compose-editor" id="compose-editor">
+        <!-- Tabs (mobile only, hidden on desktop) -->
+        <div class="compose-tabs" id="compose-tabs">
+          <button class="compose-tabs__btn compose-tabs__btn--active" id="tab-editor" data-tab="editor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editor
+          </button>
+          <button class="compose-tabs__btn" id="tab-preview" data-tab="preview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="compose-toolbar" id="compose-toolbar">
+          <button class="compose-toolbar__btn" data-insert="# " title="Heading 1">H1</button>
+          <button class="compose-toolbar__btn" data-insert="## " title="Heading 2">H2</button>
+          <button class="compose-toolbar__btn" data-insert="### " title="Heading 3">H3</button>
+          <div class="compose-toolbar__sep"></div>
+          <button class="compose-toolbar__btn" data-wrap="**" title="Bold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+          </button>
+          <button class="compose-toolbar__btn" data-wrap="*" title="Italic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          </button>
+          <button class="compose-toolbar__btn" data-wrap-tag="u" title="Underline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+          </button>
+          <div class="compose-toolbar__sep"></div>
+          <button class="compose-toolbar__btn" data-insert="> " title="Blockquote">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="3" y2="18"/><line x1="7" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="21" y2="12"/><line x1="7" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="compose-toolbar__btn" data-insert="---&#10;" title="Divider">—</button>
+          <div class="compose-toolbar__sep"></div>
+          <button class="compose-toolbar__btn" data-insert="1. " title="Numbered List">1.</button>
+          <button class="compose-toolbar__btn" data-insert="- " title="Bullet List">•</button>
+          <button class="compose-toolbar__btn" data-insert="I. " title="Roman Numeral List">I.</button>
+        </div>
+
+        <!-- Panels -->
+        <div class="compose-panels" id="compose-panels">
+          <div class="compose-panel compose-panel--editor" id="editor-panel">
+            <textarea class="compose-textarea" id="editor-textarea" placeholder="Start writing your article here...&#10;&#10;# My Article Title&#10;&#10;First paragraph goes here.&#10;&#10;## Section Heading&#10;&#10;More content..."></textarea>
+          </div>
+          <div class="compose-panel compose-panel--preview" id="preview-panel">
+            <div class="compose-preview" id="compose-preview-wrapper">
+              <div class="article-body" id="preview-body">
+                <p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PUBLISH ACTIONS ===== -->
+      <div class="compose-actions">
+        <button class="btn btn--primary" id="publish-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Publish Article
+        </button>
+        <button class="btn btn--ghost" id="preview-fullscreen-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Full Preview
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== PUBLISH MODAL ===== -->
+  <div id="publish-modal-overlay" style="display:none;"></div>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__brand">Reader</p>
+      <p class="footer__copy">&copy; 2026 &middot; All rights reserved</p>
+    </div>
+  </footer>
+
+  <!-- ===== CUSTOM STYLE TAG (injected by JS) ===== -->
+  <style id="custom-article-style"></style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/manifest.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* =============================================
+         ADMIN CONFIGURATION
+         ============================================= */
+      var ADMIN_EMAILS = ['saxumfluens@gmail.com'];
+
+      /* =============================================
+         STATE
+         ============================================= */
+      var currentUser = null;
+      var customCSSApplied = false;
+      var customCSSContent = '';
+      var debounceTimer = null;
+
+      /* =============================================
+         INITIALIZATION
+         ============================================= */
+      document.addEventListener('DOMContentLoaded', function () {
+        Manifest.load().then(function () {
+          return Auth.requireAuth();
+        }).then(function (user) {
+          if (!user) return;
+          currentUser = user;
+          App.renderUser(user);
+
+          var email = (user.email || '').toLowerCase().trim();
+          var isAdmin = ADMIN_EMAILS.indexOf(email) !== -1;
+
+          if (!isAdmin) {
+            document.getElementById('compose-gate').style.display = 'block';
+            return;
+          }
+
+          document.getElementById('compose-page').style.display = 'block';
+          initComposer(user);
+        }).catch(function (err) {
+          console.error('Compose initialization error:', err);
+          App.showToast('Failed to load. Please refresh.');
+        });
+      });
+
+      /* =============================================
+         COMPOSER INITIALIZATION
+         ============================================= */
+      function initComposer(user) {
+        var profile = user.profile || {};
+        var displayName = profile.display_name || (user.email ? user.email.split('@')[0] : '');
+
+        /* Defaults */
+        document.getElementById('meta-author').value = displayName;
+        document.getElementById('meta-date').value = todayISO();
+
+        /* Auto-generate slug from title */
+        document.getElementById('meta-title').addEventListener('input', function () {
+          var slugField = document.getElementById('meta-slug');
+          if (!slugField.dataset.manual) {
+            slugField.value = generateSlug(this.value);
+          }
+        });
+
+        document.getElementById('meta-slug').addEventListener('input', function () {
+          this.dataset.manual = '1';
+        });
+
+        /* Custom style toggle */
+        document.getElementById('use-custom-style').addEventListener('change', function () {
+          var area = document.getElementById('custom-css-area');
+          area.style.display = this.checked ? 'block' : 'none';
+          if (!this.checked) {
+            clearCustomCSS();
+          }
+        });
+
+        /* Apply CSS button */
+        document.getElementById('apply-css-btn').addEventListener('click', function () {
+          applyCustomCSS();
+        });
+
+        /* Editor input → live preview */
+        var textarea = document.getElementById('editor-textarea');
+        textarea.addEventListener('input', function () {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(function () {
+            updatePreview();
+          }, 200);
+        });
+
+        /* Tab handling on textarea */
+        textarea.addEventListener('keydown', function (e) {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            var value = this.value;
+            this.value = value.substring(0, start) + '  ' + value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 2;
+            updatePreview();
+          }
+        });
+
+        /* Mobile tabs */
+        initTabs();
+
+        /* Toolbar buttons */
+        initToolbar(textarea);
+
+        /* Publish */
+        document.getElementById('publish-btn').addEventListener('click', function () {
+          publishArticle();
+        });
+
+        /* Full preview */
+        document.getElementById('preview-fullscreen-btn').addEventListener('click', function () {
+          openFullPreview();
+        });
+      }
+
+      /* =============================================
+         TABS (MOBILE)
+         ============================================= */
+      function initTabs() {
+        var editorTab = document.getElementById('tab-editor');
+        var previewTab = document.getElementById('tab-preview');
+        var editorPanel = document.getElementById('editor-panel');
+        var previewPanel = document.getElementById('preview-panel');
+
+        editorTab.addEventListener('click', function () {
+          editorTab.classList.add('compose-tabs__btn--active');
+          previewTab.classList.remove('compose-tabs__btn--active');
+          editorPanel.classList.remove('compose-panel--hidden');
+          previewPanel.classList.add('compose-panel--hidden');
+        });
+
+        previewTab.addEventListener('click', function () {
+          previewTab.classList.add('compose-tabs__btn--active');
+          editorTab.classList.remove('compose-tabs__btn--active');
+          previewPanel.classList.remove('compose-panel--hidden');
+          editorPanel.classList.add('compose-panel--hidden');
+          updatePreview();
+        });
+
+        /* Initial state on mobile */
+        function checkMobile() {
+          if (window.innerWidth < 768) {
+            previewPanel.classList.add('compose-panel--hidden');
+          } else {
+            editorPanel.classList.remove('compose-panel--hidden');
+            previewPanel.classList.remove('compose-panel--hidden');
+          }
+        }
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+      }
+
+      /* =============================================
+         TOOLBAR
+         ============================================= */
+      function initToolbar(textarea) {
+        document.getElementById('compose-toolbar').addEventListener('click', function (e) {
+          var btn = e.target.closest('.compose-toolbar__btn');
+          if (!btn) return;
+
+          textarea.focus();
+          var start = textarea.selectionStart;
+          var end = textarea.selectionEnd;
+          var value = textarea.value;
+          var selected = value.substring(start, end);
+
+          /* data-insert: insert text at cursor (beginning of line) */
+          var insertText = btn.getAttribute('data-insert');
+          if (insertText) {
+            /* Decode HTML entities */
+            var temp = document.createElement('div');
+            temp.innerHTML = insertText;
+            insertText = temp.textContent;
+            textarea.value = value.substring(0, start) + insertText + value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+            updatePreview();
+            return;
+          }
+
+          /* data-wrap: wrap selection with marker (e.g. **bold**) */
+          var wrapText = btn.getAttribute('data-wrap');
+          if (wrapText) {
+            if (selected) {
+              textarea.value = value.substring(0, start) + wrapText + selected + wrapText + value.substring(end);
+              textarea.selectionStart = start + wrapText.length;
+              textarea.selectionEnd = end + wrapText.length;
+            } else {
+              textarea.value = value.substring(0, start) + wrapText + wrapText + value.substring(end);
+              textarea.selectionStart = textarea.selectionEnd = start + wrapText.length;
+            }
+            updatePreview();
+            return;
+          }
+
+          /* data-wrap-tag: wrap selection with HTML tag (e.g. <u>text</u>) */
+          var wrapTag = btn.getAttribute('data-wrap-tag');
+          if (wrapTag) {
+            var openTag = '<' + wrapTag + '>';
+            var closeTag = '</' + wrapTag + '>';
+            if (selected) {
+              textarea.value = value.substring(0, start) + openTag + selected + closeTag + value.substring(end);
+              textarea.selectionStart = start + openTag.length;
+              textarea.selectionEnd = end + openTag.length;
+            } else {
+              textarea.value = value.substring(0, start) + openTag + closeTag + value.substring(end);
+              textarea.selectionStart = textarea.selectionEnd = start + openTag.length;
+            }
+            updatePreview();
+            return;
+          }
+        });
+      }
+
+      /* =============================================
+         CUSTOM CSS
+         ============================================= */
+      function applyCustomCSS() {
+        var cssInput = document.getElementById('custom-css-input').value.trim();
+        if (!cssInput) {
+          App.showToast('Please paste some CSS first.');
+          return;
+        }
+
+        customCSSContent = cssInput;
+        customCSSApplied = true;
+
+        /* Scope CSS to the preview wrapper */
+        var styleEl = document.getElementById('custom-article-style');
+        styleEl.textContent = scopeCSS(cssInput, '#compose-preview-wrapper');
+
+        document.getElementById('css-status').textContent = 'Style applied ✓';
+        App.showToast('Custom style applied to editor.');
+        updatePreview();
+      }
+
+      function clearCustomCSS() {
+        customCSSContent = '';
+        customCSSApplied = false;
+        document.getElementById('custom-article-style').textContent = '';
+        document.getElementById('css-status').textContent = '';
+        document.getElementById('custom-css-input').value = '';
+      }
+
+      /**
+       * Prefix every CSS selector with a scope selector so the
+       * custom CSS only affects the preview area.
+       */
+      function scopeCSS(css, scope) {
+        /* Remove comments */
+        var cleaned = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+        /* Split on } and process each rule block */
+        var blocks = cleaned.split('}');
+        var result = [];
+
+        for (var i = 0; i < blocks.length; i++) {
+          var block = blocks[i].trim();
+          if (!block) continue;
+
+          var bracePos = block.indexOf('{');
+          if (bracePos === -1) continue;
+
+          var selectors = block.substring(0, bracePos).trim();
+          var declarations = block.substring(bracePos + 1).trim();
+
+          /* Skip @-rules */
+          if (selectors.charAt(0) === '@') {
+            result.push(selectors + '{' + declarations + '}');
+            continue;
+          }
+
+          /* Prefix each comma-separated selector */
+          var scopedSelectors = selectors.split(',').map(function (sel) {
+            sel = sel.trim();
+            if (!sel) return '';
+            return scope + ' ' + sel;
+          }).filter(function (s) { return s; }).join(', ');
+
+          result.push(scopedSelectors + ' { ' + declarations + ' }');
+        }
+
+        return result.join('\n');
+      }
+
+      /* =============================================
+         LIVE PREVIEW
+         ============================================= */
+      function updatePreview() {
+        var raw = document.getElementById('editor-textarea').value;
+        var html = parseArticleContent(raw);
+        document.getElementById('preview-body').innerHTML = html || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
+      }
+
+      /* =============================================
+         ARTICLE CONTENT PARSER
+         
+         Converts the custom markup to semantic HTML.
+         Zero-loss: every character of content is preserved.
+         ============================================= */
+      function parseArticleContent(text) {
+        if (!text || !text.trim()) return '';
+
+        /* Step 1: Replace escaped backticks with placeholder */
+        var BACKTICK_PLACEHOLDER = '\u0000BT\u0000';
+        text = text.replace(/\\`/g, BACKTICK_PLACEHOLDER);
+
+        var lines = text.split('\n');
+        var result = [];
+        var i = 0;
+
+        while (i < lines.length) {
+          var line = lines[i];
+
+          /* ── Empty line: skip ── */
+          if (line.trim() === '') {
+            i++;
+            continue;
+          }
+
+          /* ── Dotted HR: - - - ── */
+          if (/^-\s+-\s+-\s*$/.test(line)) {
+            result.push('<hr class="dotted">');
+            i++;
+            continue;
+          }
+
+          /* ── Solid HR: --- (3+ dashes) ── */
+          if (/^-{3,}\s*$/.test(line)) {
+            result.push('<hr>');
+            i++;
+            continue;
+          }
+
+          /* ── Heading: # to ###### ── */
+          var headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+          if (headingMatch) {
+            var level = headingMatch[1].length;
+            var headContent = applyInlineFormatting(headingMatch[2]);
+            result.push('<h' + level + '>' + headContent + '</h' + level + '>');
+            i++;
+            continue;
+          }
+
+          /* ── Blockquote: > >> >>> ── */
+          if (/^>{1,3}\s/.test(line) || /^>{1,3}$/.test(line)) {
+            var bqLines = [];
+            while (i < lines.length && (/^>{1,3}\s/.test(lines[i]) || /^>{1,3}$/.test(lines[i]))) {
+              bqLines.push(lines[i]);
+              i++;
+            }
+            result.push(parseBlockquoteGroup(bqLines));
+            continue;
+          }
+
+          /* ── Roman numeral list: I. II. III. etc. ── */
+          if (/^[IVXLCDM]+\.\s+/.test(line)) {
+            var romanItems = [];
+            while (i < lines.length && /^[IVXLCDM]+\.\s+/.test(lines[i])) {
+              romanItems.push(lines[i].replace(/^[IVXLCDM]+\.\s+/, ''));
+              i++;
+            }
+            result.push('<ol style="list-style-type:upper-roman">');
+            for (var ri = 0; ri < romanItems.length; ri++) {
+              result.push('  <li>' + applyInlineFormatting(romanItems[ri]) + '</li>');
+            }
+            result.push('</ol>');
+            continue;
+          }
+
+          /* ── Ordered list: 1. 2. 3. etc. ── */
+          if (/^\d+\.\s+/.test(line)) {
+            var olItems = [];
+            while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+              olItems.push(lines[i].replace(/^\d+\.\s+/, ''));
+              i++;
+            }
+            result.push('<ol>');
+            for (var oi = 0; oi < olItems.length; oi++) {
+              result.push('  <li>' + applyInlineFormatting(olItems[oi]) + '</li>');
+            }
+            result.push('</ol>');
+            continue;
+          }
+
+          /* ── Unordered list: - * + ── */
+          if (/^[-*+]\s+/.test(line)) {
+            var ulItems = [];
+            while (i < lines.length && /^[-*+]\s+/.test(lines[i])) {
+              ulItems.push(lines[i].replace(/^[-*+]\s+/, ''));
+              i++;
+            }
+            result.push('<ul>');
+            for (var ui = 0; ui < ulItems.length; ui++) {
+              result.push('  <li>' + applyInlineFormatting(ulItems[ui]) + '</li>');
+            }
+            result.push('</ul>');
+            continue;
+          }
+
+          /* ── Paragraph: collect consecutive non-block lines ── */
+          var paraLines = [];
+          while (i < lines.length && lines[i].trim() !== '' && !isBlockElement(lines[i])) {
+            paraLines.push(lines[i]);
+            i++;
+          }
+          if (paraLines.length > 0) {
+            var paraContent = paraLines.map(function (pl) {
+              return applyInlineFormatting(pl);
+            }).join('<br>\n');
+            result.push('<p>' + paraContent + '</p>');
+          }
+        }
+
+        var output = result.join('\n\n');
+
+        /* Step final: restore escaped backticks */
+        output = output.split(BACKTICK_PLACEHOLDER).join('`');
+
+        return output;
+      }
+
+      /**
+       * Check if a line starts a block-level element
+       */
+      function isBlockElement(line) {
+        if (/^#{1,6}\s+/.test(line)) return true;
+        if (/^-{3,}\s*$/.test(line)) return true;
+        if (/^-\s+-\s+-\s*$/.test(line)) return true;
+        if (/^>{1,3}\s/.test(line) || /^>{1,3}$/.test(line)) return true;
+        if (/^\d+\.\s+/.test(line)) return true;
+        if (/^[IVXLCDM]+\.\s+/.test(line)) return true;
+        if (/^[-*+]\s+/.test(line)) return true;
+        return false;
+      }
+
+      /**
+       * Apply inline formatting: **bold**, *italic*, <u>underline</u>
+       */
+      function applyInlineFormatting(text) {
+        /* Bold: **text** */
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        /* Italic: *text* (but not inside **) */
+        text = text.replace(/(?<!\*)\*([^\*]+?)\*(?!\*)/g, '<em>$1</em>');
+        /* <u>text</u> is already HTML — pass through */
+        return text;
+      }
+
+      /**
+       * Parse a group of blockquote lines into nested <blockquote> HTML.
+       * Handles >, >>, >>>, inline formatting, and bullets inside blockquotes.
+       */
+      function parseBlockquoteGroup(lines) {
+        /* Parse each line into {level, content} */
+        var parsed = [];
+        for (var i = 0; i < lines.length; i++) {
+          var match = lines[i].match(/^(>{1,3})\s?(.*)/);
+          if (match) {
+            parsed.push({ level: match[1].length, content: match[2] });
+          }
+        }
+
+        /* Group consecutive lines by level */
+        var groups = [];
+        var currentGroup = null;
+
+        for (var j = 0; j < parsed.length; j++) {
+          var item = parsed[j];
+          if (!currentGroup || currentGroup.level !== item.level) {
+            currentGroup = { level: item.level, lines: [] };
+            groups.push(currentGroup);
+          }
+          currentGroup.lines.push(item.content);
+        }
+
+        /* Build HTML for each group */
+        var html = '';
+        for (var g = 0; g < groups.length; g++) {
+          var group = groups[g];
+          var depth = group.level;
+          var contentLines = group.lines;
+
+          /* Open blockquotes to target depth */
+          var opens = '';
+          var closes = '';
+          for (var d = 0; d < depth; d++) {
+            opens += '<blockquote>';
+            closes += '</blockquote>';
+          }
+
+          /* Process content: detect bullets vs text */
+          var inner = '';
+          var textBuf = [];
+          var bulletBuf = [];
+
+          function flushText() {
+            if (textBuf.length > 0) {
+              inner += '<p>' + textBuf.map(function (t) {
+                return applyInlineFormatting(t);
+              }).join('<br>\n') + '</p>\n';
+              textBuf = [];
+            }
+          }
+
+          function flushBullets() {
+            if (bulletBuf.length > 0) {
+              inner += '<ul>\n';
+              for (var b = 0; b < bulletBuf.length; b++) {
+                inner += '  <li>' + applyInlineFormatting(bulletBuf[b]) + '</li>\n';
+              }
+              inner += '</ul>\n';
+              bulletBuf = [];
+            }
+          }
+
+          for (var cl = 0; cl < contentLines.length; cl++) {
+            var cLine = contentLines[cl];
+            /* Check for bullet inside blockquote: - item */
+            var bulletMatch = cLine.match(/^[-*+]\s+(.*)/);
+            if (bulletMatch) {
+              flushText();
+              bulletBuf.push(bulletMatch[1]);
+            } else {
+              flushBullets();
+              if (cLine.trim() !== '') {
+                textBuf.push(cLine);
+              } else {
+                flushText();
+              }
+            }
+          }
+          flushText();
+          flushBullets();
+
+          html += opens + '\n' + inner + closes + '\n';
+        }
+
+        return html;
+      }
+
+      /* =============================================
+         PUBLISH
+         ============================================= */
+      function publishArticle() {
+        /* Validate */
+        var title = document.getElementById('meta-title').value.trim();
+        if (!title) {
+          App.showToast('Please enter an article title.');
+          document.getElementById('meta-title').focus();
+          return;
+        }
+
+        var content = document.getElementById('editor-textarea').value;
+        if (!content.trim()) {
+          App.showToast('Please write some article content.');
+          document.getElementById('editor-textarea').focus();
+          return;
+        }
+
+        var slug = document.getElementById('meta-slug').value.trim() || generateSlug(title);
+        var excerpt = document.getElementById('meta-excerpt').value.trim();
+        var category = document.getElementById('meta-category').value.trim() || 'General';
+        var authorName = document.getElementById('meta-author').value.trim() || 'Anonymous';
+        var authorBio = document.getElementById('meta-author-bio').value.trim();
+        var publishDate = document.getElementById('meta-date').value || todayISO();
+        var featured = document.getElementById('meta-featured').checked;
+        var useCustomStyle = document.getElementById('use-custom-style').checked;
+
+        /* Generate article HTML */
+        var articleHTML = parseArticleContent(content);
+
+        /* Generate manifest entry */
+        var existingArticles = window.ARTICLES || [];
+        var maxId = 0;
+        for (var a = 0; a < existingArticles.length; a++) {
+          if (existingArticles[a].id > maxId) maxId = existingArticles[a].id;
+        }
+
+        var manifestEntry = {
+          id: maxId + 1,
+          slug: slug,
+          title: title,
+          excerpt: excerpt,
+          category: category,
+          categorySlug: generateSlug(category),
+          author: {
+            name: authorName,
+            avatar: '',
+            bio: authorBio
+          },
+          coverImage: '',
+          coverImageAlt: '',
+          publishedAt: publishDate,
+          featured: featured,
+          folder: 'articles/' + slug + '/'
+        };
+
+        /* Show publish modal */
+        showPublishModal({
+          slug: slug,
+          title: title,
+          articleHTML: articleHTML,
+          manifestEntry: manifestEntry,
+          customCSS: useCustomStyle && customCSSApplied ? customCSSContent : null
+        });
+      }
+
+      function showPublishModal(data) {
+        var overlay = document.getElementById('publish-modal-overlay');
+
+        var modalHTML = '<div class="compose-modal-overlay" id="modal-overlay-inner">';
+        modalHTML += '<div class="compose-modal">';
+        modalHTML += '<div class="compose-modal__header">';
+        modalHTML += '<h2 class="compose-modal__title">Article Generated</h2>';
+        modalHTML += '<button class="compose-modal__close" id="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+        modalHTML += '</div>';
+
+        modalHTML += '<div class="compose-modal__body">';
+
+        /* Instructions */
+        modalHTML += '<div class="compose-modal__instructions">';
+        modalHTML += '<strong>How to publish:</strong><br>';
+        modalHTML += '1. Create the folder <code>articles/' + App.escapeHtml(data.slug) + '/</code><br>';
+        modalHTML += '2. Save the article HTML below as <code>index.html</code> in that folder<br>';
+        if (data.customCSS) {
+          modalHTML += '3. Save the custom CSS as <code>style.css</code> in the same folder<br>';
+          modalHTML += '4. Add the manifest entry to <code>manifest.json</code>';
+        } else {
+          modalHTML += '3. Add the manifest entry to <code>manifest.json</code>';
+        }
+        modalHTML += '</div>';
+
+        /* File: index.html */
+        modalHTML += '<div class="compose-file">';
+        modalHTML += '<div class="compose-file__header">';
+        modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>articles/' + App.escapeHtml(data.slug) + '/index.html</span>';
+        modalHTML += '<button class="compose-file__copy" data-copy="article-html">Copy</button>';
+        modalHTML += '</div>';
+        modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="article-html-output">' + App.escapeHtml(data.articleHTML) + '</pre></div>';
+        modalHTML += '</div>';
+
+        /* File: style.css (if applicable) */
+        if (data.customCSS) {
+          modalHTML += '<div class="compose-file">';
+          modalHTML += '<div class="compose-file__header">';
+          modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>articles/' + App.escapeHtml(data.slug) + '/style.css</span>';
+          modalHTML += '<button class="compose-file__copy" data-copy="style-css">Copy</button>';
+          modalHTML += '</div>';
+          modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="style-css-output">' + App.escapeHtml(data.customCSS) + '</pre></div>';
+          modalHTML += '</div>';
+        }
+
+        /* File: manifest entry */
+        var manifestJSON = JSON.stringify(data.manifestEntry, null, 2);
+        modalHTML += '<div class="compose-file">';
+        modalHTML += '<div class="compose-file__header">';
+        modalHTML += '<span class="compose-file__name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>manifest.json entry</span>';
+        modalHTML += '<button class="compose-file__copy" data-copy="manifest-entry">Copy</button>';
+        modalHTML += '</div>';
+        modalHTML += '<div class="compose-file__content"><pre class="compose-file__code" id="manifest-entry-output">' + App.escapeHtml(manifestJSON) + '</pre></div>';
+        modalHTML += '</div>';
+
+        modalHTML += '</div>'; /* End body */
+
+        /* Footer */
+        modalHTML += '<div class="compose-modal__footer">';
+        modalHTML += '<button class="btn btn--ghost" id="modal-done-btn">Done</button>';
+        modalHTML += '</div>';
+
+        modalHTML += '</div>'; /* End modal */
+        modalHTML += '</div>'; /* End overlay */
+
+        overlay.innerHTML = modalHTML;
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+
+        /* Store raw content for copy buttons */
+        overlay._data = {
+          'article-html': data.articleHTML,
+          'style-css': data.customCSS || '',
+          'manifest-entry': manifestJSON
+        };
+
+        /* Close handlers */
+        document.getElementById('modal-close').addEventListener('click', closePublishModal);
+        document.getElementById('modal-done-btn').addEventListener('click', closePublishModal);
+        document.getElementById('modal-overlay-inner').addEventListener('click', function (e) {
+          if (e.target === this) closePublishModal();
+        });
+
+        /* Copy handlers */
+        overlay.querySelectorAll('.compose-file__copy').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var key = btn.getAttribute('data-copy');
+            var content = overlay._data[key] || '';
+            navigator.clipboard.writeText(content).then(function () {
+              btn.textContent = 'Copied!';
+              setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+            }).catch(function () {
+              /* Fallback */
+              var ta = document.createElement('textarea');
+              ta.value = content;
+              ta.style.cssText = 'position:fixed;top:-9999px;';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              ta.remove();
+              btn.textContent = 'Copied!';
+              setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+            });
+          });
+        });
+      }
+
+      function closePublishModal() {
+        var overlay = document.getElementById('publish-modal-overlay');
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+        document.body.style.overflow = '';
+      }
+
+      /* =============================================
+         FULL PREVIEW
+         ============================================= */
+      function openFullPreview() {
+        updatePreview();
+
+        var title = document.getElementById('meta-title').value.trim() || 'Untitled';
+        var excerpt = document.getElementById('meta-excerpt').value.trim();
+        var category = document.getElementById('meta-category').value.trim() || 'General';
+        var authorName = document.getElementById('meta-author').value.trim() || 'Anonymous';
+        var publishDate = document.getElementById('meta-date').value || todayISO();
+        var bodyHTML = document.getElementById('preview-body').innerHTML;
+
+        var overlay = document.getElementById('publish-modal-overlay');
+        var previewHTML = '<div class="compose-modal-overlay" id="fullpreview-overlay-inner">';
+        previewHTML += '<div class="compose-modal" style="max-width:820px;">';
+        previewHTML += '<div class="compose-modal__header">';
+        previewHTML += '<h2 class="compose-modal__title">Full Article Preview</h2>';
+        previewHTML += '<button class="compose-modal__close" id="fullpreview-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+        previewHTML += '</div>';
+        previewHTML += '<div class="compose-modal__body" style="padding:0;">';
+
+        /* Hero section (no-image variant) */
+        previewHTML += '<div style="padding:var(--space-8) var(--space-6) var(--space-4);">';
+        previewHTML += '<span class="badge">' + App.escapeHtml(category) + '</span>';
+        previewHTML += '<h1 style="font-family:\'Fraunces\',Georgia,serif;font-size:2rem;font-weight:600;line-height:1.15;margin:var(--space-3) 0;">' + App.escapeHtml(title) + '</h1>';
+        if (excerpt) {
+          previewHTML += '<p style="font-family:\'Lora\',Georgia,serif;font-size:1rem;font-style:italic;color:var(--text-secondary);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
+        }
+        previewHTML += '<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-4);font-family:\'Inter\',sans-serif;font-size:0.8rem;color:var(--text-secondary);">';
+        previewHTML += '<span style="font-weight:600;color:var(--text-primary);">' + App.escapeHtml(authorName) + '</span>';
+        previewHTML += '<span>&middot;</span>';
+        previewHTML += '<span>' + Manifest.formatDate(publishDate) + '</span>';
+        previewHTML += '</div>';
+        previewHTML += '</div>';
+
+        previewHTML += '<hr style="margin:0;">';
+
+        /* Article body */
+        previewHTML += '<div id="fullpreview-body" style="padding:var(--space-6);">';
+        previewHTML += '<article class="article-body" style="max-width:100%;padding:0;">' + bodyHTML + '</article>';
+        previewHTML += '</div>';
+
+        previewHTML += '</div>';
+
+        previewHTML += '<div class="compose-modal__footer">';
+        previewHTML += '<button class="btn btn--ghost" id="fullpreview-done">Close</button>';
+        previewHTML += '</div>';
+
+        previewHTML += '</div>';
+        previewHTML += '</div>';
+
+        overlay.innerHTML = previewHTML;
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+
+        /* Apply custom CSS to full preview if active */
+        if (customCSSApplied && customCSSContent) {
+          var fullPreviewStyle = document.createElement('style');
+          fullPreviewStyle.textContent = scopeCSS(customCSSContent, '#fullpreview-body');
+          document.getElementById('fullpreview-body').appendChild(fullPreviewStyle);
+        }
+
+        document.getElementById('fullpreview-close').addEventListener('click', closePublishModal);
+        document.getElementById('fullpreview-done').addEventListener('click', closePublishModal);
+        document.getElementById('fullpreview-overlay-inner').addEventListener('click', function (e) {
+          if (e.target === this) closePublishModal();
+        });
+      }
+
+      /* =============================================
+         UTILITIES
+         ============================================= */
+      function generateSlug(text) {
+        if (!text) return '';
+        return text
+          .toLowerCase()
+          .replace(/['']/g, '')
+          .replace(/[^\w\s-]/g, '')
+          .replace(/[\s_]+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+
+      function todayISO() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      }
+    })();
+  </script>
+</body>
+</html>

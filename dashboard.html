@@ -117,6 +117,18 @@
         <p class="dashboard-greeting__subtitle">Here's your reading overview.</p>
       </div>
 
+      <!-- Admin-only: Compose link -->
+      <div id="admin-compose-card" style="display:none;margin-bottom:var(--space-8);">
+        <a href="compose.html" style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-5) var(--space-6);background:var(--accent-subtle);border:1px solid var(--accent);border-radius:var(--radius-md);text-decoration:none;transition:transform var(--transition-fast),box-shadow var(--transition-fast);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;flex-shrink:0;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <div>
+            <div style="font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:600;color:var(--accent);">Compose New Article</div>
+            <div style="font-family:'Inter',sans-serif;font-size:0.8rem;color:var(--text-secondary);margin-top:2px;">Write and publish a new article to Reader</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-left:auto;"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card">
           <div class="stat-card__value" id="stat-total">—</div>
@@ -166,12 +178,22 @@
     (function () {
       'use strict';
 
+      var ADMIN_EMAILS = ['saxumfluens@gmail.com'];
+
       document.addEventListener('DOMContentLoaded', function () {
         Manifest.load().then(function () {
           return Auth.requireAuth();
         }).then(function (user) {
           if (!user) return;
           App.renderUser(user);
+
+          /* Show compose card for admins */
+          var email = (user.email || '').toLowerCase().trim();
+          if (ADMIN_EMAILS.indexOf(email) !== -1) {
+            var composeCard = document.getElementById('admin-compose-card');
+            if (composeCard) composeCard.style.display = 'block';
+          }
+
           loadStats(user.id);
           loadContinueReading(user.id);
           loadBookmarks(user.id);

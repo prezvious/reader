@@ -250,6 +250,11 @@ hr {
   margin: 2.5em 0;
 }
 
+hr.dotted {
+  border-top-style: dotted;
+  border-top-width: 2px;
+}
+
 figure {
   margin: 2em 0;
 }
