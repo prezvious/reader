@@ -190,8 +190,8 @@
 
       /* Load article for everyone; hydrate auth optionally */
       document.addEventListener('DOMContentLoaded', function () {
-        /* Hydrate user if logged in (optional) */
-        Auth.requireAuth().then(function (user) {
+        /* Hydrate user if logged in (optional) — use initAuth to avoid redirect */
+        Auth.initAuth().then(function (user) {
           if (user) {
             currentUser = user;
             App.renderUser(user);
@@ -219,29 +219,27 @@
         var currentlyLiked = btn.classList.contains('reaction-btn--active');
 
         if (currentlyLiked) {
-          Supabase.removeReaction(currentUser.id, currentSlug).then(function (err) {
-            if (err) {
-              App.showToast('Unable to update reaction. Please try again.');
-              btn.disabled = false;
-              return;
-            }
+          Supabase.removeReaction(currentUser.id, currentSlug).then(function () {
             btn.classList.remove('reaction-btn--active');
             var countEl = document.getElementById('like-count');
             countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
             btn.querySelector('svg').setAttribute('fill', 'none');
             btn.disabled = false;
+          }).catch(function (err) {
+            console.error('removeReaction failed:', err);
+            App.showToast('Unable to update reaction. Please try again.');
+            btn.disabled = false;
           });
         } else {
-          Supabase.addReaction(currentUser.id, currentSlug, 'like').then(function (result) {
-            if (!result) {
-              App.showToast('Unable to update reaction. Please try again.');
-              btn.disabled = false;
-              return;
-            }
+          Supabase.addReaction(currentUser.id, currentSlug, 'like').then(function () {
             btn.classList.add('reaction-btn--active');
             var countEl = document.getElementById('like-count');
             countEl.textContent = parseInt(countEl.textContent) + 1;
             btn.querySelector('svg').setAttribute('fill', 'currentColor');
+            btn.disabled = false;
+          }).catch(function (err) {
+            console.error('addReaction failed:', err);
+            App.showToast('Unable to update reaction. Please try again.');
             btn.disabled = false;
           });
         }
@@ -255,27 +253,25 @@
         var currentlyBookmarked = btn.classList.contains('bookmark-btn--active');
 
         if (currentlyBookmarked) {
-          Supabase.removeBookmark(currentUser.id, currentSlug).then(function (err) {
-            if (err) {
-              App.showToast('Unable to update bookmark. Please try again.');
-              btn.disabled = false;
-              return;
-            }
+          Supabase.removeBookmark(currentUser.id, currentSlug).then(function () {
             btn.classList.remove('bookmark-btn--active');
             btn.querySelector('svg').setAttribute('fill', 'none');
             App.showToast('Bookmark removed');
             btn.disabled = false;
+          }).catch(function (err) {
+            console.error('removeBookmark failed:', err);
+            App.showToast('Unable to update bookmark. Please try again.');
+            btn.disabled = false;
           });
         } else {
-          Supabase.addBookmark(currentUser.id, currentSlug).then(function (result) {
-            if (!result) {
-              App.showToast('Unable to update bookmark. Please try again.');
-              btn.disabled = false;
-              return;
-            }
+          Supabase.addBookmark(currentUser.id, currentSlug).then(function () {
             btn.classList.add('bookmark-btn--active');
             btn.querySelector('svg').setAttribute('fill', 'currentColor');
             App.showToast('Article bookmarked');
+            btn.disabled = false;
+          }).catch(function (err) {
+            console.error('addBookmark failed:', err);
+            App.showToast('Unable to update bookmark. Please try again.');
             btn.disabled = false;
           });
         }
@@ -342,9 +338,13 @@
             if (banner && banner.style.display !== 'none') {
               banner.style.display = 'none';
             }
-            Supabase.markComplete(currentUser.id, currentSlug);
+            Supabase.markComplete(currentUser.id, currentSlug).catch(function (err) {
+              console.error('markComplete failed:', err);
+            });
           } else if (Math.abs(progress - lastSavedProgress) >= 5) {
-            Supabase.updateProgress(currentUser.id, currentSlug, progress);
+            Supabase.updateProgress(currentUser.id, currentSlug, progress).catch(function (err) {
+              console.error('updateProgress failed:', err);
+            });
             lastSavedProgress = progress;
           }
         }, 10000);

@@ -349,11 +349,7 @@
           btn.addEventListener('click', function (e) {
             e.stopPropagation();
             var slug = btn.getAttribute('data-slug');
-            Supabase.removeBookmark(userId, slug).then(function (err) {
-              if (err) {
-                App.showToast('Unable to remove bookmark. Please try again.');
-                return;
-              }
+            Supabase.removeBookmark(userId, slug).then(function () {
               App.showToast('Bookmark removed');
               var card = btn.closest('.article-card');
               if (card) {
@@ -373,6 +369,9 @@
                   showAllText.innerHTML = 'No bookmarks — <a href="articles.html" style="color:var(--accent);">Browse articles</a> and bookmark ones you want to revisit.';
                 }
               }
+            }).catch(function (err) {
+              console.error('removeBookmark failed:', err);
+              App.showToast('Unable to remove bookmark. Please try again.');
             });
           });
         });

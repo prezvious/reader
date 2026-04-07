@@ -566,7 +566,10 @@
       function updatePreview() {
         var raw = document.getElementById('editor-textarea').value;
         var html = parseArticleContent(raw);
-        document.getElementById('preview-body').innerHTML = html || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
+        /* Sanitize the same way the publish path does, so the preview matches
+           what readers will actually see (no surprise stripped tags after publish). */
+        var safe = html ? App.sanitizeHtml(html) : '';
+        document.getElementById('preview-body').innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
       }
 
       /* =============================================

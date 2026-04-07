@@ -35,7 +35,8 @@
       .eq('id', userId)
       .select()
       .single();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function getBookmarks(userId) {
@@ -54,7 +55,8 @@
       .upsert({ user_id: userId, article_slug: slug }, { onConflict: 'user_id,article_slug' })
       .select()
       .single();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function removeBookmark(userId, slug) {
@@ -63,7 +65,7 @@
       .delete()
       .eq('user_id', userId)
       .eq('article_slug', slug);
-    return result.error;
+    if (result.error) throw result.error;
   }
 
   async function isBookmarked(userId, slug) {
@@ -112,7 +114,8 @@
       )
       .select()
       .single();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function markComplete(userId, slug) {
@@ -130,7 +133,8 @@
       )
       .select()
       .single();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function clearHistory(userId) {
@@ -138,7 +142,7 @@
       .from('reading_history')
       .delete()
       .eq('user_id', userId);
-    return result.error;
+    if (result.error) throw result.error;
   }
 
   async function getReactionCount(slug) {
@@ -158,7 +162,8 @@
       .upsert({ user_id: userId, article_slug: slug, reaction_type: reactionType }, { onConflict: 'user_id,article_slug,reaction_type' })
       .select()
       .single();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function removeReaction(userId, slug) {
@@ -167,7 +172,7 @@
       .delete()
       .eq('user_id', userId)
       .eq('article_slug', slug);
-    return result.error;
+    if (result.error) throw result.error;
   }
 
   async function hasReacted(userId, slug) {
@@ -306,7 +311,7 @@
       .from('articles')
       .select('content_html, custom_css')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     return data;
   }

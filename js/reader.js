@@ -198,22 +198,129 @@
     document.body.appendChild(script);
   }
 
-  /* Inject custom CSS scoped to #article-body only */
+  /* Inject custom CSS scoped to #article-body only.
+     Handles comma-separated selectors (each one is scoped) and skips
+     percentage selectors inside @keyframes blocks. */
   function injectScopedCSS(css) {
     var existing = document.getElementById('article-custom-style');
     if (existing) existing.remove();
 
-    /* Scope selectors to #article-body, skip @-rules */
-    var scopedCSS = css.replace(/([^{}@]+)\{/g, function (match, selector) {
-      var trimmed = selector.trim();
-      if (trimmed.indexOf('@') === 0) return match;  /* Skip @media, @keyframes, etc. */
-      return '#article-body ' + selector + ' {';
-    });
+    var scopedCSS = scopeCss(css);
 
     var style = document.createElement('style');
     style.textContent = scopedCSS;
     style.id = 'article-custom-style';
     document.head.appendChild(style);
+  }
+
+  /* Token-based CSS scoper.
+     Walks the CSS once, tracking @keyframes nesting and brace depth.
+     Each selector list before a top-level '{' is split on commas and each
+     part is prefixed with '#article-body '. Selectors inside @keyframes or
+     other @-rule prelude are passed through unchanged. */
+  function scopeCss(css) {
+    var out = '';
+    var i = 0;
+    var len = css.length;
+    var depth = 0;
+    var keyframesDepth = -1;  /* depth at which we entered an @keyframes */
+
+    while (i < len) {
+      var ch = css.charAt(i);
+
+      /* Skip comments */
+      if (ch === '/' && css.charAt(i + 1) === '*') {
+        var end = css.indexOf('*/', i + 2);
+        if (end === -1) { out += css.slice(i); break; }
+        out += css.slice(i, end + 2);
+        i = end + 2;
+        continue;
+      }
+
+      if (ch === '}') {
+        depth--;
+        if (depth <= keyframesDepth) keyframesDepth = -1;
+        out += ch;
+        i++;
+        continue;
+      }
+
+      /* Read until next '{' or '}' to capture a selector or at-rule prelude */
+      var start = i;
+      while (i < len) {
+        var c = css.charAt(i);
+        if (c === '{' || c === '}') break;
+        if (c === '/' && css.charAt(i + 1) === '*') {
+          var ce = css.indexOf('*/', i + 2);
+          i = ce === -1 ? len : ce + 2;
+          continue;
+        }
+        i++;
+      }
+
+      var prelude = css.slice(start, i);
+      var trimmed = prelude.trim();
+
+      if (i >= len || css.charAt(i) === '}') {
+        /* Trailing content with no '{' — emit verbatim */
+        out += prelude;
+        continue;
+      }
+
+      /* css.charAt(i) === '{' here */
+      if (trimmed.charAt(0) === '@') {
+        /* @-rule: don't scope its prelude. Track @keyframes so its
+           inner percentage selectors are not scoped either. */
+        if (/^@(-\w+-)?keyframes\b/i.test(trimmed)) {
+          keyframesDepth = depth;
+        }
+        out += prelude + '{';
+        depth++;
+        i++;
+        continue;
+      }
+
+      if (depth > keyframesDepth && keyframesDepth !== -1) {
+        /* Inside @keyframes — leave percentage/from/to selectors alone */
+        out += prelude + '{';
+        depth++;
+        i++;
+        continue;
+      }
+
+      /* Scope every comma-separated selector individually */
+      var parts = splitSelectors(prelude);
+      var scoped = parts.map(function (p) {
+        var t = p.trim();
+        if (!t) return p;
+        return '#article-body ' + t;
+      }).join(', ');
+
+      out += scoped + ' {';
+      depth++;
+      i++;
+    }
+
+    return out;
+  }
+
+  /* Split a selector list on top-level commas (ignoring commas inside
+     parentheses or brackets, e.g. :is(.a, .b) or [data-x="a,b"]). */
+  function splitSelectors(list) {
+    var parts = [];
+    var depth = 0;
+    var start = 0;
+    for (var i = 0; i < list.length; i++) {
+      var c = list.charAt(i);
+      if (c === '(' || c === '[') depth++;
+      else if (c === ')' || c === ']') depth--;
+      else if (c === ',' && depth === 0) {
+        parts.push(list.slice(start, i));
+        start = i + 1;
+      }
+    }
+    parts.push(list.slice(start));
+    return parts;
   }
 
   function initReadingProgress() {

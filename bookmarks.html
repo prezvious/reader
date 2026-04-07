@@ -215,11 +215,7 @@
           btn.addEventListener('click', function (e) {
             e.stopPropagation();
             var slug = btn.getAttribute('data-slug');
-            Supabase.removeBookmark(userId, slug).then(function (err) {
-              if (err) {
-                App.showToast('Unable to remove bookmark. Please try again.');
-                return;
-              }
+            Supabase.removeBookmark(userId, slug).then(function () {
               App.showToast('Bookmark removed');
               var card = btn.closest('.article-card');
               if (card) {
@@ -227,6 +223,9 @@
                 card.style.transform = 'scale(0.95)';
                 setTimeout(function () { card.remove(); }, 300);
               }
+            }).catch(function (err) {
+              console.error('removeBookmark failed:', err);
+              App.showToast('Unable to remove bookmark. Please try again.');
             });
           });
         });

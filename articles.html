@@ -143,7 +143,7 @@
     /* Load public articles — no auth gate.
        Hydrate user UI optionally if logged in. */
     document.addEventListener('DOMContentLoaded', function () {
-      Auth.requireAuth().then(function (user) {
+      Auth.initAuth().then(function (user) {
         if (user) App.renderUser(user);
       }).catch(function () { /* Not logged in */ });
     });

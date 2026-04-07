@@ -33,10 +33,13 @@
         if (name.indexOf('on') === 0) {
           el.removeAttribute(attr.name);
         }
-        /* Remove javascript: URIs */
+        /* Remove javascript:, vbscript: and dangerous data: URIs.
+           Allow data:image/... since those are commonly used for inline images. */
         if (name === 'href' || name === 'src' || name === 'action' || name === 'formaction' || name === 'data') {
           var val = attr.value.trim().toLowerCase();
           if (val.indexOf('javascript:') === 0 || val.indexOf('vbscript:') === 0) {
+            el.removeAttribute(attr.name);
+          } else if (val.indexOf('data:') === 0 && val.indexOf('data:image/') !== 0) {
             el.removeAttribute(attr.name);
           }
         }
@@ -76,43 +79,37 @@
     var sidebarInitialsEl = document.getElementById('sidebar-initials');
     if (sidebarInitialsEl) sidebarInitialsEl.textContent = initials;
 
+    /* Helper: render an avatar slot with initials fallback. */
+    function setInitialsAvatar(slotId, initialsId) {
+      var slot = document.getElementById(slotId);
+      if (!slot) return;
+      slot.innerHTML = '';
+      var span = document.createElement('span');
+      span.id = initialsId;
+      span.textContent = initials;
+      slot.appendChild(span);
+    }
+
+    /* Helper: render an avatar slot with an <img>, falling back to initials on error. */
+    function setImageAvatar(slotId, initialsId, url) {
+      var slot = document.getElementById(slotId);
+      if (!slot) return;
+      slot.innerHTML = '';
+      var img = document.createElement('img');
+      img.setAttribute('alt', name);
+      img.onerror = function () { setInitialsAvatar(slotId, initialsId); };
+      img.setAttribute('src', url);
+      slot.appendChild(img);
+    }
+
     if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
-      var headerAvatar = document.getElementById('header-avatar');
-      if (headerAvatar) {
-        headerAvatar.innerHTML = '';
-        var headerImg = document.createElement('img');
-        headerImg.setAttribute('src', profile.avatar_url);
-        headerImg.setAttribute('alt', name);
-        headerAvatar.appendChild(headerImg);
-      }
-
-      var sidebarAvatar = document.getElementById('sidebar-avatar');
-      if (sidebarAvatar) {
-        sidebarAvatar.innerHTML = '';
-        var sidebarImg = document.createElement('img');
-        sidebarImg.setAttribute('src', profile.avatar_url);
-        sidebarImg.setAttribute('alt', name);
-        sidebarAvatar.appendChild(sidebarImg);
-      }
+      setImageAvatar('header-avatar', 'avatar-initials', profile.avatar_url);
+      setImageAvatar('sidebar-avatar', 'sidebar-initials', profile.avatar_url);
     } else {
-      /* Restore initials when avatar URL is null/invalid */
-      var headerAvatar = document.getElementById('header-avatar');
-      if (headerAvatar && !headerAvatar.querySelector('img')) {
-        headerAvatar.innerHTML = '';
-        var hInitials = document.createElement('span');
-        hInitials.id = 'avatar-initials';
-        hInitials.textContent = initials;
-        headerAvatar.appendChild(hInitials);
-      }
-
-      var sidebarAvatar = document.getElementById('sidebar-avatar');
-      if (sidebarAvatar && !sidebarAvatar.querySelector('img')) {
-        sidebarAvatar.innerHTML = '';
-        var sInitials = document.createElement('span');
-        sInitials.id = 'sidebar-initials';
-        sInitials.textContent = initials;
-        sidebarAvatar.appendChild(sInitials);
-      }
+      /* Always restore initials when avatar URL is null/invalid —
+         must replace any stale <img> from a previous render. */
+      setInitialsAvatar('header-avatar', 'avatar-initials');
+      setInitialsAvatar('sidebar-avatar', 'sidebar-initials');
     }
   }
 

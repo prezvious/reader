@@ -153,12 +153,11 @@
       document.getElementById('clear-history-btn').addEventListener('click', function () {
         if (confirm('Clear all reading history? This cannot be undone.')) {
           if (!currentUser) return;
-          Supabase.clearHistory(currentUser.id).then(function (err) {
-            if (err) {
-              App.showToast('Unable to clear history. Please try again.');
-              return;
-            }
+          Supabase.clearHistory(currentUser.id).then(function () {
             loadHistory(currentUser.id);
+          }).catch(function (err) {
+            console.error('clearHistory failed:', err);
+            App.showToast('Unable to clear history. Please try again.');
           });
         }
       });

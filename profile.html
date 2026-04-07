@@ -214,13 +214,15 @@
 
         Supabase.updateProfile(currentUser.id, { display_name: name, bio: bio, avatar_url: avatarUrl || null })
           .then(function (updated) {
-            if (!updated) { showError('Unable to save changes. Please try again.'); return; }
             currentUser.profile = updated;
             window.currentUser = currentUser;
             App.renderUser(currentUser);
             showSuccess('Profile updated successfully.');
           })
-          .catch(function () { showError('Unable to save changes. Please try again.'); })
+          .catch(function (err) {
+            console.error('updateProfile failed:', err);
+            showError('Unable to save changes. Please try again.');
+          })
           .finally(function () {
             btn.disabled = false;
             btn.classList.remove('btn--auth--loading');

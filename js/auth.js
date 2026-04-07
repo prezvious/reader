@@ -44,10 +44,18 @@
 
   function isValidRedirect(url) {
     if (!url || typeof url !== 'string') return false;
-    if (url.indexOf('://') !== -1) return false;
+    /* Reject any URL containing ':' to block javascript:, data:, vbscript:, etc.
+       Also rejects scheme://host URLs as a side effect. */
+    if (url.indexOf(':') !== -1) return false;
+    /* Reject protocol-relative and backslash-based bypasses */
     if (url.indexOf('//') === 0) return false;
     if (url.indexOf('\\') !== -1) return false;
-    return url.charAt(0) === '/' || url.indexOf('.html') !== -1;
+    /* Allow same-origin paths only: either an absolute path starting with '/'
+       followed by a safe character, or a bare .html filename. */
+    if (url.charAt(0) === '/') {
+      return /^\/[A-Za-z0-9_\-./?&=#%]*$/.test(url);
+    }
+    return /^[A-Za-z0-9_\-]+\.html(\?[A-Za-z0-9_\-./&=#%]*)?$/.test(url);
   }
 
   function redirectToSignin() {

@@ -203,8 +203,9 @@
         grid.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
       });
 
-      /* Optionally hydrate user-specific UI if logged in */
-      Auth.requireAuth().then(function (user) {
+      /* Optionally hydrate user-specific UI if logged in.
+         Use initAuth (no redirect) — this is a public page. */
+      Auth.initAuth().then(function (user) {
         if (user) App.renderUser(user);
       }).catch(function () { /* Not logged in — that's fine for public pages */ });
     });
