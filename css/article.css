@@ -323,11 +323,11 @@
 
 /* ===== NO COVER IMAGE VARIANT ===== */
 .article-hero--no-image {
-  margin-bottom: var(--space-6);
+  margin-bottom: 0;
 }
 
 .article-hero--no-image .article-hero__content {
-  padding: var(--space-16) var(--space-6) var(--space-2);
+  padding: var(--space-16) var(--space-6) var(--space-6);
   max-width: var(--content-max);
   margin: 0 auto;
 }
