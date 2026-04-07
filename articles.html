@@ -140,11 +140,12 @@
   <script src="js/app.js"></script>
   <script src="js/articles.js"></script>
   <script>
+    /* Load public articles — no auth gate.
+       Hydrate user UI optionally if logged in. */
     document.addEventListener('DOMContentLoaded', function () {
       Auth.requireAuth().then(function (user) {
-        if (!user) return;
-        App.renderUser(user);
-      });
+        if (user) App.renderUser(user);
+      }).catch(function () { /* Not logged in */ });
     });
   </script>
   <style>

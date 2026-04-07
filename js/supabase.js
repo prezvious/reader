@@ -24,7 +24,8 @@
       .select('id, email, display_name, avatar_url, bio, created_at, updated_at')
       .eq('id', userId)
       .maybeSingle();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function updateProfile(userId, data) {
@@ -43,7 +44,8 @@
       .select('id, article_slug, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    return result.error ? [] : result.data;
+    if (result.error) throw result.error;
+    return result.data || [];
   }
 
   async function addBookmark(userId, slug) {
@@ -71,7 +73,7 @@
       .eq('user_id', userId)
       .eq('article_slug', slug)
       .maybeSingle();
-    if (result.error) return { value: false, error: result.error };
+    if (result.error) throw result.error;
     return { value: result.data !== null, error: null };
   }
 
@@ -81,7 +83,8 @@
       .select('id, article_slug, progress_percent, started_at, completed_at, last_read_at')
       .eq('user_id', userId)
       .order('last_read_at', { ascending: false });
-    return result.error ? [] : result.data;
+    if (result.error) throw result.error;
+    return result.data || [];
   }
 
   async function getHistoryEntry(userId, slug) {
@@ -91,7 +94,8 @@
       .eq('user_id', userId)
       .eq('article_slug', slug)
       .maybeSingle();
-    return result.error ? null : result.data;
+    if (result.error) throw result.error;
+    return result.data;
   }
 
   async function updateProgress(userId, slug, progress) {
@@ -114,9 +118,16 @@
   async function markComplete(userId, slug) {
     var result = await client
       .from('reading_history')
-      .update({ progress_percent: 100, completed_at: new Date().toISOString(), last_read_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .eq('article_slug', slug)
+      .upsert(
+        {
+          user_id: userId,
+          article_slug: slug,
+          progress_percent: 100,
+          completed_at: new Date().toISOString(),
+          last_read_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id,article_slug' }
+      )
       .select()
       .single();
     return result.error ? null : result.data;
@@ -136,7 +147,8 @@
       .select('id', { count: 'exact', head: true })
       .eq('article_slug', slug)
       .eq('reaction_type', 'like');
-    return result.error ? 0 : (result.count || 0);
+    if (result.error) throw result.error;
+    return result.count || 0;
   }
 
   async function addReaction(userId, slug, type) {
@@ -165,7 +177,7 @@
       .eq('user_id', userId)
       .eq('article_slug', slug)
       .maybeSingle();
-    if (result.error) return { value: false, error: result.error };
+    if (result.error) throw result.error;
     return { value: result.data !== null, error: null };
   }
 
@@ -175,7 +187,8 @@
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .not('completed_at', 'is', null);
-    return result.error ? 0 : (result.count || 0);
+    if (result.error) throw result.error;
+    return result.count || 0;
   }
 
   async function getCurrentStreak(userId) {
@@ -185,7 +198,8 @@
       .eq('user_id', userId)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false });
-    if (result.error || !result.data || result.data.length === 0) return 0;
+    if (result.error) throw result.error;
+    if (!result.data || result.data.length === 0) return 0;
 
     var dates = result.data.map(function (d) {
       var dt = new Date(d.completed_at);
@@ -204,7 +218,25 @@
     var streak = 0;
     var today = new Date();
     today.setHours(0, 0, 0, 0);
-    var expected = new Date(today);
+
+    // Allow a 1-day grace period: if the most recent completion is yesterday,
+    // the streak is still active (they just haven't read today yet).
+    var latestParts = unique[0].split('-');
+    var latestDate = new Date(parseInt(latestParts[0]), parseInt(latestParts[1]) - 1, parseInt(latestParts[2]));
+    var daysSinceLatest = Math.round((today - latestDate) / (1000 * 60 * 60 * 24));
+
+    var expected;
+    if (daysSinceLatest === 0) {
+      // Completed today — start counting from today
+      expected = new Date(today);
+    } else if (daysSinceLatest === 1) {
+      // Last completion was yesterday — streak still active, start from yesterday
+      expected = new Date(today);
+      expected.setDate(expected.getDate() - 1);
+    } else {
+      // Gap of more than 1 day — no active streak
+      return 0;
+    }
 
     for (var j = 0; j < unique.length; j++) {
       var parts = unique[j].split('-');

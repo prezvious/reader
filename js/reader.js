@@ -95,7 +95,7 @@
             '<span class="article-byline__divider">&middot;</span>' +
             '<span class="article-byline__read-time">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
-              article.readTime + ' min read' +
+              (article.readTime || '—') + ' min read' +
             '</span>' +
           '</div>' +
         '</div>';
@@ -127,7 +127,7 @@
         return response.text();
       })
       .then(function (html) {
-        container.innerHTML = html;
+        container.innerHTML = App.sanitizeHtml(html);
         var readTime = Manifest.calcReadTimeFromText(container.textContent || '');
         updateBylineReadTime(readTime);
         loadArticleStyles(article.folder);
@@ -148,17 +148,15 @@
           return;
         }
 
-        container.innerHTML = data.content_html;
+        /* Sanitize stored HTML before injection */
+        container.innerHTML = App.sanitizeHtml(data.content_html);
 
         var readTime = Manifest.calcReadTimeFromText(container.textContent || '');
         updateBylineReadTime(readTime);
 
-        /* Inject custom CSS if present */
+        /* Inject custom CSS if present (scoped) */
         if (data.custom_css) {
-          var style = document.createElement('style');
-          style.textContent = data.custom_css;
-          style.id = 'article-custom-style';
-          document.head.appendChild(style);
+          injectScopedCSS(data.custom_css);
         }
 
         initReadingProgress();
@@ -179,7 +177,10 @@
 
   function loadArticleStyles(folder) {
     if (!folder) return;
+    var existing = document.getElementById('article-style');
+    if (existing) existing.remove();
     var link = document.createElement('link');
+    link.id = 'article-style';
     link.rel = 'stylesheet';
     link.href = folder + 'style.css';
     link.onerror = function () { this.remove(); };
@@ -188,10 +189,31 @@
 
   function loadArticleScript(folder) {
     if (!folder) return;
+    var existing = document.getElementById('article-script');
+    if (existing) existing.remove();
     var script = document.createElement('script');
+    script.id = 'article-script';
     script.src = folder + 'script.js';
     script.onerror = function () { this.remove(); };
     document.body.appendChild(script);
+  }
+
+  /* Inject custom CSS scoped to #article-body only */
+  function injectScopedCSS(css) {
+    var existing = document.getElementById('article-custom-style');
+    if (existing) existing.remove();
+
+    /* Scope selectors to #article-body, skip @-rules */
+    var scopedCSS = css.replace(/([^{}@]+)\{/g, function (match, selector) {
+      var trimmed = selector.trim();
+      if (trimmed.indexOf('@') === 0) return match;  /* Skip @media, @keyframes, etc. */
+      return '#article-body ' + selector + ' {';
+    });
+
+    var style = document.createElement('style');
+    style.textContent = scopedCSS;
+    style.id = 'article-custom-style';
+    document.head.appendChild(style);
   }
 
   function initReadingProgress() {

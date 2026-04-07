@@ -205,7 +205,9 @@
 
       async function loadStats(userId) {
         try {
-          var totalArticles = (window.ARTICLES || []).length;
+          var articles = window.ARTICLES || [];
+          /* Wait a brief moment for manifest to populate if still loading */
+          var totalArticles = articles.length > 0 ? articles.length : 0;
           var readCount = await Supabase.getTotalReadCount(userId);
           var bookmarks = await Supabase.getBookmarks(userId);
           var streak = await Supabase.getCurrentStreak(userId);
@@ -292,11 +294,12 @@
         var html = '';
         var bookmarkIndex = 0;
         var totalBookmarks = bookmarks.length;
+        var shownCount = 0;
 
         bookmarks.slice(0, 3).forEach(function (b) {
-          var article = articles.find(function (a) { return a.slug === b.article_slug; });
+          var article = Manifest.getBySlug(b.article_slug);
           if (!article) {
-            html += '<div class="empty-state"><p class="empty-state__title">Article no longer available</p><p class="empty-state__text">This bookmarked article has been removed.</p></div>';
+            /* Skip articles no longer available — don't inject empty divs into grid */
             return;
           }
           var initials = Manifest.getInitials(article.author.name);
@@ -325,10 +328,11 @@
             '</div>' +
           '</article>';
           bookmarkIndex++;
+          shownCount++;
         });
 
-        if (totalBookmarks > 3) {
-          html += '<p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;grid-column:1/-1;margin-top:var(--space-2);">Showing 3 of ' + totalBookmarks + ' — <a href="bookmarks.html" style="color:var(--accent);text-decoration:underline;">View all</a></p>';
+        if (totalBookmarks > shownCount) {
+          html += '<p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;grid-column:1/-1;margin-top:var(--space-2);">Showing ' + shownCount + ' of ' + totalBookmarks + ' — <a href="bookmarks.html" style="color:var(--accent);text-decoration:underline;">View all</a></p>';
         }
 
         container.innerHTML = html;
@@ -356,6 +360,18 @@
                 card.style.opacity = '0';
                 card.style.transform = 'scale(0.95)';
                 setTimeout(function () { card.remove(); }, 300);
+              }
+              /* Update the "Showing X of Y" text if present */
+              var showAllText = container.querySelector('p[style*="text-align:center"]');
+              if (showAllText) {
+                var match = showAllText.textContent.match(/of (\d+)/);
+                var totalBm = match ? parseInt(match[1]) - 1 : 0;
+                var remainingCards = container.querySelectorAll('.bookmark-card').length;
+                if (remainingCards > 0) {
+                  showAllText.innerHTML = 'Showing ' + remainingCards + ' of ' + totalBm + ' — <a href="bookmarks.html" style="color:var(--accent);text-decoration:underline;">View all</a>';
+                } else {
+                  showAllText.innerHTML = 'No bookmarks — <a href="articles.html" style="color:var(--accent);">Browse articles</a> and bookmark ones you want to revisit.';
+                }
               }
             });
           });

@@ -6,7 +6,6 @@
   async function initAuth() {
     if (!window.Supabase) {
       console.error('Supabase module not loaded. Ensure supabase.js is loaded before auth.js.');
-      redirectToSignin();
       return null;
     }
 
@@ -15,8 +14,7 @@
       var session = sessionResult.data.session;
 
       if (!session) {
-        redirectToSignin();
-        return null;
+        return null;  // Don't redirect — caller decides
       }
 
       currentUser = session.user;
@@ -30,13 +28,18 @@
       return currentUser;
     } catch (error) {
       console.error('Auth initialization error:', error);
-      redirectToSignin();
-      return null;
+      return null;  // Don't redirect — caller decides
     }
   }
 
+  /* requireAuth: redirects if no session — use on protected pages only */
   function requireAuth() {
-    return initAuth();
+    return initAuth().then(function (user) {
+      if (!user) {
+        redirectToSignin();
+      }
+      return user;
+    });
   }
 
   function isValidRedirect(url) {
@@ -129,10 +132,14 @@
   async function signInWithGoogle() {
     var params = new URLSearchParams(window.location.search);
     var redirect = params.get('redirect');
+    /* Store redirect target in sessionStorage so verify.html can retrieve it */
+    if (redirect) {
+      try { sessionStorage.setItem('oauth-redirect', redirect); } catch (e) {}
+    }
     var result = await window.Supabase.client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/verify.html' + (redirect ? '?redirect=' + encodeURIComponent(redirect) : '')
+        redirectTo: window.location.origin + '/verify.html'
       }
     });
     if (result.error) throw mapAuthError(result.error.message);
@@ -219,8 +226,19 @@
   }
 
   function handlePostAuthRedirect(isNewUser) {
-    var params = new URLSearchParams(window.location.search);
-    var redirect = params.get('redirect');
+    /* Check sessionStorage for OAuth redirect first */
+    var redirect = null;
+    try { redirect = sessionStorage.getItem('oauth-redirect'); } catch (e) {}
+    if (redirect) {
+      try { sessionStorage.removeItem('oauth-redirect'); } catch (e) {}
+    }
+
+    /* Fall back to URL param */
+    if (!redirect) {
+      var params = new URLSearchParams(window.location.search);
+      redirect = params.get('redirect');
+    }
+
     if (isValidRedirect(redirect)) {
       window.location.href = redirect;
     } else if (isNewUser) {

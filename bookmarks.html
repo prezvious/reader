@@ -138,7 +138,12 @@
         Auth.requireAuth().then(function (user) {
           if (!user) return;
           App.renderUser(user);
-          loadBookmarks(user.id);
+          return Manifest.load();
+        }).then(function () {
+          var user = Auth.getUser();
+          if (user) loadBookmarks(user.id);
+        }).catch(function (err) {
+          console.error('Bookmarks init error:', err);
         });
       });
 

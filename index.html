@@ -147,64 +147,66 @@
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      Auth.requireAuth().then(function (user) {
-        if (!user) return;
-        App.renderUser(user);
-        Manifest.load().then(function () {
-          return Manifest.calcAllReadTimes();
-        }).then(function () {
-          var featured = Manifest.getFeatured();
-          var grid = document.getElementById('featured-grid');
-          if (!grid || !featured.length) return;
+      /* Load public content first — no auth gate */
+      Manifest.load().then(function () {
+        return Manifest.calcAllReadTimes();
+      }).then(function () {
+        var featured = Manifest.getFeatured();
+        var grid = document.getElementById('featured-grid');
+        if (!grid || !featured.length) return;
 
-          grid.innerHTML = featured.slice(0, 3).map(function (article, i) {
-            var initials = Manifest.getInitials(article.author.name);
-            var date = Manifest.formatDate(article.publishedAt);
-            var url = App.getArticleUrl(article.slug);
-            var hasImage = article.coverImage && article.coverImage.length > 0;
-            var imageHtml = hasImage
-              ? '<img class="article-card__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
-              : '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
-            var avatarHtml = article.author.avatar
-              ? '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '"></div>'
-              : '<div class="article-card__avatar">' + App.escapeHtml(initials) + '</div>';
+        grid.innerHTML = featured.slice(0, 3).map(function (article, i) {
+          var initials = Manifest.getInitials(article.author.name);
+          var date = Manifest.formatDate(article.publishedAt);
+          var url = App.getArticleUrl(article.slug);
+          var hasImage = article.coverImage && article.coverImage.length > 0;
+          var imageHtml = hasImage
+            ? '<img class="article-card__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
+            : '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
+          var avatarHtml = article.author.avatar
+            ? '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '"></div>'
+            : '<div class="article-card__avatar">' + App.escapeHtml(initials) + '</div>';
 
-            return '<article class="article-card reveal" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (i * 0.1) + 's">' +
-              '<a href="' + App.escapeHtml(url) + '" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
-              '<div class="article-card__body">' +
-                '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
-                '<h3 class="article-card__title">' + App.escapeHtml(article.title) + '</h3>' +
-                '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
-                '<div class="article-card__meta">' +
-                  avatarHtml +
-                  '<div class="article-card__info">' +
-                    '<div class="article-card__author">' + App.escapeHtml(article.author.name) + '</div>' +
-                    '<div class="article-card__date">' + App.escapeHtml(date) + '</div>' +
-                  '</div>' +
-                  '<span class="article-card__read-time">' + (article.readTime || '—') + ' min read</span>' +
+          return '<article class="article-card reveal" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (i * 0.1) + 's">' +
+            '<a href="' + App.escapeHtml(url) + '" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+            '<div class="article-card__body">' +
+              '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
+              '<h3 class="article-card__title">' + App.escapeHtml(article.title) + '</h3>' +
+              '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
+              '<div class="article-card__meta">' +
+                avatarHtml +
+                '<div class="article-card__info">' +
+                  '<div class="article-card__author">' + App.escapeHtml(article.author.name) + '</div>' +
+                  '<div class="article-card__date">' + App.escapeHtml(date) + '</div>' +
                 '</div>' +
+                '<span class="article-card__read-time">' + (article.readTime || '—') + ' min read</span>' +
               '</div>' +
-            '</article>';
-          }).join('');
+            '</div>' +
+          '</article>';
+        }).join('');
 
-          grid.querySelectorAll('.article-card').forEach(function (card) {
-            card.addEventListener('click', function () {
-              var slug = card.getAttribute('data-slug');
-              if (slug) window.location.href = App.getArticleUrl(slug);
-            });
+        grid.querySelectorAll('.article-card').forEach(function (card) {
+          card.addEventListener('click', function () {
+            var slug = card.getAttribute('data-slug');
+            if (slug) window.location.href = App.getArticleUrl(slug);
           });
-
-          var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
-              }
-            });
-          }, { threshold: 0.1 });
-          grid.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
         });
+
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        grid.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
       });
+
+      /* Optionally hydrate user-specific UI if logged in */
+      Auth.requireAuth().then(function (user) {
+        if (user) App.renderUser(user);
+      }).catch(function () { /* Not logged in — that's fine for public pages */ });
     });
   </script>
   <style>

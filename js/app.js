@@ -12,6 +12,40 @@
     return _escapeDiv.innerHTML;
   }
 
+  /* Sanitize HTML for storage/display — strips dangerous elements and attributes */
+  function sanitizeHtml(html) {
+    if (!html || typeof html !== 'string') return '';
+    var div = document.createElement('div');
+    div.innerHTML = html;
+
+    /* Remove dangerous elements entirely */
+    div.querySelectorAll('script, iframe, object, embed, form, link, meta, base, style').forEach(function (el) {
+      el.remove();
+    });
+
+    /* Remove event handler attributes and dangerous URIs from all elements */
+    div.querySelectorAll('*').forEach(function (el) {
+      var attrs = Array.from(el.attributes);
+      for (var i = attrs.length - 1; i >= 0; i--) {
+        var attr = attrs[i];
+        var name = attr.name.toLowerCase();
+        /* Remove on* event handlers */
+        if (name.indexOf('on') === 0) {
+          el.removeAttribute(attr.name);
+        }
+        /* Remove javascript: URIs */
+        if (name === 'href' || name === 'src' || name === 'action' || name === 'formaction' || name === 'data') {
+          var val = attr.value.trim().toLowerCase();
+          if (val.indexOf('javascript:') === 0 || val.indexOf('vbscript:') === 0) {
+            el.removeAttribute(attr.name);
+          }
+        }
+      }
+    });
+
+    return div.innerHTML;
+  }
+
   /* Shared renderUser — null-safe email, uses createElement to preserve listeners */
   function renderUser(user) {
     var profile = user.profile || {};
@@ -59,6 +93,25 @@
         sidebarImg.setAttribute('src', profile.avatar_url);
         sidebarImg.setAttribute('alt', name);
         sidebarAvatar.appendChild(sidebarImg);
+      }
+    } else {
+      /* Restore initials when avatar URL is null/invalid */
+      var headerAvatar = document.getElementById('header-avatar');
+      if (headerAvatar && !headerAvatar.querySelector('img')) {
+        headerAvatar.innerHTML = '';
+        var hInitials = document.createElement('span');
+        hInitials.id = 'avatar-initials';
+        hInitials.textContent = initials;
+        headerAvatar.appendChild(hInitials);
+      }
+
+      var sidebarAvatar = document.getElementById('sidebar-avatar');
+      if (sidebarAvatar && !sidebarAvatar.querySelector('img')) {
+        sidebarAvatar.innerHTML = '';
+        var sInitials = document.createElement('span');
+        sInitials.id = 'sidebar-initials';
+        sInitials.textContent = initials;
+        sidebarAvatar.appendChild(sInitials);
       }
     }
   }
@@ -278,6 +331,7 @@
     getArticleUrl: getArticleUrl,
     getCurrentSlug: getCurrentSlug,
     escapeHtml: escapeHtml,
+    sanitizeHtml: sanitizeHtml,
     renderUser: renderUser
   };
 })();

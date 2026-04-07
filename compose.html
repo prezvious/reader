@@ -846,6 +846,9 @@
         /* Parse content to HTML */
         var articleHTML = parseArticleContent(content);
 
+        /* Sanitize HTML before storage — strips scripts, iframes, event handlers, etc. */
+        articleHTML = App.sanitizeHtml(articleHTML);
+
         /* Build the database row */
         var articleData = {
           slug: slug,
