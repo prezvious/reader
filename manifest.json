@@ -1,0 +1,94 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "slug": "how-reading-slowly-filled-the-gaps-i-didnt-know-i-had",
+      "title": "How Reading Slowly Filled the Gaps I Didn't Know I Had",
+      "excerpt": "A personal reflection on how a simple reading habit became a quiet anchor at the end of each day.",
+      "category": "Personal",
+      "categorySlug": "personal",
+      "author": {
+        "name": "Anonymous",
+        "avatar": "",
+        "bio": "A reader finding stillness between pages."
+      },
+      "coverImage": "",
+      "coverImageAlt": "",
+      "publishedAt": "2026-04-07",
+      "featured": true,
+      "folder": "articles/how-reading-slowly-filled-the-gaps-i-didnt-know-i-had/"
+    },
+    {
+      "id": 2,
+      "slug": "the-engineering-mindset",
+      "title": "The Three Essential Properties of the Engineering Mindset",
+      "excerpt": "Engineers use a unique mode of thinking based on seeing everything as a system. Adopting an engineering mindset can help you in any field.",
+      "category": "Science",
+      "categorySlug": "science",
+      "author": {
+        "name": "Callum Rhea",
+        "avatar": "",
+        "bio": "Writer and systems thinker."
+      },
+      "coverImage": "",
+      "coverImageAlt": "",
+      "publishedAt": "2026-03-15",
+      "featured": true,
+      "folder": "articles/the-engineering-mindset/"
+    },
+    {
+      "id": 3,
+      "slug": "first-principles-thinking",
+      "title": "Why First Principles Thinking Beats Analogical Reasoning",
+      "excerpt": "Most people reason by analogy. First principles thinking breaks problems down to their fundamental truths and builds up from there.",
+      "category": "Education",
+      "categorySlug": "education",
+      "author": {
+        "name": "Magnus Pax",
+        "avatar": "",
+        "bio": "Educator and critical thinking advocate."
+      },
+      "coverImage": "",
+      "coverImageAlt": "",
+      "publishedAt": "2026-03-12",
+      "featured": false,
+      "folder": "articles/first-principles-thinking/"
+    },
+    {
+      "id": 4,
+      "slug": "the-art-of-decisions",
+      "title": "The Art of Making Decisions That Stick",
+      "excerpt": "Most decisions fail not because they were wrong, but because they lacked commitment.",
+      "category": "Education",
+      "categorySlug": "education",
+      "author": {
+        "name": "Zephyr Alder",
+        "avatar": "",
+        "bio": "Decision science researcher."
+      },
+      "coverImage": "",
+      "coverImageAlt": "",
+      "publishedAt": "2026-03-08",
+      "featured": false,
+      "folder": "articles/the-art-of-decisions/"
+    },
+    {
+      "id": 5,
+      "slug": "inversion-problem-solving",
+      "title": "Inversion: The Problem-Solving Technique Nobody Uses",
+      "excerpt": "Instead of asking how to achieve success, ask how to guarantee failure. Then avoid those things.",
+      "category": "Science",
+      "categorySlug": "science",
+      "author": {
+        "name": "Callum Rhea",
+        "avatar": "",
+        "bio": "Writer and systems thinker."
+      },
+      "coverImage": "",
+      "coverImageAlt": "",
+      "publishedAt": "2026-03-01",
+      "featured": false,
+      "folder": "articles/inversion-problem-solving/"
+    }
+  ]
+}

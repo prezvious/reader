@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Read this article on Reader.">
+  <meta property="og:title" content="Reader">
+  <meta property="og:description" content="Read this article on Reader.">
+  <title>Reader</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/article.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
+</head>
+<body data-page="article">
+
+  <div class="reading-progress" id="reading-progress"></div>
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">Reader</a>
+      <nav class="header__nav">
+        <a href="index.html" class="header__link">Home</a>
+        <a href="articles.html" class="header__link">Articles</a>
+        <a href="dashboard.html" class="header__link">Dashboard</a>
+      </nav>
+      <div class="header__actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="header__avatar-wrapper" id="avatar-wrapper">
+          <div class="header__avatar" id="header-avatar">
+            <span id="avatar-initials">?</span>
+          </div>
+          <div class="avatar-dropdown__menu" id="avatar-menu">
+            <div class="avatar-dropdown__header">
+              <div class="avatar-dropdown__name" id="menu-name">Loading...</div>
+              <div class="avatar-dropdown__email" id="menu-email"></div>
+            </div>
+            <div class="avatar-dropdown__list">
+              <a href="dashboard.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </a>
+              <a href="bookmarks.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Bookmarks
+              </a>
+              <a href="history.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Reading History
+              </a>
+              <a href="profile.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile Settings
+              </a>
+              <div class="avatar-dropdown__divider"></div>
+              <button class="avatar-dropdown__item avatar-dropdown__item--danger" id="menu-signout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar__logo">Reader</a>
+    <div class="sidebar__user" id="sidebar-user">
+      <div class="sidebar__user-avatar" id="sidebar-avatar">
+        <span id="sidebar-initials">?</span>
+      </div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar__user-email" id="sidebar-email"></div>
+      </div>
+    </div>
+    <div class="sidebar__nav">
+      <a href="index.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="articles.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Articles
+      </a>
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="bookmarks.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Bookmarks
+      </a>
+      <a href="history.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Reading History
+      </a>
+      <a href="profile.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+    <button class="sidebar__signout" id="sidebar-signout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </nav>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <main>
+    <div class="continue-banner" id="continue-banner" style="display:none;">
+      <div>
+        <span class="continue-banner__text" id="continue-banner-text">Continue reading</span>
+        <span class="continue-banner__progress" id="continue-banner-progress"></span>
+      </div>
+    </div>
+
+    <div class="article-hero" id="article-hero"></div>
+    <div class="article-byline container--narrow" id="article-byline" style="max-width:var(--content-max);margin:0 auto;padding:0 var(--space-6);"></div>
+    <article class="article-body" id="article-body"></article>
+
+    <div class="article-footer" id="article-footer">
+      <div class="reactions-section">
+        <p class="reactions-section__title">Reactions</p>
+        <div class="reactions-buttons">
+          <button class="reaction-btn" id="like-btn" aria-label="Like this article">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="reaction-btn__count" id="like-count">0</span>
+          </button>
+          <button class="bookmark-btn" id="bookmark-btn" aria-label="Bookmark this article">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="share-section">
+        <p class="share-section__title">Share this article</p>
+        <div class="share-buttons">
+          <button class="btn btn--icon" id="share-x" aria-label="Share on X">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button class="btn btn--icon" id="share-email" aria-label="Share via Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </button>
+          <button class="btn btn--icon" id="share-copy" aria-label="Copy link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="related-section" id="related-articles"></div>
+
+      <a href="articles.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to all articles
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__brand">Reader</p>
+      <p class="footer__copy">&copy; 2026 &middot; All rights reserved</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/manifest.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/reader.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var currentUser = null;
+      var currentSlug = '';
+      var lastSavedProgress = 0;
+      var progressTimer = null;
+      var isTracking = true;
+
+      document.addEventListener('DOMContentLoaded', function () {
+        Auth.requireAuth().then(function (user) {
+          if (!user) return;
+          currentUser = user;
+          renderUser(user);
+          currentSlug = App.getCurrentSlug();
+          if (currentSlug) loadArticleInteractions(user.id, currentSlug);
+        });
+      });
+
+      document.getElementById('menu-signout').addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+      document.getElementById('sidebar-signout').addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+
+      document.getElementById('header-avatar').addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
+      });
+      document.addEventListener('click', function () {
+        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
+      });
+
+      document.getElementById('like-btn').addEventListener('click', function () {
+        if (!currentUser || !currentSlug) return;
+        var btn = document.getElementById('like-btn');
+        btn.disabled = true;
+
+        var currentlyLiked = btn.classList.contains('reaction-btn--active');
+
+        if (currentlyLiked) {
+          Supabase.removeReaction(currentUser.id, currentSlug).then(function (err) {
+            if (err) {
+              App.showToast('Unable to update reaction. Please try again.');
+              btn.disabled = false;
+              return;
+            }
+            btn.classList.remove('reaction-btn--active');
+            var countEl = document.getElementById('like-count');
+            countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+            btn.querySelector('svg').setAttribute('fill', 'none');
+            btn.disabled = false;
+          });
+        } else {
+          Supabase.addReaction(currentUser.id, currentSlug, 'like').then(function (result) {
+            if (!result) {
+              App.showToast('Unable to update reaction. Please try again.');
+              btn.disabled = false;
+              return;
+            }
+            btn.classList.add('reaction-btn--active');
+            var countEl = document.getElementById('like-count');
+            countEl.textContent = parseInt(countEl.textContent) + 1;
+            btn.querySelector('svg').setAttribute('fill', 'currentColor');
+            btn.disabled = false;
+          });
+        }
+      });
+
+      document.getElementById('bookmark-btn').addEventListener('click', function () {
+        if (!currentUser || !currentSlug) return;
+        var btn = document.getElementById('bookmark-btn');
+        btn.disabled = true;
+
+        var currentlyBookmarked = btn.classList.contains('bookmark-btn--active');
+
+        if (currentlyBookmarked) {
+          Supabase.removeBookmark(currentUser.id, currentSlug).then(function (err) {
+            if (err) {
+              App.showToast('Unable to update bookmark. Please try again.');
+              btn.disabled = false;
+              return;
+            }
+            btn.classList.remove('bookmark-btn--active');
+            btn.querySelector('svg').setAttribute('fill', 'none');
+            App.showToast('Bookmark removed');
+            btn.disabled = false;
+          });
+        } else {
+          Supabase.addBookmark(currentUser.id, currentSlug).then(function (result) {
+            if (!result) {
+              App.showToast('Unable to update bookmark. Please try again.');
+              btn.disabled = false;
+              return;
+            }
+            btn.classList.add('bookmark-btn--active');
+            btn.querySelector('svg').setAttribute('fill', 'currentColor');
+            App.showToast('Article bookmarked');
+            btn.disabled = false;
+          });
+        }
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        isTracking = !document.hidden;
+        if (!document.hidden && currentUser && currentSlug) {
+          startProgressTracking();
+        }
+      });
+
+      window.addEventListener('beforeunload', function () {
+        if (currentUser && currentSlug) {
+          var progress = calculateScrollProgress();
+          if (progress >= 90) {
+            Supabase.markComplete(currentUser.id, currentSlug);
+          } else if (progress !== lastSavedProgress) {
+            Supabase.updateProgress(currentUser.id, currentSlug, progress);
+          }
+        }
+      });
+
+      function renderUser(user) {
+        var profile = user.profile || {};
+        var name = profile.display_name || user.email.split('@')[0];
+        var initials = Manifest.getInitials(name);
+
+        document.getElementById('menu-name').textContent = name;
+        document.getElementById('menu-email').textContent = user.email;
+        document.getElementById('avatar-initials').textContent = initials;
+        document.getElementById('sidebar-name').textContent = name;
+        document.getElementById('sidebar-email').textContent = user.email;
+        document.getElementById('sidebar-initials').textContent = initials;
+
+        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
+          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
+          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
+        }
+      }
+
+      function loadArticleInteractions(userId, slug) {
+        Supabase.getReactionCount(slug).then(function (count) {
+          document.getElementById('like-count').textContent = count;
+        });
+
+        Supabase.hasReacted(userId, slug).then(function (result) {
+          var btn = document.getElementById('like-btn');
+          if (result.value) {
+            btn.classList.add('reaction-btn--active');
+            btn.querySelector('svg').setAttribute('fill', 'currentColor');
+          }
+        });
+
+        Supabase.isBookmarked(userId, slug).then(function (result) {
+          var btn = document.getElementById('bookmark-btn');
+          if (result.value) {
+            btn.classList.add('bookmark-btn--active');
+            btn.querySelector('svg').setAttribute('fill', 'currentColor');
+          }
+        });
+
+        Supabase.getHistoryEntry(userId, slug).then(function (entry) {
+          if (entry && entry.progress_percent > 0 && !entry.completed_at) {
+            var banner = document.getElementById('continue-banner');
+            banner.style.display = 'flex';
+            document.getElementById('continue-banner-text').textContent = 'Continue reading';
+            document.getElementById('continue-banner-progress').textContent = entry.progress_percent + '% complete';
+            lastSavedProgress = entry.progress_percent;
+          } else if (entry) {
+            lastSavedProgress = entry.progress_percent || 0;
+          }
+          startProgressTracking();
+        });
+      }
+
+      function startProgressTracking() {
+        if (progressTimer) clearInterval(progressTimer);
+        progressTimer = setInterval(function () {
+          if (!isTracking || !currentUser || !currentSlug) return;
+          var progress = calculateScrollProgress();
+          if (Math.abs(progress - lastSavedProgress) >= 5) {
+            Supabase.updateProgress(currentUser.id, currentSlug, progress);
+            lastSavedProgress = progress;
+          }
+        }, 10000);
+      }
+
+      function calculateScrollProgress() {
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        return docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Supabase (private infrastructure)
+supabase-schema.sql
+supabase-plan.md
+supabase-review.md
+
+# Private plans & archives
+archived-plan-private/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node modules (if any)
+node_modules/

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage your Reader profile.">
+  <title>Profile Settings — Reader</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
+</head>
+<body data-page="profile">
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">Reader</a>
+      <nav class="header__nav">
+        <a href="index.html" class="header__link">Home</a>
+        <a href="articles.html" class="header__link">Articles</a>
+      </nav>
+      <div class="header__actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="header__avatar-wrapper" id="avatar-wrapper">
+          <div class="header__avatar" id="header-avatar">
+            <span id="avatar-initials">?</span>
+          </div>
+          <div class="avatar-dropdown__menu" id="avatar-menu">
+            <div class="avatar-dropdown__header">
+              <div class="avatar-dropdown__name" id="menu-name">Loading...</div>
+              <div class="avatar-dropdown__email" id="menu-email"></div>
+            </div>
+            <div class="avatar-dropdown__list">
+              <a href="dashboard.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </a>
+              <a href="bookmarks.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Bookmarks
+              </a>
+              <a href="history.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Reading History
+              </a>
+              <a href="profile.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile Settings
+              </a>
+              <div class="avatar-dropdown__divider"></div>
+              <button class="avatar-dropdown__item avatar-dropdown__item--danger" id="menu-signout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar__logo">Reader</a>
+    <div class="sidebar__user" id="sidebar-user">
+      <div class="sidebar__user-avatar" id="sidebar-avatar">
+        <span id="sidebar-initials">?</span>
+      </div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar__user-email" id="sidebar-email"></div>
+      </div>
+    </div>
+    <div class="sidebar__nav">
+      <a href="index.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="articles.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Articles
+      </a>
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="bookmarks.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Bookmarks
+      </a>
+      <a href="history.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Reading History
+      </a>
+      <a href="profile.html" class="sidebar__link sidebar__link--active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+    <button class="sidebar__signout" id="sidebar-signout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </nav>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <main>
+    <section class="container" style="padding-top:var(--space-10);padding-bottom:var(--space-16);max-width:600px;">
+      <h1 class="dashboard-greeting__title" style="margin-bottom:var(--space-8);">Profile Settings</h1>
+
+      <div class="alert alert--error" id="error-banner"></div>
+      <div class="alert alert--success" id="success-banner"></div>
+
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-6);margin-bottom:var(--space-6);">
+        <h2 class="section-header__title" style="margin-bottom:var(--space-5);">Profile Information</h2>
+        <form id="profile-form">
+          <div class="form-group">
+            <label class="form-label" for="profile-avatar-url">Avatar URL</label>
+            <input class="form-input" type="url" id="profile-avatar-url" placeholder="https://example.com/avatar.jpg">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profile-name">Display Name</label>
+            <input class="form-input" type="text" id="profile-name" placeholder="Your name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profile-bio">Bio</label>
+            <textarea class="form-input" id="profile-bio" rows="3" placeholder="Tell us about yourself..." style="resize:vertical;"></textarea>
+          </div>
+          <button class="btn btn--primary" type="submit" id="profile-save-btn">
+            <span class="btn__text">Save Changes</span>
+            <span class="spinner"></span>
+          </button>
+        </form>
+      </div>
+
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-6);margin-bottom:var(--space-6);">
+        <h2 class="section-header__title" style="margin-bottom:var(--space-5);">Change Password</h2>
+        <form id="password-form">
+          <div class="form-group">
+            <label class="form-label" for="new-password">New Password</label>
+            <input class="form-input" type="password" id="new-password" placeholder="Min 8 characters">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm-password">Confirm New Password</label>
+            <input class="form-input" type="password" id="confirm-password" placeholder="Repeat new password">
+          </div>
+          <button class="btn btn--primary" type="submit" id="password-save-btn">
+            <span class="btn__text">Update Password</span>
+            <span class="spinner"></span>
+          </button>
+        </form>
+      </div>
+
+      <div class="danger-zone">
+        <h3 class="danger-zone__title">Danger Zone</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--text-secondary);margin-bottom:var(--space-4);">Once you delete your account, there is no going back. Please be certain.</p>
+        <p style="font-family:'Inter',sans-serif;font-size:0.85rem;color:var(--text-secondary);">Account deletion requires server-side verification. Please <a href="mailto:support@reader.com" style="color:var(--accent);">contact support</a> to delete your account.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__brand">Reader</p>
+      <p class="footer__copy">&copy; 2026 &middot; All rights reserved</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/manifest.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var currentUser = null;
+
+      document.addEventListener('DOMContentLoaded', function () {
+        Auth.requireAuth().then(function (user) {
+          if (!user) return;
+          currentUser = user;
+          renderUser(user);
+          loadProfile(user.id);
+        });
+      });
+
+      document.getElementById('menu-signout').addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+      document.getElementById('sidebar-signout').addEventListener('click', function () {
+        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+      });
+
+      document.getElementById('header-avatar').addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.getElementById('avatar-menu').classList.toggle('avatar-dropdown__menu--open');
+      });
+      document.addEventListener('click', function () {
+        document.getElementById('avatar-menu').classList.remove('avatar-dropdown__menu--open');
+      });
+
+      document.getElementById('profile-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearBanners();
+        var name = document.getElementById('profile-name').value.trim();
+        var bio = document.getElementById('profile-bio').value.trim();
+        var avatarUrl = document.getElementById('profile-avatar-url').value.trim();
+
+        if (!name) {
+          showError('Display name is required.');
+          return;
+        }
+
+        if (avatarUrl && !Supabase.isValidAvatarUrl(avatarUrl)) {
+          showError('Please enter a valid avatar URL starting with http:// or https://.');
+          return;
+        }
+
+        var btn = document.getElementById('profile-save-btn');
+        btn.disabled = true;
+        btn.classList.add('btn--auth--loading');
+
+        Supabase.updateProfile(currentUser.id, { display_name: name, bio: bio, avatar_url: avatarUrl || null })
+          .then(function (updated) {
+            if (!updated) { showError('Unable to save changes. Please try again.'); return; }
+            currentUser.profile = updated;
+            window.currentUser = currentUser;
+            renderUser(currentUser);
+            showSuccess('Profile updated successfully.');
+          })
+          .catch(function () { showError('Unable to save changes. Please try again.'); })
+          .finally(function () {
+            btn.disabled = false;
+            btn.classList.remove('btn--auth--loading');
+          });
+      });
+
+      document.getElementById('password-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearBanners();
+        var newPass = document.getElementById('new-password').value;
+        var confirmPass = document.getElementById('confirm-password').value;
+
+        if (!newPass || newPass.length < 8) {
+          showError('Password must be at least 8 characters.');
+          return;
+        }
+        if (newPass !== confirmPass) {
+          showError('Passwords do not match.');
+          return;
+        }
+
+        var btn = document.getElementById('password-save-btn');
+        btn.disabled = true;
+        btn.classList.add('btn--auth--loading');
+
+        Auth.updatePassword(newPass)
+          .then(function () { showSuccess('Password updated successfully.'); document.getElementById('password-form').reset(); })
+          .catch(function (err) { showError(err.message || String(err)); })
+          .finally(function () {
+            btn.disabled = false;
+            btn.classList.remove('btn--auth--loading');
+          });
+      });
+
+      function renderUser(user) {
+        var profile = user.profile || {};
+        var name = profile.display_name || user.email.split('@')[0];
+        var initials = Manifest.getInitials(name);
+
+        document.getElementById('menu-name').textContent = name;
+        document.getElementById('menu-email').textContent = user.email;
+        document.getElementById('avatar-initials').textContent = initials;
+        document.getElementById('sidebar-name').textContent = name;
+        document.getElementById('sidebar-email').textContent = user.email;
+        document.getElementById('sidebar-initials').textContent = initials;
+
+        if (profile.avatar_url && Supabase.isValidAvatarUrl(profile.avatar_url)) {
+          document.getElementById('header-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
+          document.getElementById('sidebar-avatar').innerHTML = '<img src="' + escapeHtml(profile.avatar_url) + '" alt="' + escapeHtml(name) + '">';
+        }
+      }
+
+      function loadProfile(userId) {
+        Supabase.getProfile(userId).then(function (profile) {
+          if (!profile) return;
+          document.getElementById('profile-name').value = profile.display_name || '';
+          document.getElementById('profile-bio').value = profile.bio || '';
+          document.getElementById('profile-avatar-url').value = profile.avatar_url || '';
+        });
+      }
+
+      function showError(message) {
+        var el = document.getElementById('error-banner');
+        el.textContent = message;
+        el.classList.add('alert--visible');
+      }
+
+      function showSuccess(message) {
+        var el = document.getElementById('success-banner');
+        el.textContent = message;
+        el.classList.add('alert--visible');
+      }
+
+      function clearBanners() {
+        document.getElementById('error-banner').classList.remove('alert--visible');
+        document.getElementById('success-banner').classList.remove('alert--visible');
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    })();
+  </script>
+</body>
+</html>
