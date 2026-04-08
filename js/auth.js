@@ -194,6 +194,31 @@
     return window.Supabase ? window.Supabase.client.auth.getSession() : null;
   }
 
+  async function refreshSession() {
+    if (!window.Supabase) return null;
+    try {
+      var result = await window.Supabase.client.auth.refreshSession();
+      if (result.error) throw result.error;
+      if (!result.data.session) return null;
+
+      currentUser = result.data.user;
+      window.currentUser = currentUser;
+
+      /* Refresh profile too */
+      var profile = await window.Supabase.getProfile(currentUser.id);
+      if (profile) {
+        currentUser.profile = profile;
+        window.currentUser = currentUser;
+      }
+      return currentUser;
+    } catch (error) {
+      console.error('Session refresh failed:', error);
+      currentUser = null;
+      window.currentUser = null;
+      return null;
+    }
+  }
+
   function onAuthChange(callback) {
     if (!window.Supabase) return null;
     /* Track whether we have already processed the initial SIGNED_IN event
@@ -290,6 +315,7 @@
     updatePassword: updatePassword,
     getUser: getUser,
     getSession: getSession,
+    refreshSession: refreshSession,
     onAuthChange: onAuthChange,
     isNewSignup: isNewSignup
   };

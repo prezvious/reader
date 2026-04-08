@@ -208,31 +208,35 @@
 
         var currentlyLiked = btn.classList.contains('reaction-btn--active');
 
-        if (currentlyLiked) {
-          Supabase.removeReaction(currentUser.id, currentSlug).then(function () {
-            btn.classList.remove('reaction-btn--active');
-            var countEl = document.getElementById('like-count');
-            countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-            btn.querySelector('svg').setAttribute('fill', 'none');
+        Auth.refreshSession().then(function (user) {
+          if (!user || !currentSlug) {
             btn.disabled = false;
-          }).catch(function (err) {
-            console.error('removeReaction failed:', err);
-            App.showToast('Unable to update reaction. Please try again.');
-            btn.disabled = false;
-          });
-        } else {
-          Supabase.addReaction(currentUser.id, currentSlug, 'like').then(function () {
-            btn.classList.add('reaction-btn--active');
-            var countEl = document.getElementById('like-count');
-            countEl.textContent = parseInt(countEl.textContent) + 1;
-            btn.querySelector('svg').setAttribute('fill', 'currentColor');
-            btn.disabled = false;
-          }).catch(function (err) {
-            console.error('addReaction failed:', err);
-            App.showToast('Unable to update reaction. Please try again.');
-            btn.disabled = false;
-          });
-        }
+            if (!user) { App.showToast('Please sign in again.'); window.location.href = 'signin.html'; }
+            return;
+          }
+          currentUser = user;
+
+          if (currentlyLiked) {
+            return Supabase.removeReaction(user.id, currentSlug).then(function () {
+              btn.classList.remove('reaction-btn--active');
+              var countEl = document.getElementById('like-count');
+              countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+              btn.querySelector('svg').setAttribute('fill', 'none');
+            });
+          } else {
+            return Supabase.addReaction(user.id, currentSlug, 'like').then(function () {
+              btn.classList.add('reaction-btn--active');
+              var countEl = document.getElementById('like-count');
+              countEl.textContent = parseInt(countEl.textContent) + 1;
+              btn.querySelector('svg').setAttribute('fill', 'currentColor');
+            });
+          }
+        }).catch(function (err) {
+          console.error('addReaction failed:', err);
+          App.showToast('Unable to update reaction. Please try again.');
+        }).finally(function () {
+          btn.disabled = false;
+        });
       });
 
       document.getElementById('bookmark-btn').addEventListener('click', function () {
@@ -242,29 +246,33 @@
 
         var currentlyBookmarked = btn.classList.contains('bookmark-btn--active');
 
-        if (currentlyBookmarked) {
-          Supabase.removeBookmark(currentUser.id, currentSlug).then(function () {
-            btn.classList.remove('bookmark-btn--active');
-            btn.querySelector('svg').setAttribute('fill', 'none');
-            App.showToast('Bookmark removed');
+        Auth.refreshSession().then(function (user) {
+          if (!user || !currentSlug) {
             btn.disabled = false;
-          }).catch(function (err) {
-            console.error('removeBookmark failed:', err);
-            App.showToast('Unable to update bookmark. Please try again.');
-            btn.disabled = false;
-          });
-        } else {
-          Supabase.addBookmark(currentUser.id, currentSlug).then(function () {
-            btn.classList.add('bookmark-btn--active');
-            btn.querySelector('svg').setAttribute('fill', 'currentColor');
-            App.showToast('Article bookmarked');
-            btn.disabled = false;
-          }).catch(function (err) {
-            console.error('addBookmark failed:', err);
-            App.showToast('Unable to update bookmark. Please try again.');
-            btn.disabled = false;
-          });
-        }
+            if (!user) { App.showToast('Please sign in again.'); window.location.href = 'signin.html'; }
+            return;
+          }
+          currentUser = user;
+
+          if (currentlyBookmarked) {
+            return Supabase.removeBookmark(user.id, currentSlug).then(function () {
+              btn.classList.remove('bookmark-btn--active');
+              btn.querySelector('svg').setAttribute('fill', 'none');
+              App.showToast('Bookmark removed');
+            });
+          } else {
+            return Supabase.addBookmark(user.id, currentSlug).then(function () {
+              btn.classList.add('bookmark-btn--active');
+              btn.querySelector('svg').setAttribute('fill', 'currentColor');
+              App.showToast('Article bookmarked');
+            });
+          }
+        }).catch(function (err) {
+          console.error('addBookmark failed:', err);
+          App.showToast('Unable to update bookmark. Please try again.');
+        }).finally(function () {
+          btn.disabled = false;
+        });
       });
 
       document.addEventListener('visibilitychange', function () {
@@ -279,6 +287,8 @@
          async Supabase calls cannot complete before the page navigates away. */
 
       function loadArticleInteractions(userId, slug) {
+        if (!slug) return;
+
         /* Enable buttons now that auth is resolved */
         document.getElementById('like-btn').disabled = false;
         document.getElementById('bookmark-btn').disabled = false;
