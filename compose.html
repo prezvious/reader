@@ -605,9 +605,13 @@
         var container = document.getElementById('cover-options');
         if (!container) return;
 
-        /* Extract all image URLs from the raw text */
-        var imgRegex = /https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(#[^\s]*)?/gi;
-        var matches = rawText.match(imgRegex) || [];
+        /* Extract all image URLs from the raw text.
+           Match (a) extension-based URLs and (b) known image hosting domains. */
+        var imgExtRegex = /https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(#[^\s]*)?/gi;
+        var imgHostRegex = /https?:\/\/(?:images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\/[^\s]+/gi;
+        var extMatches = rawText.match(imgExtRegex) || [];
+        var hostMatches = rawText.match(imgHostRegex) || [];
+        var matches = extMatches.concat(hostMatches);
 
         /* Deduplicate */
         var uniqueUrls = [];
@@ -799,11 +803,14 @@
 
       /**
        * Check if a string is a URL pointing to an image file.
-       * Matches http/https URLs ending with common image extensions,
-       * ignoring any query string or fragment.
+       * Matches:
+       *  1) URLs ending with common image extensions (.jpg, .png, etc.)
+       *  2) Extensionless URLs from known image hosting services
        */
+      var IMAGE_EXT_RE    = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?[^\s]*)?(#[^\s]*)?$/i;
+      var IMAGE_HOST_RE   = /^https?:\/\/(images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\//i;
       function isImageUrl(str) {
-        return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?[^\s]*)?(#[^\s]*)?$/i.test(str);
+        return IMAGE_EXT_RE.test(str) || IMAGE_HOST_RE.test(str);
       }
 
       /**
@@ -822,8 +829,9 @@
        * Apply inline formatting: **bold**, *italic*, <u>underline</u>
        */
       function applyInlineFormatting(text) {
-        /* Image URLs inline: turn bare image URLs into <img> tags */
-        text = text.replace(/(?:^|(?<=\s))(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(?:#[^\s]*)?)(?=\s|$)/gi, function (match, url) {
+        /* Image URLs inline: turn bare image URLs into <img> tags.
+           Matches extension-based URLs and known image hosting domains. */
+        text = text.replace(/(?:^|(?<=\s))(https?:\/\/(?:[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(?:#[^\s]*)?|(?:images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\/[^\s]+))(?=\s|$)/gi, function (match, url) {
           return '<img class="article-image__inline" src="' + escapeAttr(url) + '" alt="" loading="lazy">';
         });
         /* Bold: **text** */
