@@ -116,13 +116,83 @@
   /* Initialize avatar click via event delegation on the wrapper — survives innerHTML changes */
   function initAvatarMenu() {
     var wrapper = document.getElementById('avatar-wrapper');
-    if (!wrapper) return;
+    var avatar = document.getElementById('header-avatar');
+    if (!wrapper || !avatar) return;
 
+    /* Make avatar focusable and keyboard-accessible */
+    avatar.setAttribute('tabindex', '0');
+    avatar.setAttribute('role', 'button');
+    avatar.setAttribute('aria-haspopup', 'true');
+    avatar.setAttribute('aria-expanded', 'false');
+    avatar.setAttribute('aria-label', 'Open user menu');
+
+    function openMenu() {
+      var menu = document.getElementById('avatar-menu');
+      if (menu) {
+        menu.classList.toggle('avatar-dropdown__menu--open');
+        var isOpen = menu.classList.contains('avatar-dropdown__menu--open');
+        avatar.setAttribute('aria-expanded', String(isOpen));
+
+        /* Focus first menu item when opened */
+        if (isOpen) {
+          var firstItem = menu.querySelector('.avatar-dropdown__item, button');
+          if (firstItem) {
+            setTimeout(function () { firstItem.focus(); }, 50);
+          }
+        }
+      }
+    }
+
+    function closeMenu() {
+      var menu = document.getElementById('avatar-menu');
+      if (menu) {
+        menu.classList.remove('avatar-dropdown__menu--open');
+        avatar.setAttribute('aria-expanded', 'false');
+        avatar.focus();
+      }
+    }
+
+    /* Click handler */
     wrapper.addEventListener('click', function (e) {
       e.stopPropagation();
-      var menu = document.getElementById('avatar-menu');
-      if (menu) menu.classList.toggle('avatar-dropdown__menu--open');
+      openMenu();
     });
+
+    /* Keyboard handler on avatar */
+    avatar.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openMenu();
+      } else if (e.key === 'Escape') {
+        closeMenu();
+      }
+    });
+
+    /* Keyboard handler inside menu */
+    var menu = document.getElementById('avatar-menu');
+    if (menu) {
+      menu.setAttribute('role', 'menu');
+      menu.querySelectorAll('.avatar-dropdown__item, button').forEach(function (item) {
+        item.setAttribute('role', 'menuitem');
+        item.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            closeMenu();
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            var items = Array.from(menu.querySelectorAll('[role="menuitem"]'));
+            var idx = items.indexOf(document.activeElement);
+            var next = items[(idx + 1) % items.length];
+            if (next) next.focus();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            var items = Array.from(menu.querySelectorAll('[role="menuitem"]'));
+            var idx = items.indexOf(document.activeElement);
+            var prev = items[(idx - 1 + items.length) % items.length];
+            if (prev) prev.focus();
+          }
+        });
+      });
+    }
   }
 
   /* Initialize signout buttons (menu + sidebar) */
@@ -130,14 +200,22 @@
     var menuBtn = document.getElementById('menu-signout');
     if (menuBtn) {
       menuBtn.addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+        menuBtn.disabled = true;
+        Auth.signOut().catch(function () {
+          menuBtn.disabled = false;
+          window.location.href = 'signin.html';
+        });
       });
     }
 
     var sidebarBtn = document.getElementById('sidebar-signout');
     if (sidebarBtn) {
       sidebarBtn.addEventListener('click', function () {
-        Auth.signOut().catch(function () { window.location.href = 'signin.html'; });
+        sidebarBtn.disabled = true;
+        Auth.signOut().catch(function () {
+          sidebarBtn.disabled = false;
+          window.location.href = 'signin.html';
+        });
       });
     }
   }
@@ -146,7 +224,11 @@
   function initAvatarMenuClose() {
     document.addEventListener('click', function () {
       var menu = document.getElementById('avatar-menu');
-      if (menu) menu.classList.remove('avatar-dropdown__menu--open');
+      var avatar = document.getElementById('header-avatar');
+      if (menu) {
+        menu.classList.remove('avatar-dropdown__menu--open');
+        if (avatar) avatar.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 
@@ -276,6 +358,10 @@
 
   /* ===== SCROLL REVEAL ===== */
   function initScrollReveal() {
+    _initScrollRevealInternal();
+  }
+
+  function _initScrollRevealInternal() {
     var els = document.querySelectorAll('.reveal');
     if (!els.length) return;
 
@@ -329,6 +415,8 @@
     getCurrentSlug: getCurrentSlug,
     escapeHtml: escapeHtml,
     sanitizeHtml: sanitizeHtml,
-    renderUser: renderUser
+    renderUser: renderUser,
+    initScrollReveal: initScrollReveal,
+    _initScrollReveal: _initScrollRevealInternal
   };
 })();

@@ -419,10 +419,10 @@
         }
 
         html += '<article class="article-card" data-slug="' + App.escapeHtml(a.slug) + '">' +
-          '<a href="' + App.escapeHtml(url) + '" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+          '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-label="' + App.escapeHtml(a.title) + ' by ' + App.escapeHtml(a.author.name) + '">' + imageHtml + '</a>' +
           '<div class="article-card__body">' +
             '<span class="article-card__category">' + App.escapeHtml(a.category) + '</span>' +
-            '<h3 class="article-card__title">' + App.escapeHtml(a.title) + '</h3>' +
+            '<h2 class="article-card__title">' + App.escapeHtml(a.title) + '</h2>' +
             '<div class="article-card__meta">' +
               '<div class="article-card__info">' +
                 '<div class="article-card__author">' + App.escapeHtml(a.author.name) + '</div>' +

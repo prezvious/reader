@@ -4,11 +4,10 @@
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: var(--bg-primary);
   border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
 }
 
 .header__inner {
@@ -34,12 +33,12 @@
 }
 
 .header__logo {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--text-primary);
   text-decoration: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .header__logo:hover {
@@ -49,17 +48,17 @@
 .header__nav {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-1);
 }
 
 .header__link {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
@@ -71,21 +70,22 @@
 .header__link--active {
   color: var(--accent);
   background-color: var(--accent-subtle);
+  font-weight: 600;
 }
 
 .header__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .theme-toggle {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
@@ -96,8 +96,8 @@
 }
 
 .theme-toggle svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .theme-toggle .icon-moon,
@@ -112,11 +112,11 @@
 /* ===== MOBILE MENU ===== */
 .mobile-menu-btn {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
 }
 
@@ -125,8 +125,8 @@
 }
 
 .mobile-menu-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 .mobile-overlay {
@@ -164,23 +164,24 @@
 }
 
 .sidebar__logo {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--text-primary);
   display: block;
   margin-bottom: var(--space-10);
+  letter-spacing: -0.03em;
 }
 
 .sidebar__nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .sidebar__link {
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-secondary);
   padding: var(--space-3) var(--space-4);
@@ -195,6 +196,12 @@
 .sidebar__link--active {
   background: var(--bg-tertiary);
   color: var(--text-primary);
+}
+
+.sidebar__link--active {
+  color: var(--accent);
+  background: var(--accent-subtle);
+  font-weight: 600;
 }
 
 .sidebar__link svg {
@@ -215,15 +222,35 @@
 }
 
 .footer__brand {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--space-2);
+  letter-spacing: -0.02em;
+}
+
+.footer__nav {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  margin-bottom: var(--space-3);
+}
+
+.footer__nav a {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer__nav a:hover {
+  color: var(--accent);
 }
 
 .footer__copy {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   color: var(--text-tertiary);
 }
@@ -234,7 +261,7 @@
   top: 0;
   left: 0;
   width: 0%;
-  height: 3px;
+  height: 2px;
   background: var(--accent);
   z-index: 200;
   transition: width 50ms linear;
@@ -254,17 +281,17 @@
     display: block;
   }
 
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.25rem; }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.375rem; }
+  h3 { font-size: 1.175rem; }
 
   body {
-    font-size: 16px;
+    font-size: 0.95rem;
   }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  h1 { font-size: 2.25rem; }
+  h1 { font-size: 2.125rem; }
 }
 
 /* ===== AVATAR DROPDOWN ===== */
@@ -275,26 +302,27 @@
 }
 
 .header__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .header__avatar:hover {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
 .header__avatar img {
@@ -308,10 +336,11 @@
   top: calc(100% + var(--space-2));
   right: 0;
   min-width: 220px;
+  max-width: calc(100vw - var(--space-6));
   background: var(--bg-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 24px var(--shadow-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   z-index: 200;
   display: none;
   overflow: hidden;
@@ -327,7 +356,7 @@
 }
 
 .avatar-dropdown__name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -337,7 +366,7 @@
 }
 
 .avatar-dropdown__email {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   color: var(--text-tertiary);
   white-space: nowrap;
@@ -354,7 +383,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -385,12 +414,12 @@
 }
 
 .avatar-dropdown__item--danger {
-  color: #e53e3e;
+  color: #C45D5D;
 }
 
 .avatar-dropdown__item--danger:hover {
-  background: rgba(229, 62, 62, 0.08);
-  color: #c53030;
+  background: rgba(196, 93, 93, 0.08);
+  color: #A64B4B;
 }
 
 /* ===== SIDEBAR USER SECTION ===== */
@@ -407,12 +436,12 @@
 .sidebar__user-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -432,7 +461,7 @@
 }
 
 .sidebar__user-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -442,7 +471,7 @@
 }
 
 .sidebar__user-email {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.7rem;
   color: var(--text-tertiary);
   white-space: nowrap;
@@ -456,10 +485,10 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   margin-top: var(--space-4);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #e53e3e;
+  color: #C45D5D;
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast);
   border: none;
@@ -469,7 +498,7 @@
 }
 
 .sidebar__signout:hover {
-  background: rgba(229, 62, 62, 0.08);
+  background: rgba(196, 93, 93, 0.08);
 }
 
 .sidebar__signout svg {

@@ -24,10 +24,11 @@
 }
 
 .compose-gate__title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: var(--space-2);
+  letter-spacing: -0.01em;
 }
 
 .compose-gate__text {
@@ -44,7 +45,7 @@
   padding: var(--space-6);
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .compose-meta__field {
@@ -58,7 +59,7 @@
 }
 
 .compose-meta__label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -69,7 +70,7 @@
 .compose-meta__input,
 .compose-meta__textarea,
 .compose-meta__select {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   color: var(--text-primary);
   background: var(--bg-primary);
@@ -83,7 +84,7 @@
 .compose-meta__textarea {
   resize: vertical;
   min-height: 72px;
-  font-family: 'Lora', serif;
+  font-family: 'Outfit', sans-serif;
   line-height: 1.6;
 }
 
@@ -115,7 +116,7 @@
 }
 
 .compose-meta__check-label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-primary);
@@ -143,7 +144,7 @@
 }
 
 .compose-style__label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -154,9 +155,9 @@
 .compose-style__area {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-5);
-  animation: compose-slide-down 0.3s ease;
+  animation: compose-slide-down 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 @keyframes compose-slide-down {
@@ -171,7 +172,7 @@
 }
 
 .compose-style__hint {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
   color: var(--text-tertiary);
   margin-bottom: var(--space-3);
@@ -206,7 +207,7 @@
 }
 
 .compose-style__status {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
   color: var(--accent);
   font-weight: 500;
@@ -216,7 +217,7 @@
 .compose-editor {
   margin-bottom: var(--space-6);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--bg-secondary);
 }
@@ -231,7 +232,7 @@
 .compose-tabs__btn {
   flex: 1;
   padding: var(--space-3) var(--space-4);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -274,7 +275,7 @@
 
 .compose-toolbar__btn {
   padding: var(--space-1) var(--space-2);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -376,7 +377,7 @@
 }
 
 .compose-actions__status {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   color: var(--text-secondary);
 }
@@ -391,7 +392,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  animation: compose-fade-in 0.25s ease;
+  animation: compose-fade-in 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 @keyframes compose-fade-in {
@@ -402,19 +403,19 @@
 .compose-modal {
   background: var(--bg-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 760px;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 24px 48px var(--shadow-lg);
-  animation: compose-modal-in 0.3s ease;
+  box-shadow: var(--shadow-lg);
+  animation: compose-modal-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 @keyframes compose-modal-in {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.97);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -431,15 +432,16 @@
 }
 
 .compose-modal__title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .compose-modal__close {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -462,7 +464,7 @@
 }
 
 .compose-modal__instructions {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.7;
@@ -511,7 +513,7 @@
 }
 
 .compose-file__copy {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--accent);
@@ -582,7 +584,7 @@
   .compose-modal {
     max-width: 100%;
     max-height: 90vh;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
   }
 
   .compose-actions {

@@ -10,10 +10,13 @@
    * slug collides.
    */
   async function loadManifest() {
-    /* Load static manifest */
+    /* Load static manifest with timeout */
     var staticArticles = [];
     try {
-      var response = await fetch(MANIFEST_URL);
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function () { controller.abort(); }, 5000);
+      var response = await fetch(MANIFEST_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (response.ok) {
         var data = await response.json();
         staticArticles = data.articles || [];

@@ -25,7 +25,10 @@
       });
     });
 
-    initScrollReveal();
+    /* Use centralized scroll reveal from app.js */
+    if (window.App && window.App._initScrollReveal) {
+      window.App._initScrollReveal();
+    }
   }
 
   function buildCard(article, index) {
@@ -43,16 +46,17 @@
 
     var avatarHtml;
     if (article.author.avatar) {
-      avatarHtml = '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '"></div>';
+      avatarHtml = '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '" loading="lazy"></div>';
     } else {
       avatarHtml = '<div class="article-card__avatar">' + App.escapeHtml(initials) + '</div>';
     }
 
+    /* Use a single <a> wrapper for the entire card — valid HTML, fully keyboard accessible */
     return '<article class="article-card reveal" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (index * 0.06) + 's">' +
-      '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-hidden="true" tabindex="-1">' + imageHtml + '</a>' +
+      '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-label="' + App.escapeHtml(article.title) + ' by ' + App.escapeHtml(article.author.name) + '">' + imageHtml + '</a>' +
       '<div class="article-card__body">' +
         '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
-        '<h3 class="article-card__title">' + App.escapeHtml(article.title) + '</h3>' +
+        '<h2 class="article-card__title">' + App.escapeHtml(article.title) + '</h2>' +
         '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
         '<div class="article-card__meta">' +
           avatarHtml +
@@ -96,22 +100,6 @@
     } else {
       renderArticles(Manifest.getByCategory(category));
     }
-  }
-
-  function initScrollReveal() {
-    var els = document.querySelectorAll('.reveal:not(.visible)');
-    if (!els.length) return;
-
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-    els.forEach(function (el) { observer.observe(el); });
   }
 
   document.addEventListener('DOMContentLoaded', function () {

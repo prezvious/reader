@@ -2,12 +2,14 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Manage your Reader profile.">
   <title>Profile Settings — Reader</title>
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
 </head>
 <body data-page="profile">
@@ -110,13 +112,13 @@
   <div class="mobile-overlay" id="mobile-overlay"></div>
 
   <main>
-    <section class="container" style="padding-top:var(--space-10);padding-bottom:var(--space-16);max-width:600px;">
+    <section class="container section--padded section--profile">
       <h1 class="dashboard-greeting__title" style="margin-bottom:var(--space-8);">Profile Settings</h1>
 
       <div class="alert alert--error" id="error-banner"></div>
       <div class="alert alert--success" id="success-banner"></div>
 
-      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <div class="card-container">
         <h2 class="section-header__title" style="margin-bottom:var(--space-5);">Profile Information</h2>
         <form id="profile-form">
           <div class="form-group">
@@ -138,7 +140,7 @@
         </form>
       </div>
 
-      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <div class="card-container">
         <h2 class="section-header__title" style="margin-bottom:var(--space-5);">Change Password</h2>
         <form id="password-form">
           <div class="form-group">

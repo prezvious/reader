@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Compose and publish new articles.">
   <title>Compose — Reader</title>
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/article.css">
   <link rel="stylesheet" href="css/compose.css">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
 </head>
 <body data-page="compose">
@@ -935,9 +937,9 @@
         /* Hero section (no-image variant) */
         previewHTML += '<div style="padding:var(--space-8) var(--space-6) var(--space-4);">';
         previewHTML += '<span class="badge">' + App.escapeHtml(category) + '</span>';
-        previewHTML += '<h1 style="font-family:\'Fraunces\',Georgia,serif;font-size:2rem;font-weight:600;line-height:1.15;margin:var(--space-3) 0;">' + App.escapeHtml(title) + '</h1>';
+        previewHTML += '<h1 style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:2rem;font-weight:800;line-height:1.15;margin:var(--space-3) 0;letter-spacing:-0.02em">' + App.escapeHtml(title) + '</h1>';
         if (excerpt) {
-          previewHTML += '<p style="font-family:\'Lora\',Georgia,serif;font-size:1rem;font-style:italic;color:var(--text-secondary);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
+          previewHTML += '<p style="font-family:\'Outfit\',sans-serif;font-size:1rem;font-style:italic;color:var(--text-secondary);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
         }
         previewHTML += '<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-4);font-family:\'Inter\',sans-serif;font-size:0.8rem;color:var(--text-secondary);">';
         previewHTML += '<span style="font-weight:600;color:var(--text-primary);">' + App.escapeHtml(authorName) + '</span>';

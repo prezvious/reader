@@ -6,45 +6,44 @@
    ============================================================= */
 
 /* ===== ARTICLE-BODY SCOPED TYPOGRAPHY ===== */
-/* These rules were previously global; now they only apply
-   inside the article content area so other pages stay clean. */
 
 .article-body h2 {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
   line-height: 1.3;
   margin-top: 2.5em;
   margin-bottom: 0.5em;
+  letter-spacing: -0.01em;
 }
 
 .article-body h3 {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 2em;
   margin-bottom: 0.5em;
 }
 
 .article-body h4 {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.125rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.1rem;
   font-weight: 600;
   margin-top: 1.25em;
   margin-bottom: 0.5em;
 }
 
 .article-body p {
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   line-height: 1.8;
   margin-bottom: 1.5em;
   color: var(--text-primary);
 }
 
 .article-body blockquote {
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Outfit', sans-serif;
   font-style: italic;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   line-height: 1.6;
   color: var(--text-secondary);
   border-left: 3px solid var(--accent);
@@ -93,7 +92,7 @@
 .article-body th {
   background: var(--bg-secondary);
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -105,7 +104,7 @@
 
 .article-body ul,
 .article-body ol {
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   line-height: 1.8;
   padding-left: 1.5em;
   margin-bottom: 1.5em;
@@ -140,7 +139,7 @@
 }
 
 .article-body figcaption {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.85rem;
   color: var(--text-secondary);
   text-align: center;
@@ -150,7 +149,7 @@
 
 .article-body img {
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   margin: 1.5em 0;
 }
 
@@ -168,15 +167,6 @@
 
 /* =============================================================
    LAYOUT: CENTER (no cover image)
-   =============================================================
-   [Title]
-   [Subtitle]  (optional)
-   [space]
-   [name, date, reading time, profile picture]
-   [space]
-   [bookmark-btn, share-copy]
-   [space]
-   [article text]
    ============================================================= */
 
 .article-hero--center {
@@ -197,20 +187,20 @@
   margin-bottom: var(--space-4);
 }
 
-/* Title & subtitle styles are INTENTIONALLY unchanged per user request */
 .article-hero--center .article-hero__title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.75rem, 1.5rem + 2vw, 2.75rem);
+  font-weight: 800;
   line-height: 1.15;
   color: var(--text-primary);
   margin-bottom: var(--space-3);
   max-width: 800px;
+  letter-spacing: -0.02em;
 }
 
 .article-hero--center .article-hero__subtitle {
-  font-family: 'Lora', Georgia, serif;
-  font-size: 1.15rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
   font-style: italic;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -246,16 +236,12 @@
 
 /* =============================================================
    LAYOUT: PHOTO (with cover image)
-   =============================================================
-   Full-bleed hero image with gradient overlay.
-   Title + subtitle float over the image.
-   Floating metadata card overlaps the hero bottom edge.
    ============================================================= */
 
 .article-hero--photo {
   position: relative;
   width: 100%;
-  margin-bottom: calc(var(--space-16) + 20px); /* extra room for the floating card */
+  margin-bottom: calc(var(--space-16) + 20px);
 }
 
 .article-hero--photo .article-hero__image {
@@ -285,12 +271,12 @@
 .article-hero--photo .article-hero__badge {
   display: inline-block;
   margin-bottom: var(--space-4);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-family: 'Inter', sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-family: 'Outfit', sans-serif;
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -299,20 +285,20 @@
   border-radius: var(--radius-full);
 }
 
-/* Title & subtitle styles are INTENTIONALLY unchanged per user request */
 .article-hero--photo .article-hero__title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 2.75rem;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.75rem, 1.5rem + 2vw, 2.75rem);
+  font-weight: 800;
   line-height: 1.15;
   color: #FFFFFF;
   margin-bottom: var(--space-3);
   max-width: 800px;
+  letter-spacing: -0.02em;
 }
 
 .article-hero--photo .article-hero__subtitle {
-  font-family: 'Lora', Georgia, serif;
-  font-size: 1.15rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
   font-style: italic;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
@@ -327,13 +313,10 @@
   padding: var(--space-6);
   background: var(--bg-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow:
-    0 4px 24px var(--shadow-md),
-    0 1px 4px var(--shadow-sm);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
   z-index: 10;
   margin-inline: auto;
-  /* Horizontal padding so it doesn't slam against viewport edges */
 }
 
 /* On narrow screens, add side padding to the card wrapper */
@@ -371,14 +354,14 @@
 }
 
 .article-byline__author {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .article-byline__meta {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.8rem;
   color: var(--text-secondary);
   display: flex;
@@ -424,10 +407,11 @@
 }
 
 .related-section__title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: var(--space-6);
+  letter-spacing: -0.01em;
 }
 
 .related-grid {
@@ -454,7 +438,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -494,9 +478,9 @@
 }
 
 .article-error__title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: var(--space-2);
 }
 
@@ -535,6 +519,7 @@
   .article-meta-card {
     margin-top: -36px;
     padding: var(--space-5);
+    border-radius: var(--radius-lg);
   }
 
   /* --- Center layout mobile --- */
@@ -549,19 +534,19 @@
 
   /* --- Shared mobile --- */
   .article-body p {
-    font-size: 1.05rem;
+    font-size: 1rem;
   }
 
   .article-body h2 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .article-body h3 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .article-body blockquote {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .article-byline {
