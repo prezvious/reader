@@ -150,9 +150,36 @@
 }
 
 .article-body img {
+  max-width: 100%;
   width: 100%;
+  height: auto;
   border-radius: var(--radius-lg);
   margin: 1.5em 0;
+  display: block;
+}
+
+/* Standalone image URL embeds */
+.article-body .article-image {
+  margin: 2em 0;
+}
+
+.article-body .article-image img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-lg);
+  margin: 0;
+}
+
+/* Inline image URL embeds (within paragraphs) */
+.article-body .article-image__inline {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  margin: 1em 0;
 }
 
 .article-body a:not(.btn) {

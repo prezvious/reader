@@ -168,6 +168,25 @@
         </div>
       </div>
 
+      <!-- ===== COVER IMAGE PICKER ===== -->
+      <div class="compose-cover" id="compose-cover">
+        <div class="compose-cover__header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span class="compose-cover__title">Cover Image</span>
+          <span class="compose-cover__hint">Select a photo from your article to use as the cover</span>
+        </div>
+        <div class="compose-cover__options" id="cover-options">
+          <label class="compose-cover__option compose-cover__option--none">
+            <input type="radio" name="cover-image" value="" checked>
+            <span class="compose-cover__option-label">No cover image</span>
+          </label>
+        </div>
+      </div>
+
       <!-- ===== CUSTOM STYLE ===== -->
       <div class="compose-style" id="compose-style-section">
         <div class="compose-style__toggle">
@@ -288,6 +307,7 @@
       var currentUser = null;
       var customCSSApplied = false;
       var customCSSContent = '';
+      var detectedImages = [];
       var debounceTimer = null;
 
       /* =============================================
@@ -572,6 +592,58 @@
            what readers will actually see (no surprise stripped tags after publish). */
         var safe = html ? App.sanitizeHtml(html) : '';
         document.getElementById('preview-body').innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
+
+        /* Update cover image picker with detected image URLs */
+        updateCoverImagePicker(raw);
+      }
+
+      /**
+       * Scan the raw editor content for image URLs and populate
+       * the cover image picker with radio-button thumbnails.
+       */
+      function updateCoverImagePicker(rawText) {
+        var container = document.getElementById('cover-options');
+        if (!container) return;
+
+        /* Extract all image URLs from the raw text */
+        var imgRegex = /https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(#[^\s]*)?/gi;
+        var matches = rawText.match(imgRegex) || [];
+
+        /* Deduplicate */
+        var uniqueUrls = [];
+        var seen = {};
+        for (var i = 0; i < matches.length; i++) {
+          var url = matches[i];
+          if (!seen[url]) {
+            seen[url] = true;
+            uniqueUrls.push(url);
+          }
+        }
+
+        detectedImages = uniqueUrls;
+
+        /* Preserve current selection */
+        var currentlySelected = '';
+        var checked = container.querySelector('input[name="cover-image"]:checked');
+        if (checked) currentlySelected = checked.value;
+
+        /* Build the HTML */
+        var html = '<label class="compose-cover__option compose-cover__option--none">';
+        html += '<input type="radio" name="cover-image" value=""' + (currentlySelected === '' ? ' checked' : '') + '>';
+        html += '<span class="compose-cover__option-label">No cover image</span>';
+        html += '</label>';
+
+        for (var j = 0; j < uniqueUrls.length; j++) {
+          var imgUrl = uniqueUrls[j];
+          var isSelected = (imgUrl === currentlySelected) ? ' checked' : '';
+          html += '<label class="compose-cover__option">';
+          html += '<input type="radio" name="cover-image" value="' + escapeAttr(imgUrl) + '"' + isSelected + '>';
+          html += '<img class="compose-cover__thumb" src="' + escapeAttr(imgUrl) + '" alt="Photo ' + (j + 1) + '" loading="lazy">';
+          html += '<span class="compose-cover__option-num">Photo ' + (j + 1) + '</span>';
+          html += '</label>';
+        }
+
+        container.innerHTML = html;
       }
 
       /* =============================================
@@ -680,6 +752,14 @@
             continue;
           }
 
+          /* ── Standalone image URL: renders as block-level figure ── */
+          if (isImageUrl(line.trim())) {
+            var imgUrl = line.trim();
+            result.push('<figure class="article-image"><img src="' + escapeAttr(imgUrl) + '" alt="" loading="lazy"></figure>');
+            i++;
+            continue;
+          }
+
           /* ── Paragraph: collect consecutive non-block lines ── */
           var paraLines = [];
           while (i < lines.length && lines[i].trim() !== '' && !isBlockElement(lines[i])) {
@@ -713,13 +793,39 @@
         if (/^\d+\.\s+/.test(line)) return true;
         if (/^[IVXLCDM]+\.\s+/.test(line)) return true;
         if (/^[-*+]\s+/.test(line)) return true;
+        if (isImageUrl(line.trim())) return true;
         return false;
+      }
+
+      /**
+       * Check if a string is a URL pointing to an image file.
+       * Matches http/https URLs ending with common image extensions,
+       * ignoring any query string or fragment.
+       */
+      function isImageUrl(str) {
+        return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?[^\s]*)?(#[^\s]*)?$/i.test(str);
+      }
+
+      /**
+       * Escape a string for safe use inside an HTML attribute value.
+       */
+      function escapeAttr(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
       }
 
       /**
        * Apply inline formatting: **bold**, *italic*, <u>underline</u>
        */
       function applyInlineFormatting(text) {
+        /* Image URLs inline: turn bare image URLs into <img> tags */
+        text = text.replace(/(?:^|(?<=\s))(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(?:#[^\s]*)?)(?=\s|$)/gi, function (match, url) {
+          return '<img class="article-image__inline" src="' + escapeAttr(url) + '" alt="" loading="lazy">';
+        });
         /* Bold: **text** */
         text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         /* Italic: *text* (but not inside **) */
@@ -854,6 +960,10 @@
         /* Sanitize HTML before storage — strips scripts, iframes, event handlers, etc. */
         articleHTML = App.sanitizeHtml(articleHTML);
 
+        /* Get the selected cover image */
+        var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
+        var coverImage = coverImageEl ? coverImageEl.value.trim() : '';
+
         /* Build the database row */
         var articleData = {
           slug: slug,
@@ -865,6 +975,8 @@
           author_bio: authorBio || null,
           published_at: publishDate,
           featured: featured,
+          cover_image: coverImage || null,
+          cover_image_alt: coverImage ? title : null,
           content_html: articleHTML,
           custom_css: (useCustomStyle && customCSSApplied && customCSSContent) ? customCSSContent : null
         };
@@ -934,19 +1046,40 @@
         previewHTML += '</div>';
         previewHTML += '<div class="compose-modal__body" style="padding:0;">';
 
-        /* Hero section (no-image variant) */
-        previewHTML += '<div style="padding:var(--space-8) var(--space-6) var(--space-4);">';
-        previewHTML += '<span class="badge">' + App.escapeHtml(category) + '</span>';
-        previewHTML += '<h1 style="font-family:\'Newsreader\',Georgia,serif;font-size:2rem;font-weight:600;line-height:1.15;margin:var(--space-3) 0;letter-spacing:-0.02em">' + App.escapeHtml(title) + '</h1>';
-        if (excerpt) {
-          previewHTML += '<p style="font-family:\'Newsreader\',Georgia,serif;font-size:1rem;font-style:italic;color:var(--text-secondary);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
+        /* Cover image (if selected) */
+        var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
+        var coverUrl = coverImageEl ? coverImageEl.value.trim() : '';
+        if (coverUrl) {
+          previewHTML += '<div style="position:relative;">';
+          previewHTML += '<img src="' + App.escapeHtml(coverUrl) + '" alt="Cover" style="width:100%;max-height:400px;object-fit:cover;display:block;">';
+          previewHTML += '<div style="position:absolute;bottom:0;left:0;right:0;padding:var(--space-8) var(--space-6) var(--space-6);background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.3) 60%,transparent 100%);">';
+          previewHTML += '<span class="badge" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.2);">' + App.escapeHtml(category) + '</span>';
+          previewHTML += '<h1 style="font-family:\'Newsreader\',Georgia,serif;font-size:2rem;font-weight:600;line-height:1.15;margin:var(--space-3) 0;letter-spacing:-0.02em;color:#fff;">' + App.escapeHtml(title) + '</h1>';
+          if (excerpt) {
+            previewHTML += '<p style="font-family:\'Newsreader\',Georgia,serif;font-size:1rem;font-style:italic;color:rgba(255,255,255,0.8);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
+          }
+          previewHTML += '<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-4);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.8);">';
+          previewHTML += '<span style="font-weight:600;color:#fff;">' + App.escapeHtml(authorName) + '</span>';
+          previewHTML += '<span>&middot;</span>';
+          previewHTML += '<span>' + Manifest.formatDate(publishDate) + '</span>';
+          previewHTML += '</div>';
+          previewHTML += '</div>';
+          previewHTML += '</div>';
+        } else {
+          /* Hero section (no-image variant) */
+          previewHTML += '<div style="padding:var(--space-8) var(--space-6) var(--space-4);">';
+          previewHTML += '<span class="badge">' + App.escapeHtml(category) + '</span>';
+          previewHTML += '<h1 style="font-family:\'Newsreader\',Georgia,serif;font-size:2rem;font-weight:600;line-height:1.15;margin:var(--space-3) 0;letter-spacing:-0.02em">' + App.escapeHtml(title) + '</h1>';
+          if (excerpt) {
+            previewHTML += '<p style="font-family:\'Newsreader\',Georgia,serif;font-size:1rem;font-style:italic;color:var(--text-secondary);line-height:1.5;">' + App.escapeHtml(excerpt) + '</p>';
+          }
+          previewHTML += '<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-4);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;color:var(--text-secondary);">';
+          previewHTML += '<span style="font-weight:600;color:var(--text-primary);">' + App.escapeHtml(authorName) + '</span>';
+          previewHTML += '<span>&middot;</span>';
+          previewHTML += '<span>' + Manifest.formatDate(publishDate) + '</span>';
+          previewHTML += '</div>';
+          previewHTML += '</div>';
         }
-        previewHTML += '<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-4);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;color:var(--text-secondary);">';
-        previewHTML += '<span style="font-weight:600;color:var(--text-primary);">' + App.escapeHtml(authorName) + '</span>';
-        previewHTML += '<span>&middot;</span>';
-        previewHTML += '<span>' + Manifest.formatDate(publishDate) + '</span>';
-        previewHTML += '</div>';
-        previewHTML += '</div>';
 
         previewHTML += '<hr style="margin:0;">';
 
