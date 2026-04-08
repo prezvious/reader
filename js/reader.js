@@ -451,10 +451,14 @@
     var byline = document.getElementById('article-byline');
     var body = document.getElementById('article-body');
     var footer = document.getElementById('article-footer');
+    var banner = document.getElementById('continue-banner');
+    var actions = document.getElementById('article-actions');
 
     if (hero) hero.style.display = 'none';
     if (byline) byline.style.display = 'none';
     if (footer) footer.style.display = 'none';
+    if (banner) banner.style.display = 'none';
+    if (actions) actions.style.display = 'none';
 
     if (body) {
       body.innerHTML =
