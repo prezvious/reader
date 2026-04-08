@@ -4,10 +4,10 @@
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  border-bottom: var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--glass-bg);
 }
 
 .header__inner {
@@ -17,7 +17,7 @@
   height: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-5);
 }
 
 .header__inner > .header__logo {
@@ -33,16 +33,16 @@
 }
 
 .header__logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
   letter-spacing: -0.03em;
 }
 
 .header__logo:hover {
-  color: var(--accent);
+  color: var(--text-secondary);
 }
 
 .header__nav {
@@ -52,7 +52,7 @@
 }
 
 .header__link {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -64,11 +64,11 @@
 
 .header__link:hover {
   color: var(--text-primary);
-  background-color: var(--bg-tertiary);
+  background-color: var(--accent-subtle);
 }
 
 .header__link--active {
-  color: var(--accent);
+  color: var(--text-primary);
   background-color: var(--accent-subtle);
   font-weight: 600;
 }
@@ -91,7 +91,7 @@
 }
 
 .theme-toggle:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-subtle);
   color: var(--text-primary);
 }
 
@@ -121,7 +121,7 @@
 }
 
 .mobile-menu-btn:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-subtle);
 }
 
 .mobile-menu-btn svg {
@@ -155,7 +155,7 @@
   z-index: 200;
   transform: translateX(-100%);
   transition: transform var(--transition-base);
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-6) var(--space-5);
   border-right: 1px solid var(--border);
 }
 
@@ -164,9 +164,9 @@
 }
 
 .sidebar__logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   display: block;
   margin-bottom: var(--space-10);
@@ -180,7 +180,7 @@
 }
 
 .sidebar__link {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -194,12 +194,12 @@
 
 .sidebar__link:hover,
 .sidebar__link--active {
-  background: var(--bg-tertiary);
+  background: var(--accent-subtle);
   color: var(--text-primary);
 }
 
 .sidebar__link--active {
-  color: var(--accent);
+  color: var(--text-primary);
   background: var(--accent-subtle);
   font-weight: 600;
 }
@@ -212,7 +212,7 @@
 /* ===== FOOTER ===== */
 .footer {
   border-top: 1px solid var(--border);
-  padding: var(--space-16) var(--space-6);
+  padding: var(--space-10) var(--space-5);
   text-align: center;
 }
 
@@ -222,9 +222,9 @@
 }
 
 .footer__brand {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   letter-spacing: -0.02em;
@@ -238,7 +238,7 @@
 }
 
 .footer__nav a {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   color: var(--text-secondary);
   text-decoration: none;
@@ -246,11 +246,11 @@
 }
 
 .footer__nav a:hover {
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .footer__copy {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   color: var(--text-tertiary);
 }
@@ -309,7 +309,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -336,7 +336,7 @@
   top: calc(100% + var(--space-2));
   right: 0;
   min-width: 220px;
-  max-width: calc(100vw - var(--space-6));
+  max-width: calc(100vw - var(--space-5));
   background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -356,7 +356,7 @@
 }
 
 .avatar-dropdown__name {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -366,7 +366,7 @@
 }
 
 .avatar-dropdown__email {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.75rem;
   color: var(--text-tertiary);
   white-space: nowrap;
@@ -383,7 +383,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -397,7 +397,7 @@
 }
 
 .avatar-dropdown__item:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-subtle);
   color: var(--text-primary);
 }
 
@@ -414,12 +414,12 @@
 }
 
 .avatar-dropdown__item--danger {
-  color: #C45D5D;
+  color: #B04A4A;
 }
 
 .avatar-dropdown__item--danger:hover {
-  background: rgba(196, 93, 93, 0.08);
-  color: #A64B4B;
+  background: rgba(176, 74, 74, 0.08);
+  color: #8E3A3A;
 }
 
 /* ===== SIDEBAR USER SECTION ===== */
@@ -428,7 +428,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   border-bottom: 1px solid var(--border);
   padding-bottom: var(--space-4);
 }
@@ -441,7 +441,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -461,7 +461,7 @@
 }
 
 .sidebar__user-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -471,7 +471,7 @@
 }
 
 .sidebar__user-email {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.7rem;
   color: var(--text-tertiary);
   white-space: nowrap;
@@ -485,10 +485,10 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   margin-top: var(--space-4);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #C45D5D;
+  color: #B04A4A;
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast);
   border: none;
@@ -498,7 +498,7 @@
 }
 
 .sidebar__signout:hover {
-  background: rgba(196, 93, 93, 0.08);
+  background: rgba(176, 74, 74, 0.08);
 }
 
 .sidebar__signout svg {

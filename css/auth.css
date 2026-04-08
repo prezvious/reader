@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-8) var(--space-5);
   background: var(--bg-secondary);
 }
 
@@ -14,14 +14,14 @@
   background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: var(--space-12) var(--space-8);
+  padding: var(--space-8) var(--space-6);
   box-shadow: var(--shadow-lg);
 }
 
 .auth-card__logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   text-align: center;
   margin-bottom: var(--space-8);
@@ -31,33 +31,33 @@
 }
 
 .auth-card__logo:hover {
-  color: var(--accent);
+  color: var(--text-secondary);
 }
 
 .auth-card__title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   letter-spacing: -0.02em;
 }
 
 .auth-card__subtitle {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin-bottom: var(--space-8);
 }
 
-/* ===== FORM INPUTS — Clean, Notion-inspired ===== */
+/* ===== FORM INPUTS — Clean, warm aesthetic ===== */
 .form-group {
   margin-bottom: var(--space-5);
 }
 
 .form-label {
   display: block;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -67,7 +67,7 @@
 .form-input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.95rem;
   color: var(--text-primary);
   background: var(--bg-secondary);
@@ -88,17 +88,17 @@
 }
 
 .form-input--error {
-  border-color: #C45D5D;
+  border-color: #B04A4A;
 }
 
 .form-input--error:focus {
-  box-shadow: 0 0 0 3px rgba(196, 93, 93, 0.12);
+  box-shadow: 0 0 0 3px rgba(176, 74, 74, 0.12);
 }
 
 .form-error {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
-  color: #C45D5D;
+  color: #B04A4A;
   margin-top: var(--space-1);
   display: none;
 }
@@ -134,12 +134,12 @@
 
 .password-strength__fill--weak {
   width: 33%;
-  background: #C45D5D;
+  background: #B04A4A;
 }
 
 .password-strength__fill--medium {
   width: 66%;
-  background: #C4A05D;
+  background: #B09A4A;
 }
 
 .password-strength__fill--strong {
@@ -148,7 +148,7 @@
 }
 
 .password-strength__text {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.75rem;
   color: var(--text-tertiary);
 }
@@ -159,7 +159,7 @@
   padding: var(--space-3) var(--space-4);
   font-size: 0.95rem;
   margin-top: var(--space-2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-btn);
 }
 
 .btn--auth:disabled {
@@ -194,7 +194,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  margin: var(--space-6) 0;
+  margin: var(--space-5) 0;
 }
 
 .auth-divider::before,
@@ -206,7 +206,7 @@
 }
 
 .auth-divider__text {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -226,17 +226,17 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-btn);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .btn--social:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-subtle);
   border-color: var(--text-tertiary);
 }
 
@@ -253,41 +253,42 @@
 /* ===== AUTH LINKS ===== */
 .auth-link {
   display: inline-block;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   margin-top: var(--space-4);
 }
 
 .auth-link:hover {
-  color: var(--accent-hover);
-  text-decoration: underline;
+  color: var(--text-secondary);
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: var(--space-6);
-  font-family: 'Outfit', sans-serif;
+  margin-top: var(--space-5);
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
 .auth-footer a {
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   font-weight: 600;
 }
 
 .auth-footer a:hover {
-  text-decoration: underline;
+  color: var(--text-secondary);
 }
 
 /* ===== ALERT BANNERS ===== */
 .alert {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   margin-bottom: var(--space-5);
   display: none;
@@ -298,38 +299,38 @@
 }
 
 .alert--error {
-  background: rgba(196, 93, 93, 0.08);
-  border: 1px solid rgba(196, 93, 93, 0.2);
-  color: #C45D5D;
+  background: rgba(176, 74, 74, 0.08);
+  border: 1px solid rgba(176, 74, 74, 0.2);
+  color: #B04A4A;
 }
 
 .alert--success {
   background: var(--accent-subtle);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  color: var(--accent);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 /* ===== FORGOT PASSWORD LINK ===== */
 .forgot-link {
   display: block;
   text-align: right;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   margin-top: calc(-1 * var(--space-3));
   margin-bottom: var(--space-5);
 }
 
 .forgot-link:hover {
-  text-decoration: underline;
-  color: var(--accent-hover);
+  color: var(--text-secondary);
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 480px) {
   .auth-card {
-    padding: var(--space-8) var(--space-5);
+    padding: var(--space-6) var(--space-5);
     border-radius: var(--radius-lg);
   }
 

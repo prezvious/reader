@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
 </head>
 <body data-page="articles">
@@ -153,7 +153,7 @@
   <style>
     .page-header {
       position: relative;
-      padding: var(--space-16) 0 var(--space-10);
+      padding: var(--space-10) 0 var(--space-8);
     }
     .page-header::after {
       content: "";
@@ -166,14 +166,14 @@
       background: linear-gradient(to right, transparent, var(--border) 50%, transparent);
     }
     .page-header__title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Newsreader', Georgia, serif;
       font-size: clamp(1.75rem, 1.5rem + 1.5vw, 2.5rem);
-      font-weight: 800;
+      font-weight: 600;
       margin-bottom: var(--space-3);
       letter-spacing: -0.02em;
     }
     .page-header__subtitle {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 1.05rem;
       color: var(--text-secondary);
     }
@@ -182,7 +182,7 @@
       margin-top: 0;
     }
     @media (max-width: 767px) {
-      .page-header { padding: var(--space-10) 0 var(--space-8); }
+      .page-header { padding: var(--space-8) 0 var(--space-5); }
       .page-header__title { font-size: 2rem; }
     }
   </style>
