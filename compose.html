@@ -459,6 +459,7 @@ More content..."></div>
         editor.addEventListener('input', function () {
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(function () {
+            syncPreview();
             scheduleUndoSave();
             /* Update find overlay when content changes */
             if (composeFindState.open && composeFindState.query) {
@@ -467,10 +468,25 @@ More content..."></div>
           }, 200);
         });
 
-        /* Scroll sync: overlay follows editor scroll */
+        /* Scroll sync: preview panel follows editor scroll */
+        var previewPanel = document.getElementById('compose-preview-wrapper');
         editor.addEventListener('scroll', function () {
           var overlay = document.getElementById('editor-overlay');
           if (overlay) overlay.style.transform = 'translateY(-' + this.scrollTop + 'px)';
+          
+          /* Sync preview scroll position proportionally */
+          if (previewPanel) {
+            var editorScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
+            var previewScrollTop = editorScrollRatio * (previewPanel.scrollHeight - previewPanel.clientHeight);
+            previewPanel.scrollTop = previewScrollTop;
+          }
+        });
+
+        /* Reverse scroll sync: editor follows preview panel scroll */
+        previewPanel.addEventListener('scroll', function () {
+          var previewScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
+          var editorScrollTop = previewScrollRatio * (editor.scrollHeight - editor.clientHeight);
+          editor.scrollTop = editorScrollTop;
         });
 
         /* Tab handling on editor — real \t + Shift+Tab dedent + multi-line */
@@ -655,6 +671,8 @@ More content..."></div>
           editorTab.classList.remove('compose-tabs__btn--active');
           previewPanel.classList.remove('compose-panel--hidden');
           editorPanel.classList.add('compose-panel--hidden');
+          /* Sync preview when switching to preview tab on mobile */
+          syncPreview();
         });
 
         /* Initial state on mobile */
@@ -1060,6 +1078,24 @@ More content..."></div>
 
       function escapeHtmlForOverlay(str) {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      /* =============================================
+         LIVE PREVIEW SYNC
+         ============================================= */
+      function syncPreview() {
+        var editor = document.getElementById('editor-content');
+        var previewBody = document.getElementById('preview-body');
+        
+        /* Get the editor HTML and sanitize for safety */
+        var html = editor.innerHTML;
+        var safe = html ? App.sanitizeHtml(html) : '';
+        
+        /* Update preview panel */
+        previewBody.innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
+
+        /* Update cover image picker with detected image URLs */
+        updateCoverImagePicker(editor.innerText);
       }
 
       /**
