@@ -110,11 +110,11 @@
   function renderResults(results) {
     var container = document.getElementById('search-results');
     if (!results || results.length === 0) {
-      container.innerHTML = \`<div class="search-empty">
+      container.innerHTML = `<div class="search-empty">
         <svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <div class="search-empty__title">No articles match "\${searchQuery}"</div>
+        <div class="search-empty__title">No articles match "${searchQuery}"</div>
         <div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div>
-      </div>\`;
+      </div>`;
       return;
     }
 
@@ -122,18 +122,18 @@
       var highlighted = r.highlighted_excerpt || r.excerpt || '';
       var author = r.author_name || 'Unknown';
       var cat = r.category || 'Uncategorized';
-      return \`<a href="article.html?slug=\${r.slug}" class="search-result" data-index="\${i}" role="option" id="search-option-\${i}">
+      return `<a href="article.html?slug=${r.slug}" class="search-result" data-index="${i}" role="option" id="search-option-${i}">
         <span class="search-result__icon">📄</span>
         <div class="search-result__body">
-          <span class="search-result__title">\${r.title}</span>
-          <span class="search-result__meta">\${author} · \${cat}</span>
-          <span class="search-result__excerpt">\${highlighted}</span>
+          <span class="search-result__title">${r.title}</span>
+          <span class="search-result__meta">${author} · ${cat}</span>
+          <span class="search-result__excerpt">${highlighted}</span>
         </div>
-      </a>\`;
+      </a>`;
     }).join('');
 
     if (results.length > 5) {
-      html += \`<a href="search.html?q=\${encodeURIComponent(searchQuery)}" class="search-view-all">View all \${results.length} results →</a>\`;
+      html += `<a href="search.html?q=${encodeURIComponent(searchQuery)}" class="search-view-all">View all ${results.length} results →</a>`;
     }
 
     container.innerHTML = html;
@@ -186,7 +186,11 @@
     window.location.href = 'search.html?q=' + encodeURIComponent(query);
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   window.Search = {
     open: openOverlay,
