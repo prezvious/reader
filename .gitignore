@@ -1,15 +1,26 @@
-# Environment & secrets
+# Environment and local secrets
 .env
 .env.local
 .env.*.local
+*.env
+.envrc
+js/private-config.local.json
 
-# Supabase (private infrastructure)
+# Private infrastructure and internal notes
 supabase-schema.sql
 supabase-plan.md
 supabase-review.md
+migrations/
 
-# Private plans & archives
+# Private workspace artifacts
+.agents/
+.claude/
 archived-plan-private/
+chat-private/
+.impeccable.md
+skills-lock.json
+qa-review.md
+qa-review-two.md
 
 # OS files
 .DS_Store
@@ -23,9 +34,11 @@ desktop.ini
 *.swo
 *~
 
-# Logs
+# Logs and test artifacts
 *.log
 npm-debug.log*
+playwright-report/
+test-results/
 
-# Node modules (if any)
+# Dependencies
 node_modules/

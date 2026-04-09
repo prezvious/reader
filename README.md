@@ -1,95 +1,117 @@
 # Reader
 
-A clean, minimal reading space for essays, guides, and long-form articles. Reader gives you a distraction-free place to browse, read, bookmark, and track your reading — all from your browser.
+Reader is a warm, editorial-style reading site for essays, notes, and long-form pieces. The current version leans harder into a calmer article layout, better spacing, richer typography, a cleaner app shell, and a much more capable writing flow. It still ships as a mostly static site, but it feels closer to a real reading product now instead of a simple demo.
 
-## What It Is
+## What's new in this version
 
-Reader is a static website that works right out of the box. No build step, no server setup, no dependencies to install. Just open `index.html` in your browser and you're good to go.
+- The public pages have a more magazine-like feel: narrower reading width, softer surfaces, stronger article hierarchy, and a cleaner browse flow.
+- The article page now includes a precomputed AI summary drawer, quick share actions, bookmark controls, reaction counts, and a more polished reading rhythm.
+- Search is its own page and can combine the shipped article catalog with extra connected content when your private local config is available.
+- The dashboard is more useful now: reading stats, streaks, continue-reading cards, and bookmark snapshots are all easier to scan.
+- The compose experience got a major upgrade with live preview, formatting tools, cover-image selection, optional custom CSS, find/replace, draft autosave, and a publish flow.
+- Static summary payloads live in `data/summaries/`, so the summary drawer can open fast without waiting for a live request.
 
-It comes with:
+## What ships in the public repo
 
-- **Curated articles** — handpicked reads organized by category
-- **User accounts** — sign up, sign in, and keep your stuff private
-- **Bookmarks** — save articles you want to come back to
-- **Reading history** — automatically tracks what you've read
-- **Dashboard** — see your reading stats at a glance
-- **Profile settings** — customize your display name, avatar, and bio
-- **Dark mode** — toggle between light and dark themes (it even remembers your preference)
-- **Responsive design** — works on desktop, tablet, and mobile with a collapsible sidebar
+- `index.html`, `articles.html`, and `article.html` for the reading flow
+- `dashboard.html`, `bookmarks.html`, `history.html`, `profile.html`, `signin.html`, `signup.html`, and `verify.html` for the account side
+- `compose.html` for writing and publishing articles
+- `articles/` for static article source files
+- `data/summaries/` for prebuilt summary JSON
+- `css/` and `js/` for the styling and browser logic
+- `scripts/` and `tests/` for local tooling and verification
 
-## How to Use It Offline
+## Running it offline
 
-Reader is built to work without any server, so running it locally is dead simple:
+If you only want to browse the shipped content, offline use is easy.
 
-1. Clone or download this repo to your computer
-2. Open the folder and double-click `index.html` (or drag it into your browser)
-3. That's it — the site loads entirely from your local files
+1. Clone or download the repo.
+2. Open `index.html` directly in your browser, or launch a tiny local server if you prefer cleaner routing and fewer browser restrictions.
+3. Start reading.
 
-If you want a proper local server (recommended for auth and some browser features), you can use any basic static file server:
+Out of the box, the static repo is enough for:
+
+- browsing the landing page and article index
+- reading bundled articles
+- opening the prebuilt AI summaries
+- using the theme toggle
+- searching the shipped catalog
+- writing in the composer and restoring drafts saved in browser storage
+
+If you want a local server, use one of these:
 
 ```bash
-# With Python
+node scripts/static-server.js 41731
+```
+
+```bash
 python -m http.server 8000
-
-# With Node.js (npx)
-npx serve .
-
-# With PHP
-php -S localhost:8000
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open `http://127.0.0.1:41731` or `http://localhost:8000`.
 
-## Project Structure
+## Connected features
 
-```
-reader/
-├── index.html            # Home page with featured articles
-├── articles.html         # Full article listing with filters
-├── article.html          # Single article reader view
-├── dashboard.html        # User dashboard with reading stats
-├── bookmarks.html        # Saved articles
-├── history.html          # Reading history
-├── profile.html          # Account settings
-├── signin.html           # Sign in page
-├── signup.html           # Sign up page
-├── manifest.json         # Article metadata (titles, authors, categories, etc.)
-├── css/                  # Stylesheets
-├── js/                   # JavaScript modules
-├── articles/             # Article content folders
-├── assets/               # Icons and images
-└── .gitignore            # Files excluded from version control
-```
+Sign-in, synced bookmarks, reading history, profile updates, and publishing rely on a private local config file that is intentionally not committed to this repository.
 
-## Adding Your Own Articles
+1. Copy `js/private-config.example.json` to `js/private-config.local.json`.
+2. Fill in your private project URL and key.
+3. Start the site from a local server and use it normally.
 
-Articles are stored as plain HTML files inside the `articles/` folder. Each article gets its own subfolder with an `index.html` for the content. Then you register it in `manifest.json` with its title, author, category, and other metadata. That's all it takes — no database, no CMS, just files.
+That local file is ignored on purpose, so it stays on your machine and out of the public repo.
 
-## AI Summaries
+## Rebuilding summary files
 
-Article pages can preload a right-side AI summary drawer from static payloads in `data/summaries/`. To rebuild those files, run:
+The repo already includes summary JSON, so you do not need to regenerate anything just to browse the site. If you add or rewrite articles and want fresh summaries, set your API key locally and run:
 
 ```bash
 OPENROUTER_API_KEY=your_key_here node scripts/generate-article-summaries.mjs --force
+node scripts/validate-summaries.js --prune
 ```
 
-The generator tries `google/gemma-4-31b-it:free` first, then falls back to `openrouter/free` if the primary route is rate-limited. You can override the model chain with `OPENROUTER_SUMMARY_MODELS` or `--models`.
-
-For a one-command retry loop on Windows PowerShell:
+On PowerShell:
 
 ```powershell
-$env:OPENROUTER_API_KEY="your_key_here"
+$env:OPENROUTER_API_KEY = "your_key_here"
+node .\scripts\generate-article-summaries.mjs --force
+node .\scripts\validate-summaries.js --prune
+```
+
+There is also a retry helper if you want a one-command loop:
+
+```powershell
 .\scripts\retry-generate-article-summaries.ps1 -Force
 ```
 
-Run either script after adding or updating articles so the drawer stays in sync.
+## Project shape
+
+```text
+reader/
+|-- articles/              static article source
+|-- css/                   shared styles and page-specific styles
+|-- data/summaries/        prebuilt summary payloads
+|-- js/                    browser modules and local config template
+|-- scripts/               local utilities
+|-- tests/                 unit and Playwright coverage
+|-- compose.html           article editor and publish flow
+|-- index.html             landing page
+|-- article.html           single article reader
+|-- articles.html          browse view
+|-- dashboard.html         reading dashboard
+|-- bookmarks.html         saved articles
+|-- history.html           reading history
+|-- profile.html           profile settings
+|-- search.html            full search page
+|-- manifest.json          static catalog metadata
+`-- README.md
+```
 
 ## Tech
 
-- Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools
-- Responsive layout with CSS Grid and Flexbox
-- Smooth scroll-reveal animations and dark mode with CSS custom properties
-- Authentication and data persistence handled through a cloud backend (configured in `js/supabase.js`)
+- plain HTML, CSS, and vanilla JavaScript
+- static article files plus optional connected content
+- local draft persistence through browser storage
+- Playwright and Node-based checks for local verification
 
 ## License
 

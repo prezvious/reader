@@ -4,6 +4,7 @@ import path from 'node:path';
 const ROOT = process.cwd();
 const OUTPUT_DIR = path.join(ROOT, 'data', 'summaries');
 const INDEX_PATH = path.join(OUTPUT_DIR, 'index.json');
+const PRIVATE_CONFIG_PATH = path.join(ROOT, 'js', 'private-config.local.json');
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const DEFAULT_MODELS = ['google/gemma-4-31b-it:free', 'openrouter/free'];
 
@@ -127,14 +128,18 @@ function htmlToPlainText(html) {
     .trim();
 }
 
-function extractSupabaseConfig(fileContents) {
-  const urlMatch = fileContents.match(/var SUPABASE_URL = '([^']+)'/);
-  const keyMatch = fileContents.match(/var SUPABASE_ANON_KEY = '([^']+)'/);
-  if (!urlMatch || !keyMatch) return null;
-  return {
-    url: urlMatch[1],
-    anonKey: keyMatch[1]
-  };
+async function loadPrivateConfig() {
+  try {
+    const raw = await readFile(PRIVATE_CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.url || !parsed.anonKey) return null;
+    return {
+      url: parsed.url,
+      anonKey: parsed.anonKey
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function loadStaticArticles() {
@@ -158,10 +163,9 @@ async function loadStaticArticles() {
 }
 
 async function loadDbArticles() {
-  const supabaseJs = await readFile(path.join(ROOT, 'js', 'supabase.js'), 'utf8');
-  const config = extractSupabaseConfig(supabaseJs);
+  const config = await loadPrivateConfig();
   if (!config) {
-    console.warn('Could not parse Supabase config. Skipping DB-backed articles.');
+    console.warn('Could not read private local config. Skipping connected articles.');
     return [];
   }
 
@@ -176,7 +180,7 @@ async function loadDbArticles() {
   );
 
   if (!response.ok) {
-    console.warn(`Skipping DB-backed articles. Supabase returned ${response.status}.`);
+    console.warn(`Skipping connected articles. Data source returned ${response.status}.`);
     return [];
   }
 

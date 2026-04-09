@@ -1,0 +1,14 @@
+{
+  "name": "reader",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:e2e": "playwright test",
+    "validate:summaries": "node scripts/validate-summaries.js --prune"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "jsdom": "^27.0.0"
+  }
+}

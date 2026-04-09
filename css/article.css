@@ -69,6 +69,21 @@
   color: var(--text-primary);
 }
 
+.article-body .article-font-size--12 { font-size: 0.75rem; }
+.article-body .article-font-size--14 { font-size: 0.875rem; }
+.article-body .article-font-size--16 { font-size: 1rem; }
+.article-body .article-font-size--18 { font-size: 1.125rem; }
+.article-body .article-font-size--19 { font-size: 1.1875rem; }
+.article-body .article-font-size--20 { font-size: 1.25rem; }
+.article-body .article-font-size--24 { font-size: 1.5rem; }
+.article-body .article-font-size--28 { font-size: 1.75rem; }
+.article-body .article-font-size--32 { font-size: 2rem; }
+
+.article-body .article-indent-1 {
+  display: block;
+  padding-left: 2em;
+}
+
 .article-body blockquote {
   font-family: 'Newsreader', Georgia, serif;
   font-style: italic;

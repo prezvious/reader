@@ -13,40 +13,30 @@
   }
 
   /* Sanitize HTML for storage/display — strips dangerous elements and attributes */
-  function sanitizeHtml(html) {
+  var contentUtils = (typeof window !== 'undefined' && window.ArticleContentUtils) ? window.ArticleContentUtils : null;
+
+  function sanitizeHtml(html, options) {
     if (!html || typeof html !== 'string') return '';
-    var div = document.createElement('div');
-    div.innerHTML = html;
+    if (contentUtils && typeof contentUtils.sanitizeHtml === 'function') {
+      return contentUtils.sanitizeHtml(html, options);
+    }
+    return html;
+  }
 
-    /* Remove dangerous elements entirely */
-    div.querySelectorAll('script, iframe, object, embed, form, link, meta, base, style').forEach(function (el) {
-      el.remove();
-    });
+  function normalizeArticleHtml(html, options) {
+    if (!html || typeof html !== 'string') return '';
+    if (contentUtils && typeof contentUtils.normalizeArticleHtml === 'function') {
+      return contentUtils.normalizeArticleHtml(html, options);
+    }
+    return html;
+  }
 
-    /* Remove event handler attributes and dangerous URIs from all elements */
-    div.querySelectorAll('*').forEach(function (el) {
-      var attrs = Array.from(el.attributes);
-      for (var i = attrs.length - 1; i >= 0; i--) {
-        var attr = attrs[i];
-        var name = attr.name.toLowerCase();
-        /* Remove on* event handlers */
-        if (name.indexOf('on') === 0) {
-          el.removeAttribute(attr.name);
-        }
-        /* Remove javascript:, vbscript: and dangerous data: URIs.
-           Allow data:image/... since those are commonly used for inline images. */
-        if (name === 'href' || name === 'src' || name === 'action' || name === 'formaction' || name === 'data') {
-          var val = attr.value.trim().toLowerCase();
-          if (val.indexOf('javascript:') === 0 || val.indexOf('vbscript:') === 0) {
-            el.removeAttribute(attr.name);
-          } else if (val.indexOf('data:') === 0 && val.indexOf('data:image/') !== 0) {
-            el.removeAttribute(attr.name);
-          }
-        }
-      }
-    });
-
-    return div.innerHTML;
+  function scopeArticleCss(css, scopes) {
+    if (!css || typeof css !== 'string') return '';
+    if (contentUtils && typeof contentUtils.scopeArticleCss === 'function') {
+      return contentUtils.scopeArticleCss(css, scopes);
+    }
+    return css;
   }
 
   /* Shared renderUser — null-safe email, uses createElement to preserve listeners */
@@ -415,6 +405,8 @@
     getCurrentSlug: getCurrentSlug,
     escapeHtml: escapeHtml,
     sanitizeHtml: sanitizeHtml,
+    normalizeArticleHtml: normalizeArticleHtml,
+    scopeArticleCss: scopeArticleCss,
     renderUser: renderUser,
     initScrollReveal: initScrollReveal,
     _initScrollReveal: _initScrollRevealInternal

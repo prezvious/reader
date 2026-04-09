@@ -378,6 +378,7 @@ More content..."></div>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/manifest.js"></script>
+  <script src="js/article-content-utils.js"></script>
   <script src="js/app.js"></script>
   <script>
     (function () {
@@ -394,16 +395,15 @@ More content..."></div>
       var currentUser = null;
       var customCSSApplied = false;
       var customCSSContent = '';
-      var detectedImages = [];
       var debounceTimer = null;
+      var cleanStateSignature = '';
 
       /* ===== UNDO / REDO STATE ===== */
-      var UNDO_MAX = 4;
+      var UNDO_MAX = 50;
       var undoStack = [];
       var redoStack = [];
       var undoDebounceTimer = null;
-      var lastSavedContent = null;
-      var isUndoRedoAction = false; /* Prevent auto-save during undo/redo */
+      var isUndoRedoAction = false; /* Prevent nested history commits during undo/redo */
 
       /* =============================================
          INITIALIZATION
@@ -438,168 +438,139 @@ More content..."></div>
       function initComposer(user) {
         var profile = user.profile || {};
         var displayName = profile.display_name || (user.email ? user.email.split('@')[0] : '');
+        var editor = getEditor();
+        var previewPanel = document.getElementById('compose-preview-wrapper');
+        var slugField = document.getElementById('meta-slug');
+        var customStyleToggle = document.getElementById('use-custom-style');
+        var customCssInput = document.getElementById('custom-css-input');
 
-        /* Defaults */
-        document.getElementById('meta-author').value = displayName;
-        document.getElementById('meta-date').value = todayISO();
+        if (!document.getElementById('meta-author').value) {
+          document.getElementById('meta-author').value = displayName;
+        }
+        if (!document.getElementById('meta-date').value) {
+          document.getElementById('meta-date').value = todayISO();
+        }
 
-        /* Auto-generate slug from title */
         document.getElementById('meta-title').addEventListener('input', function () {
-          var slugField = document.getElementById('meta-slug');
           if (!slugField.dataset.manual) {
             slugField.value = generateSlug(this.value);
           }
+          scheduleDraftAutoSave();
         });
 
-        document.getElementById('meta-slug').addEventListener('input', function () {
-          this.dataset.manual = '1';
+        slugField.addEventListener('input', function () {
+          this.dataset.manual = this.value ? '1' : '';
+          scheduleDraftAutoSave();
         });
 
-        /* Custom style toggle */
-        document.getElementById('use-custom-style').addEventListener('change', function () {
+        [
+          'meta-excerpt',
+          'meta-category',
+          'meta-author',
+          'meta-date',
+          'meta-author-bio'
+        ].forEach(function (id) {
+          var field = document.getElementById(id);
+          if (!field) return;
+          field.addEventListener('input', scheduleDraftAutoSave);
+          field.addEventListener('change', scheduleDraftAutoSave);
+        });
+
+        document.getElementById('meta-featured').addEventListener('change', scheduleDraftAutoSave);
+
+        customStyleToggle.addEventListener('change', function () {
           var area = document.getElementById('custom-css-area');
           area.style.display = this.checked ? 'block' : 'none';
-          if (!this.checked) {
+          if (this.checked) {
+            applyCustomCSS(true);
+          } else {
             clearCustomCSS();
           }
+          scheduleDraftAutoSave();
         });
 
-        /* Apply CSS button */
+        customCssInput.addEventListener('input', function () {
+          if (customStyleToggle.checked) {
+            applyCustomCSS(true);
+          }
+          scheduleDraftAutoSave();
+        });
+
         document.getElementById('apply-css-btn').addEventListener('click', function () {
-          applyCustomCSS();
+          applyCustomCSS(false);
+          scheduleDraftAutoSave();
         });
 
-        /* Editor input → live preview */
-        var editor = document.getElementById('editor-content');
         editor.addEventListener('input', function () {
+          if (isUndoRedoAction) return;
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(function () {
             syncPreview();
             scheduleUndoSave();
             scheduleDraftAutoSave();
-            /* Update find overlay when content changes */
             if (composeFindState.open && composeFindState.query) {
-              updateComposeFindOverlay();
+              performComposeFind(composeFindState.query);
             }
-          }, 200);
+          }, 180);
         });
 
-        /* Scroll sync: preview panel follows editor scroll */
-        var previewPanel = document.getElementById('compose-preview-wrapper');
+        editor.addEventListener('paste', handleEditorPaste);
+
         editor.addEventListener('scroll', function () {
-          var overlay = document.getElementById('editor-overlay');
-          if (overlay) overlay.style.transform = 'translateY(-' + this.scrollTop + 'px)';
-          
-          /* Sync preview scroll position proportionally */
-          if (previewPanel) {
-            var editorScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
-            var previewScrollTop = editorScrollRatio * (previewPanel.scrollHeight - previewPanel.clientHeight);
-            previewPanel.scrollTop = previewScrollTop;
-          }
+          if (!previewPanel) return;
+          var editorScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
+          previewPanel.scrollTop = editorScrollRatio * (previewPanel.scrollHeight - previewPanel.clientHeight);
         });
 
-        /* Reverse scroll sync: editor follows preview panel scroll */
-        previewPanel.addEventListener('scroll', function () {
-          var previewScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
-          var editorScrollTop = previewScrollRatio * (editor.scrollHeight - editor.clientHeight);
-          editor.scrollTop = editorScrollTop;
-        });
+        if (previewPanel) {
+          previewPanel.addEventListener('scroll', function () {
+            var previewScrollRatio = this.scrollTop / (this.scrollHeight - this.clientHeight || 1);
+            editor.scrollTop = previewScrollRatio * (editor.scrollHeight - editor.clientHeight);
+          });
+        }
 
-        /* Tab handling on editor — real \t + Shift+Tab dedent + multi-line */
         editor.addEventListener('keydown', function (e) {
           if (e.key === 'Tab') {
             e.preventDefault();
-            var selection = window.getSelection();
-            if (!selection.rangeCount) return;
-            
-            var range = selection.getRangeAt(0);
-            var selectedText = selection.toString();
-            
-            if (e.shiftKey) {
-              /* Shift+Tab: remove indent */
-              var node = range.startContainer;
-              var blockElement = getBlockElement(node);
-              if (blockElement && blockElement.style.textIndent) {
-                blockElement.style.textIndent = '';
-                blockElement.style.paddingLeft = '';
-              }
-            } else {
-              /* Tab: indent */
-              var node = range.startContainer;
-              var blockElement = getBlockElement(node);
-              if (blockElement) {
-                blockElement.style.paddingLeft = '2em';
-              }
-            }
-            saveUndoState();
+            toggleBlockIndent(e.shiftKey);
+            return;
           }
 
-          /* Undo/Redo keyboard shortcuts */
           if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
             e.preventDefault();
             undo();
             return;
           }
+
           if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
             e.preventDefault();
             redo();
-            return;
           }
         });
 
-        /* Undo / Redo buttons */
         document.getElementById('undo-btn').addEventListener('click', function () {
           editor.focus();
           undo();
         });
+
         document.getElementById('redo-btn').addEventListener('click', function () {
           editor.focus();
           redo();
         });
 
-        /* Font size selector - apply to selected text only */
         document.getElementById('font-size-select').addEventListener('change', function () {
-          var size = this.value;
-          if (!size || size === '') return;
-
-          var selection = window.getSelection();
-          if (!selection.rangeCount || selection.isCollapsed) {
-            App.showToast('Select some text first to change font size');
-            this.value = '19'; /* Reset to default */
-            return;
+          if (applyFontSizeClass(this.value)) {
+            editor.focus();
           }
-
-          /* Apply to selected text using span with inline style */
-          var range = selection.getRangeAt(0);
-          var selectedText = range.toString();
-          
-          /* Delete the selected text */
-          range.deleteContents();
-          
-          /* Create a span with the font size */
-          var span = document.createElement('span');
-          span.style.fontSize = size + 'px';
-          span.textContent = selectedText;
-          
-          /* Insert the span */
-          range.insertNode(span);
-          
-          /* Reselect the text */
-          range.selectNodeContents(span);
-          selection.removeAllRanges();
-          selection.addRange(range);
-
-          editor.focus();
-          saveUndoState();
+          this.value = '19';
         });
 
-        /* ===== FIND & REPLACE ===== */
         document.getElementById('find-input').addEventListener('input', function () {
           clearTimeout(composeFindState.debounceTimer);
           var q = this.value;
           composeFindState.debounceTimer = setTimeout(function () {
             performComposeFind(q);
-          }, 150);
+          }, 120);
         });
 
         document.getElementById('find-next').addEventListener('click', findComposeNext);
@@ -617,56 +588,47 @@ More content..."></div>
           }
         });
 
-        /* Toggle replace row */
         document.getElementById('find-toggle-replace').addEventListener('click', function () {
           var row = document.getElementById('find-replace-row');
+          composeFindState.replaceOpen = !composeFindState.replaceOpen;
+          row.style.display = composeFindState.replaceOpen ? 'flex' : 'none';
           if (composeFindState.replaceOpen) {
-            row.style.display = 'none';
-            composeFindState.replaceOpen = false;
-          } else {
-            row.style.display = 'flex';
-            composeFindState.replaceOpen = true;
             document.getElementById('replace-input').focus();
           }
         });
 
-        /* Replace buttons */
         document.getElementById('find-replace-btn').addEventListener('click', replaceCurrentComposeFind);
         document.getElementById('find-replace-all-btn').addEventListener('click', replaceAllComposeFind);
 
-        /* Replace input keyboard shortcuts */
         document.getElementById('replace-input').addEventListener('keydown', function (e) {
-          if (e.key === 'Escape') {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            replaceCurrentComposeFind();
+          } else if (e.key === 'Escape') {
             e.preventDefault();
             closeComposeFind();
           }
         });
 
-        /* Case-sensitive checkbox — re-run search */
         document.getElementById('find-case-sensitive').addEventListener('change', function () {
-          var q = document.getElementById('find-input').value;
-          if (q) performComposeFind(q);
+          performComposeFind(document.getElementById('find-input').value);
         });
 
-        /* Mobile tabs */
-        initTabs();
+        document.getElementById('cover-options').addEventListener('change', function () {
+          scheduleDraftAutoSave();
+        });
 
-        /* Toolbar buttons */
-        var editor = document.getElementById('editor-content');
+        initTabs();
         initToolbar(editor);
 
-        /* Publish */
         document.getElementById('publish-btn').addEventListener('click', function () {
           publishArticle();
         });
 
-        /* Full preview */
         document.getElementById('preview-fullscreen-btn').addEventListener('click', function () {
           openFullPreview();
         });
 
-        /* ===== DRAFT ===== */
-        /* Save draft button */
         document.getElementById('save-draft-btn').addEventListener('click', function () {
           var btn = document.getElementById('save-draft-btn');
           var originalHTML = btn.innerHTML;
@@ -676,6 +638,7 @@ More content..."></div>
           setTimeout(function () {
             if (saveDraft()) {
               btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+              markComposerClean();
               App.showToast('Draft saved');
               setTimeout(function () {
                 btn.innerHTML = originalHTML;
@@ -686,19 +649,23 @@ More content..."></div>
               btn.disabled = false;
               App.showToast('Failed to save draft');
             }
-          }, 400);
+          }, 250);
         });
 
-        /* Clear draft button */
         document.getElementById('draft-clear-btn').addEventListener('click', function () {
           clearDraft();
         });
 
-        /* Check for existing draft */
         var existingDraft = loadDraft();
         if (existingDraft) {
           restoreDraft(existingDraft);
+        } else {
+          syncPreview();
+          resetUndoState(editor.innerHTML);
+          markComposerClean();
         }
+
+        updateUndoRedoButtons();
       }
 
       /* =============================================
@@ -742,78 +709,400 @@ More content..."></div>
       /* =============================================
          TOOLBAR
          ============================================= */
+      function getEditor() {
+        return document.getElementById('editor-content');
+      }
+
+      function getEditorSelectionRange() {
+        var editor = getEditor();
+        var selection = window.getSelection();
+        if (!editor || !selection || !selection.rangeCount) return null;
+        var range = selection.getRangeAt(0);
+        if (!editor.contains(range.commonAncestorContainer)) return null;
+        return range;
+      }
+
+      function isBlockNode(node) {
+        return !!(node && node.nodeType === Node.ELEMENT_NODE && ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'BLOCKQUOTE', 'PRE', 'UL', 'OL'].indexOf(node.tagName) !== -1);
+      }
+
       function getBlockElement(node) {
         if (!node) return null;
-        var blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'BLOCKQUOTE', 'PRE'];
-        while (node && node.nodeType === Node.ELEMENT_NODE) {
-          if (blockTags.indexOf(node.tagName) !== -1) return node;
+        var editor = getEditor();
+        if (node.nodeType === Node.TEXT_NODE) {
+          node = node.parentNode;
+        }
+        while (node && node !== editor) {
+          if (isBlockNode(node)) return node;
           node = node.parentNode;
         }
         return null;
       }
 
+      function replaceElementTag(element, tagName) {
+        var replacement = document.createElement(tagName);
+        Array.prototype.slice.call(element.attributes || []).forEach(function (attr) {
+          if (attr.name === 'style' || attr.name === 'contenteditable') return;
+          replacement.setAttribute(attr.name, attr.value);
+        });
+        while (element.firstChild) {
+          replacement.appendChild(element.firstChild);
+        }
+        element.parentNode.replaceChild(replacement, element);
+        return replacement;
+      }
+
+      function selectRange(range) {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      function selectNodeContents(node, collapseToEnd) {
+        var range = document.createRange();
+        range.selectNodeContents(node);
+        range.collapse(!!collapseToEnd);
+        selectRange(range);
+      }
+
+      function getSelectedBlocks(range) {
+        var editor = getEditor();
+        var blocks = [];
+        if (!range || !editor) return blocks;
+
+        if (range.collapsed) {
+          var collapsedBlock = getBlockElement(range.startContainer);
+          return collapsedBlock ? [collapsedBlock] : blocks;
+        }
+
+        var walker = document.createTreeWalker(editor, NodeFilter.SHOW_ELEMENT, {
+          acceptNode: function (node) {
+            if (!isBlockNode(node)) return NodeFilter.FILTER_SKIP;
+            try {
+              return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+            } catch (error) {
+              return NodeFilter.FILTER_SKIP;
+            }
+          }
+        });
+
+        while (walker.nextNode()) {
+          var node = walker.currentNode;
+          if (blocks.some(function (existing) { return existing.contains(node); })) continue;
+          blocks = blocks.filter(function (existing) { return !node.contains(existing); });
+          blocks.push(node);
+        }
+
+        if (!blocks.length) {
+          var startBlock = getBlockElement(range.startContainer);
+          if (startBlock) blocks.push(startBlock);
+        }
+
+        return blocks;
+      }
+
+      function insertHtmlAtSelection(html) {
+        var range = getEditorSelectionRange();
+        if (!range) return false;
+
+        var temp = document.createElement('div');
+        temp.innerHTML = html;
+        var fragment = document.createDocumentFragment();
+        var lastNode = null;
+        while (temp.firstChild) {
+          lastNode = fragment.appendChild(temp.firstChild);
+        }
+
+        range.deleteContents();
+        range.insertNode(fragment);
+
+        if (lastNode) {
+          var newRange = document.createRange();
+          if (lastNode.nodeType === Node.TEXT_NODE) {
+            newRange.setStart(lastNode, lastNode.textContent.length);
+          } else {
+            newRange.setStartAfter(lastNode);
+          }
+          newRange.collapse(true);
+          selectRange(newRange);
+        }
+
+        return true;
+      }
+
+      function buildPlainTextHtml(text) {
+        if (!text) return '';
+        return text
+          .replace(/\r\n?/g, '\n')
+          .split(/\n{2,}/)
+          .map(function (paragraph) {
+            return paragraph.trim();
+          })
+          .filter(Boolean)
+          .map(function (paragraph) {
+            return '<p>' + App.escapeHtml(paragraph).replace(/\n/g, '<br>') + '</p>';
+          })
+          .join('');
+      }
+
+      function commitEditorMutation() {
+        syncPreview();
+        saveUndoState();
+        scheduleDraftAutoSave();
+        if (composeFindState.open && composeFindState.query) {
+          performComposeFind(composeFindState.query);
+        }
+      }
+
+      function wrapSelectionWithTag(tagName, attrs) {
+        var range = getEditorSelectionRange();
+        if (!range || range.collapsed) {
+          App.showToast('Select some text first.');
+          return false;
+        }
+
+        var wrapper = document.createElement(tagName);
+        Object.keys(attrs || {}).forEach(function (key) {
+          wrapper.setAttribute(key, attrs[key]);
+        });
+
+        var fragment = range.extractContents();
+        wrapper.appendChild(fragment);
+        range.insertNode(wrapper);
+        selectNodeContents(wrapper, false);
+        return true;
+      }
+
+      function applyHeading(level) {
+        var range = getEditorSelectionRange();
+        if (!range) return false;
+
+        var tagName = 'H' + level;
+        var block = getBlockElement(range.startContainer);
+        if (!block) {
+          return insertHtmlAtSelection('<' + tagName.toLowerCase() + '><br></' + tagName.toLowerCase() + '>');
+        }
+
+        if (block.tagName === 'LI') {
+          var innerHeading = document.createElement(tagName);
+          innerHeading.innerHTML = block.innerHTML;
+          block.innerHTML = '';
+          block.appendChild(innerHeading);
+          selectNodeContents(innerHeading, true);
+          return true;
+        }
+
+        var replacement = replaceElementTag(block, tagName);
+        selectNodeContents(replacement, true);
+        return true;
+      }
+
+      function toggleBlockIndent(isDedent) {
+        var range = getEditorSelectionRange();
+        if (!range) return;
+
+        var blocks = getSelectedBlocks(range);
+        if (!blocks.length) return;
+
+        blocks.forEach(function (block) {
+          block.classList.remove('article-indent-1');
+          block.removeAttribute('style');
+          if (!isDedent) {
+            block.classList.add('article-indent-1');
+          }
+        });
+
+        commitEditorMutation();
+      }
+
+      function unwrapList(list) {
+        var fragment = document.createDocumentFragment();
+        Array.prototype.slice.call(list.children).forEach(function (item) {
+          var paragraph = document.createElement('p');
+          paragraph.innerHTML = item.innerHTML;
+          fragment.appendChild(paragraph);
+        });
+        list.parentNode.replaceChild(fragment, list);
+      }
+
+      function applyList(tagName, type) {
+        var range = getEditorSelectionRange();
+        if (!range) return false;
+
+        var blocks = getSelectedBlocks(range);
+        if (!blocks.length) {
+          return insertHtmlAtSelection('<' + tagName + (type ? ' type="' + App.escapeHtml(type) + '"' : '') + '><li><br></li></' + tagName + '>');
+        }
+
+        if (blocks.length === 1 && blocks[0].tagName === tagName.toUpperCase()) {
+          var existingType = blocks[0].getAttribute('type') || '';
+          if ((type || '') === existingType) {
+            unwrapList(blocks[0]);
+            return true;
+          }
+        }
+
+        var list = document.createElement(tagName);
+        if (type) list.setAttribute('type', type);
+        var firstParent = blocks[0].parentNode;
+        firstParent.insertBefore(list, blocks[0]);
+
+        blocks.forEach(function (block) {
+          if (!block.parentNode) return;
+          if (block.tagName === 'UL' || block.tagName === 'OL') {
+            Array.prototype.slice.call(block.children).forEach(function (item) {
+              var li = document.createElement('li');
+              li.innerHTML = item.innerHTML;
+              list.appendChild(li);
+            });
+            block.parentNode.removeChild(block);
+            return;
+          }
+
+          if (block.tagName === 'LI') {
+            list.appendChild(block);
+            return;
+          }
+
+          var li = document.createElement('li');
+          li.innerHTML = block.innerHTML || '<br>';
+          list.appendChild(li);
+          block.parentNode.removeChild(block);
+        });
+
+        selectNodeContents(list, false);
+        return true;
+      }
+
+      function applyBlockquote() {
+        var range = getEditorSelectionRange();
+        if (!range) return false;
+
+        var blocks = getSelectedBlocks(range);
+        if (!blocks.length) {
+          return insertHtmlAtSelection('<blockquote><p><br></p></blockquote>');
+        }
+
+        if (blocks.length === 1 && blocks[0].tagName === 'BLOCKQUOTE') {
+          var quote = blocks[0];
+          while (quote.firstChild) {
+            quote.parentNode.insertBefore(quote.firstChild, quote);
+          }
+          quote.parentNode.removeChild(quote);
+          return true;
+        }
+
+        var blockquote = document.createElement('blockquote');
+        blocks[0].parentNode.insertBefore(blockquote, blocks[0]);
+        blocks.forEach(function (block) {
+          if (block.parentNode) {
+            blockquote.appendChild(block);
+          }
+        });
+        selectNodeContents(blockquote, false);
+        return true;
+      }
+
+      function insertDivider() {
+        return insertHtmlAtSelection('<hr><p><br></p>');
+      }
+
+      function applyFontSizeClass(size) {
+        if (!size) return false;
+        if (!wrapSelectionWithTag('span', { 'class': 'article-font-size--' + size })) {
+          return false;
+        }
+        commitEditorMutation();
+        return true;
+      }
+
+      function handleEditorPaste(event) {
+        var clipboard = event.clipboardData;
+        if (!clipboard) return;
+
+        var html = clipboard.getData('text/html');
+        var text = clipboard.getData('text/plain') || '';
+        if (!html && !text) return;
+
+        event.preventDefault();
+
+        var safeHtml = html
+          ? App.sanitizeHtml(App.normalizeArticleHtml(html))
+          : buildPlainTextHtml(text);
+
+        if (!safeHtml && text) {
+          safeHtml = buildPlainTextHtml(text);
+        }
+
+        if (safeHtml && insertHtmlAtSelection(safeHtml)) {
+          commitEditorMutation();
+        }
+      }
+
       function initToolbar(editor) {
-        document.getElementById('compose-toolbar').addEventListener('click', function (e) {
+        var toolbar = document.getElementById('compose-toolbar');
+        toolbar.addEventListener('mousedown', function (e) {
+          if (e.target.closest('.compose-toolbar__btn')) {
+            e.preventDefault();
+          }
+        });
+
+        toolbar.addEventListener('click', function (e) {
           var btn = e.target.closest('.compose-toolbar__btn');
           if (!btn) return;
 
-          /* Don't handle undo/redo buttons here */
           if (btn.id === 'undo-btn' || btn.id === 'redo-btn') return;
 
           editor.focus();
+          var handled = false;
 
-          /* data-insert: insert text at cursor (for heading markers like # ) */
           var insertText = btn.getAttribute('data-insert');
           if (insertText) {
-            /* For heading markers, convert to formatBlock */
-            if (insertText.startsWith('#')) {
-              var level = insertText.match(/^#+/)[0].length;
-              if (level >= 1 && level <= 6) {
-                document.execCommand('formatBlock', false, 'H' + level);
-              } else {
-                document.execCommand('insertText', false, insertText);
-              }
-            } else {
-              document.execCommand('insertText', false, insertText);
+            switch (insertText) {
+              case '# ':
+              case '## ':
+              case '### ':
+              case '#### ':
+              case '##### ':
+              case '###### ':
+                handled = applyHeading(insertText.trim().length);
+                break;
+              case '> ':
+                handled = applyBlockquote();
+                break;
+              case '---\n':
+                handled = insertDivider();
+                break;
+              case '1. ':
+                handled = applyList('ol');
+                break;
+              case '- ':
+                handled = applyList('ul');
+                break;
+              case 'I. ':
+                handled = applyList('ol', 'I');
+                break;
+              default:
+                handled = insertHtmlAtSelection(buildPlainTextHtml(insertText));
             }
-            saveUndoState();
-            return;
           }
 
-          /* data-wrap: wrap selection with bold/italic */
           var wrapText = btn.getAttribute('data-wrap');
-          if (wrapText) {
-            if (wrapText === '**') {
-              /* Bold */
-              document.execCommand('bold');
-            } else if (wrapText === '*') {
-              /* Italic */
-              document.execCommand('italic');
-            } else {
-              /* Generic wrap - keep old behavior */
-              var selection = window.getSelection();
-              if (selection.rangeCount && !selection.isCollapsed) {
-                var selectedText = selection.toString();
-                document.execCommand('insertText', false, wrapText + selectedText + wrapText);
-              } else {
-                document.execCommand('insertText', false, wrapText + wrapText);
-              }
-            }
-            saveUndoState();
-            return;
+          if (!handled && wrapText) {
+            handled = wrapText === '**'
+              ? wrapSelectionWithTag('strong')
+              : wrapText === '*'
+                ? wrapSelectionWithTag('em')
+                : false;
           }
 
-          /* data-wrap-tag: wrap selection with HTML tag */
           var wrapTag = btn.getAttribute('data-wrap-tag');
-          if (wrapTag) {
-            if (wrapTag === 'u') {
-              /* Underline */
-              document.execCommand('underline');
-            } else {
-              document.execCommand('formatBlock', false, wrapTag);
-            }
-            saveUndoState();
-            return;
+          if (!handled && wrapTag) {
+            handled = wrapSelectionWithTag(wrapTag);
+          }
+
+          if (handled) {
+            commitEditorMutation();
           }
         });
       }
@@ -823,20 +1112,28 @@ More content..."></div>
          ============================================= */
       function applyCustomCSS() {
         var cssInput = document.getElementById('custom-css-input').value.trim();
+        var silent = arguments.length > 0 ? !!arguments[0] : false;
+
         if (!cssInput) {
-          App.showToast('Please paste some CSS first.');
+          clearCustomCSS();
+          if (!silent) {
+            App.showToast('Please paste some CSS first.');
+          }
           return;
         }
 
         customCSSContent = cssInput;
-        customCSSApplied = true;
+        customCSSApplied = document.getElementById('use-custom-style').checked;
 
-        /* Scope CSS to the editor and preview */
         var styleEl = document.getElementById('custom-article-style');
-        styleEl.textContent = scopeCSS(cssInput, '#editor-content') + '\n' + scopeCSS(cssInput, '#compose-preview-wrapper');
+        styleEl.textContent = customCSSApplied
+          ? App.scopeArticleCss(cssInput, ['#editor-content', '#compose-preview-wrapper'])
+          : '';
 
-        document.getElementById('css-status').textContent = 'Style applied ✓';
-        App.showToast('Custom style applied to editor.');
+        document.getElementById('css-status').textContent = customCSSApplied ? 'Style applied ✓' : '';
+        if (!silent && customCSSApplied) {
+          App.showToast('Custom style applied to editor.');
+        }
       }
 
       function clearCustomCSS() {
@@ -844,7 +1141,6 @@ More content..."></div>
         customCSSApplied = false;
         document.getElementById('custom-article-style').textContent = '';
         document.getElementById('css-status').textContent = '';
-        document.getElementById('custom-css-input').value = '';
       }
 
       /**
@@ -852,50 +1148,27 @@ More content..."></div>
        * custom CSS only affects the preview area.
        */
       function scopeCSS(css, scope) {
-        /* Remove comments */
-        var cleaned = css.replace(/\/\*[\s\S]*?\*\//g, '');
-
-        /* Split on } and process each rule block */
-        var blocks = cleaned.split('}');
-        var result = [];
-
-        for (var i = 0; i < blocks.length; i++) {
-          var block = blocks[i].trim();
-          if (!block) continue;
-
-          var bracePos = block.indexOf('{');
-          if (bracePos === -1) continue;
-
-          var selectors = block.substring(0, bracePos).trim();
-          var declarations = block.substring(bracePos + 1).trim();
-
-          /* Skip @-rules */
-          if (selectors.charAt(0) === '@') {
-            result.push(selectors + '{' + declarations + '}');
-            continue;
-          }
-
-          /* Prefix each comma-separated selector */
-          var scopedSelectors = selectors.split(',').map(function (sel) {
-            sel = sel.trim();
-            if (!sel) return '';
-            return scope + ' ' + sel;
-          }).filter(function (s) { return s; }).join(', ');
-
-          result.push(scopedSelectors + ' { ' + declarations + ' }');
-        }
-
-        return result.join('\n');
+        return App.scopeArticleCss(css, scope);
       }
 
       /* =============================================
          UNDO / REDO
          ============================================= */
+      function resetUndoState(initialHtml) {
+        undoStack = [initialHtml || ''];
+        redoStack = [];
+        updateUndoRedoButtons();
+      }
+
       function saveUndoState() {
         if (isUndoRedoAction) return;
-        var content = document.getElementById('editor-content').innerHTML;
-        if (content === lastSavedContent) return;
-        lastSavedContent = content;
+        var content = getEditor().innerHTML;
+        if (!undoStack.length) {
+          undoStack.push(content);
+          updateUndoRedoButtons();
+          return;
+        }
+        if (undoStack[undoStack.length - 1] === content) return;
         undoStack.push(content);
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         redoStack = [];
@@ -910,35 +1183,38 @@ More content..."></div>
       }
 
       function undo() {
-        if (undoStack.length === 0) return;
-        var current = document.getElementById('editor-content').innerHTML;
-        var previous = undoStack.pop();
-        lastSavedContent = previous;
-        redoStack.push(current);
-        if (redoStack.length > UNDO_MAX) redoStack.shift();
+        if (undoStack.length < 2) return;
         isUndoRedoAction = true;
-        document.getElementById('editor-content').innerHTML = previous;
+        var current = undoStack.pop();
+        redoStack.push(current);
+        getEditor().innerHTML = undoStack[undoStack.length - 1];
         isUndoRedoAction = false;
+        syncPreview();
+        if (composeFindState.open && composeFindState.query) {
+          performComposeFind(composeFindState.query);
+        }
         updateUndoRedoButtons();
       }
 
       function redo() {
         if (redoStack.length === 0) return;
-        var current = document.getElementById('editor-content').innerHTML;
         var next = redoStack.pop();
-        lastSavedContent = next;
-        undoStack.push(current);
+        undoStack.push(next);
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         isUndoRedoAction = true;
-        document.getElementById('editor-content').innerHTML = next;
+        getEditor().innerHTML = next;
         isUndoRedoAction = false;
+        syncPreview();
+        if (composeFindState.open && composeFindState.query) {
+          performComposeFind(composeFindState.query);
+        }
         updateUndoRedoButtons();
       }
 
       function updateUndoRedoButtons() {
         var undoBtn = document.getElementById('undo-btn');
         var redoBtn = document.getElementById('redo-btn');
-        if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+        if (undoBtn) undoBtn.disabled = undoStack.length < 2;
         if (redoBtn) redoBtn.disabled = redoStack.length === 0;
       }
 
@@ -973,17 +1249,79 @@ More content..."></div>
         setTimeout(function () { bar.style.display = 'none'; }, 200);
         clearComposeFindHighlights();
         document.getElementById('find-count').textContent = '';
-        document.getElementById('editor-overlay').innerHTML = '';
+      }
+
+      function getEditorTextSegments() {
+        var editor = getEditor();
+        var walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+        var segments = [];
+        var offset = 0;
+
+        while (walker.nextNode()) {
+          var node = walker.currentNode;
+          var value = node.nodeValue || '';
+          if (!value) continue;
+          segments.push({
+            node: node,
+            start: offset,
+            end: offset + value.length,
+            text: value
+          });
+          offset += value.length;
+        }
+
+        return segments;
+      }
+
+      function resolveTextOffset(offset, segments, preferEnd) {
+        if (!segments.length) return null;
+        for (var i = 0; i < segments.length; i++) {
+          var segment = segments[i];
+          var isLast = i === segments.length - 1;
+          if (offset < segment.end || (preferEnd && offset === segment.end) || (isLast && offset === segment.end)) {
+            return {
+              node: segment.node,
+              offset: Math.max(0, Math.min(segment.text.length, offset - segment.start))
+            };
+          }
+        }
+        return null;
+      }
+
+      function createRangeFromMatch(match) {
+        var segments = getEditorTextSegments();
+        var start = resolveTextOffset(match.start, segments, false);
+        var end = resolveTextOffset(match.end, segments, true);
+        if (!start || !end) return null;
+
+        var range = document.createRange();
+        range.setStart(start.node, start.offset);
+        range.setEnd(end.node, end.offset);
+        return range;
+      }
+
+      function updateComposeFindCount() {
+        var countEl = document.getElementById('find-count');
+        if (!countEl) return;
+        if (!composeFindState.query) {
+          countEl.textContent = '';
+          return;
+        }
+        if (!composeFindState.matches.length) {
+          countEl.textContent = 'No results';
+          return;
+        }
+        countEl.textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
       }
 
       function performComposeFind(query) {
-        clearComposeFindHighlights();
         composeFindState.query = query;
-        var editor = document.getElementById('editor-content');
-        var value = editor.innerText;
+        composeFindState.matches = [];
+        composeFindState.currentIndex = -1;
+
+        var value = getEditor().textContent || '';
         if (!query || query.trim() === '') {
-          var countEl = document.getElementById('find-count');
-          if (countEl) countEl.textContent = '';
+          updateComposeFindCount();
           return;
         }
 
@@ -1003,22 +1341,22 @@ More content..."></div>
 
         if (matches.length > 0) {
           selectCurrentComposeFind();
-          updateComposeFindOverlay();
-          var countEl = document.getElementById('find-count');
-          if (countEl) countEl.textContent = '1 of ' + matches.length;
-        } else {
-          document.getElementById('find-count').textContent = 'No results';
         }
+        updateComposeFindCount();
       }
 
       function selectCurrentComposeFind() {
         if (composeFindState.currentIndex >= 0 && composeFindState.currentIndex < composeFindState.matches.length) {
-          var editor = document.getElementById('editor-content');
+          var editor = getEditor();
+          var range = createRangeFromMatch(composeFindState.matches[composeFindState.currentIndex]);
+          if (!range) return;
           editor.focus();
-          /* The highlights are already shown via the overlay, but we need to scroll to the highlight */
-          var highlights = document.querySelectorAll('.find-highlight--current');
-          if (highlights.length > 0 && highlights[0].scrollIntoView) {
-            highlights[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+          selectRange(range);
+          var anchorElement = range.startContainer.nodeType === Node.TEXT_NODE
+            ? range.startContainer.parentNode
+            : range.startContainer;
+          if (anchorElement && anchorElement.scrollIntoView) {
+            anchorElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
           }
         }
       }
@@ -1027,18 +1365,14 @@ More content..."></div>
         if (composeFindState.matches.length === 0) return;
         composeFindState.currentIndex = (composeFindState.currentIndex + 1) % composeFindState.matches.length;
         selectCurrentComposeFind();
-        updateComposeFindOverlay();
-        var countEl = document.getElementById('find-count');
-        if (countEl) countEl.textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+        updateComposeFindCount();
       }
 
       function findComposePrev() {
         if (composeFindState.matches.length === 0) return;
         composeFindState.currentIndex = (composeFindState.currentIndex - 1 + composeFindState.matches.length) % composeFindState.matches.length;
         selectCurrentComposeFind();
-        updateComposeFindOverlay();
-        var countEl = document.getElementById('find-count');
-        if (countEl) countEl.textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+        updateComposeFindCount();
       }
 
       function clearComposeFindHighlights() {
@@ -1048,142 +1382,105 @@ More content..."></div>
 
       function replaceCurrentComposeFind() {
         if (composeFindState.currentIndex < 0 || composeFindState.matches.length === 0) return;
-        
-        var editor = document.getElementById('editor-content');
         var replaceWith = document.getElementById('replace-input').value;
-
-        /* Save undo state before replacing */
-        saveUndoState();
-
-        /* Use window.find and replace */
-        var found = window.find(composeFindState.query);
-        if (found) {
-          var selection = window.getSelection();
-          if (selection.rangeCount) {
-            var range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(document.createTextNode(replaceWith));
-          }
-        }
-
-        /* Re-run find to update matches */
+        var range = createRangeFromMatch(composeFindState.matches[composeFindState.currentIndex]);
+        if (!range) return;
+        range.deleteContents();
+        var textNode = document.createTextNode(replaceWith);
+        range.insertNode(textNode);
+        var nextRange = document.createRange();
+        nextRange.setStart(textNode, replaceWith.length);
+        nextRange.collapse(true);
+        selectRange(nextRange);
+        commitEditorMutation();
         performComposeFind(composeFindState.query);
       }
 
       function replaceAllComposeFind() {
         if (composeFindState.matches.length === 0 || !composeFindState.query) return;
-        
-        var editor = document.getElementById('editor-content');
         var replaceWith = document.getElementById('replace-input').value;
-
-        /* Save undo state before replacing all — single undo step */
-        saveUndoState();
-
         var count = 0;
-        while (window.find(composeFindState.query)) {
-          var selection = window.getSelection();
-          if (selection.rangeCount) {
-            var range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(document.createTextNode(replaceWith));
-            count++;
-          }
-        }
+        composeFindState.matches.slice().reverse().forEach(function (match) {
+          var range = createRangeFromMatch(match);
+          if (!range) return;
+          range.deleteContents();
+          range.insertNode(document.createTextNode(replaceWith));
+          count++;
+        });
 
-        var countEl = document.getElementById('find-count');
-        if (countEl) countEl.textContent = count + ' replaced';
+        commitEditorMutation();
         clearComposeFindHighlights();
+        document.getElementById('find-count').textContent = count + ' replaced';
       }
 
-      /* Compose find overlay — highlights behind the editor */
       function updateComposeFindOverlay() {
-        var overlay = document.getElementById('editor-overlay');
-        if (!overlay) return;
-        overlay.innerHTML = '';
-        if (composeFindState.matches.length === 0 || !composeFindState.query) return;
-
-        /* Build highlighted text for the overlay */
-        var editor = document.getElementById('editor-content');
-        var value = editor.innerText;
-        var caseSensitive = document.getElementById('find-case-sensitive').checked;
-        var searchText = caseSensitive ? value : value.toLowerCase();
-        var searchQuery = caseSensitive ? composeFindState.query : composeFindState.query.toLowerCase();
-
-        var html = '';
-        var lastEnd = 0;
-        var pos = 0;
-        while ((pos = searchText.indexOf(searchQuery, pos)) !== -1) {
-          /* Text before match */
-          html += escapeHtmlForOverlay(value.substring(lastEnd, pos));
-          /* Match */
-          var isCurrent = (pos === composeFindState.matches[composeFindState.currentIndex].start);
-          html += '<mark class="find-highlight' + (isCurrent ? ' find-highlight--current' : '') + '">' +
-                   escapeHtmlForOverlay(value.substring(pos, pos + composeFindState.query.length)) + '</mark>';
-          lastEnd = pos + searchQuery.length;
-          pos = lastEnd;
-        }
-        html += escapeHtmlForOverlay(value.substring(lastEnd));
-
-        overlay.innerHTML = html;
-      }
-
-      function escapeHtmlForOverlay(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        /* Retained as a no-op for compatibility with older event paths. */
       }
 
       /* =============================================
          LIVE PREVIEW SYNC
          ============================================= */
+      function prepareArticleHtml(html) {
+        return App.sanitizeHtml(App.normalizeArticleHtml(html || ''));
+      }
+
+      function getSelectedCoverImageValue() {
+        var selected = document.querySelector('input[name="cover-image"]:checked');
+        return selected ? selected.value.trim() : '';
+      }
+
+      function setSelectedCoverImageValue(value) {
+        var options = document.querySelectorAll('input[name="cover-image"]');
+        Array.prototype.slice.call(options).forEach(function (option) {
+          option.checked = option.value === value;
+        });
+      }
+
+      function collectEditorImageUrls(editor) {
+        var text = (editor.innerText || editor.textContent || '');
+        var imgExtRegex = /https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(#[^\s]*)?/gi;
+        var imgHostRegex = /https?:\/\/(?:images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\/[^\s]+/gi;
+        var urls = []
+          .concat(text.match(imgExtRegex) || [])
+          .concat(text.match(imgHostRegex) || [])
+          .concat(Array.prototype.slice.call(editor.querySelectorAll('img[src]')).map(function (img) {
+            return (img.getAttribute('src') || '').trim();
+          }));
+
+        var uniqueUrls = [];
+        var seen = {};
+        urls.forEach(function (url) {
+          if (!url || seen[url]) return;
+          seen[url] = true;
+          uniqueUrls.push(url);
+        });
+        return uniqueUrls;
+      }
+
       function syncPreview() {
-        var editor = document.getElementById('editor-content');
+        var editor = getEditor();
         var previewBody = document.getElementById('preview-body');
-        
-        /* Get the editor HTML and sanitize for safety */
-        var html = editor.innerHTML;
-        var safe = html ? App.sanitizeHtml(html) : '';
-        
-        /* Update preview panel */
+
+        var safe = prepareArticleHtml(editor.innerHTML);
         previewBody.innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
 
-        /* Update cover image picker with detected image URLs */
-        updateCoverImagePicker(editor.innerText);
+        updateCoverImagePicker(editor, getSelectedCoverImageValue());
       }
 
       /**
        * Scan the raw editor content for image URLs and populate
        * the cover image picker with radio-button thumbnails.
        */
-      function updateCoverImagePicker(rawText) {
+      function updateCoverImagePicker(editor, preferredSelection) {
         var container = document.getElementById('cover-options');
         if (!container) return;
+        var uniqueUrls = collectEditorImageUrls(editor);
+        var currentlySelected = preferredSelection || getSelectedCoverImageValue();
 
-        /* Extract all image URLs from the raw text.
-           Match (a) extension-based URLs and (b) known image hosting domains. */
-        var imgExtRegex = /https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|svg|avif|bmp)(?:\?[^\s]*)?(#[^\s]*)?/gi;
-        var imgHostRegex = /https?:\/\/(?:images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\/[^\s]+/gi;
-        var extMatches = rawText.match(imgExtRegex) || [];
-        var hostMatches = rawText.match(imgHostRegex) || [];
-        var matches = extMatches.concat(hostMatches);
-
-        /* Deduplicate */
-        var uniqueUrls = [];
-        var seen = {};
-        for (var i = 0; i < matches.length; i++) {
-          var url = matches[i];
-          if (!seen[url]) {
-            seen[url] = true;
-            uniqueUrls.push(url);
-          }
+        if (currentlySelected && uniqueUrls.indexOf(currentlySelected) === -1) {
+          uniqueUrls.unshift(currentlySelected);
         }
 
-        detectedImages = uniqueUrls;
-
-        /* Preserve current selection */
-        var currentlySelected = '';
-        var checked = container.querySelector('input[name="cover-image"]:checked');
-        if (checked) currentlySelected = checked.value;
-
-        /* Build the HTML */
         var html = '<label class="compose-cover__option compose-cover__option--none">';
         html += '<input type="radio" name="cover-image" value=""' + (currentlySelected === '' ? ' checked' : '') + '>';
         html += '<span class="compose-cover__option-label">No cover image</span>';
@@ -1270,7 +1567,7 @@ More content..."></div>
               romanItems.push(lines[i].replace(/^[IVXLCDM]+\.\s+/, ''));
               i++;
             }
-            result.push('<ol style="list-style-type:upper-roman">');
+            result.push('<ol type="I">');
             for (var ri = 0; ri < romanItems.length; ri++) {
               result.push('  <li>' + applyInlineFormatting(romanItems[ri]) + '</li>');
             }
@@ -1515,12 +1812,10 @@ More content..."></div>
         var featured = document.getElementById('meta-featured').checked;
         var useCustomStyle = document.getElementById('use-custom-style').checked;
 
-        /* Sanitize HTML before storage — strips scripts, iframes, event handlers, etc. */
-        var articleHTML = App.sanitizeHtml(content);
+        var articleHTML = prepareArticleHtml(content);
 
         /* Get the selected cover image */
-        var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
-        var coverImage = coverImageEl ? coverImageEl.value.trim() : '';
+        var coverImage = getSelectedCoverImageValue();
 
         /* Build the database row */
         var articleData = {
@@ -1536,7 +1831,7 @@ More content..."></div>
           cover_image: coverImage || null,
           cover_image_alt: coverImage ? title : null,
           content_html: articleHTML,
-          custom_css: (useCustomStyle && customCSSApplied && customCSSContent) ? customCSSContent : null
+          custom_css: useCustomStyle ? (document.getElementById('custom-css-input').value.trim() || null) : null
         };
 
         /* Disable button to prevent double-clicks */
@@ -1561,6 +1856,7 @@ More content..."></div>
 
           /* Clear draft after successful publish */
           localStorage.removeItem(DRAFT_KEY);
+          markComposerClean();
 
           /* Redirect to the article page after a brief delay */
           setTimeout(function () {
@@ -1594,7 +1890,7 @@ More content..."></div>
         var category = document.getElementById('meta-category').value.trim() || 'General';
         var authorName = document.getElementById('meta-author').value.trim() || 'Anonymous';
         var publishDate = document.getElementById('meta-date').value || todayISO();
-        var bodyHTML = document.getElementById('editor-content').innerHTML;
+        var bodyHTML = prepareArticleHtml(getEditor().innerHTML);
 
         var overlay = document.getElementById('publish-modal-overlay');
         var previewHTML = '<div class="compose-modal-overlay" id="fullpreview-overlay-inner">';
@@ -1661,9 +1957,9 @@ More content..."></div>
         document.body.style.overflow = 'hidden';
 
         /* Apply custom CSS to full preview if active */
-        if (customCSSApplied && customCSSContent) {
+        if (document.getElementById('use-custom-style').checked && document.getElementById('custom-css-input').value.trim()) {
           var fullPreviewStyle = document.createElement('style');
-          fullPreviewStyle.textContent = scopeCSS(customCSSContent, '#fullpreview-body');
+          fullPreviewStyle.textContent = App.scopeArticleCss(document.getElementById('custom-css-input').value.trim(), '#fullpreview-body');
           document.getElementById('fullpreview-body').appendChild(fullPreviewStyle);
         }
 
@@ -1703,6 +1999,82 @@ More content..."></div>
         return year + '-' + month + '-' + day;
       }
 
+      function serializeComposerState() {
+        var slugField = document.getElementById('meta-slug');
+        return {
+          title: document.getElementById('meta-title').value,
+          excerpt: document.getElementById('meta-excerpt').value,
+          category: document.getElementById('meta-category').value,
+          slug: slugField.value,
+          slugManual: slugField.dataset.manual === '1',
+          author: document.getElementById('meta-author').value,
+          date: document.getElementById('meta-date').value,
+          authorBio: document.getElementById('meta-author-bio').value,
+          featured: document.getElementById('meta-featured').checked,
+          contentHtml: getEditor().innerHTML,
+          customCss: document.getElementById('custom-css-input').value,
+          useCustomStyle: document.getElementById('use-custom-style').checked,
+          coverImage: getSelectedCoverImageValue(),
+          savedAt: Date.now()
+        };
+      }
+
+      function serializeStateSignature() {
+        var snapshot = serializeComposerState();
+        delete snapshot.savedAt;
+        return JSON.stringify(snapshot);
+      }
+
+      function markComposerClean() {
+        cleanStateSignature = serializeStateSignature();
+      }
+
+      function isComposerDirty() {
+        return serializeStateSignature() !== cleanStateSignature;
+      }
+
+      function convertLegacyDraftContentToHtml(text) {
+        if (!text) return '';
+        var parsed = parseArticleContent(text);
+        return parsed ? prepareArticleHtml(parsed) : buildPlainTextHtml(text);
+      }
+
+      function restoreComposerState(draft) {
+        var slugField = document.getElementById('meta-slug');
+        var editor = getEditor();
+
+        document.getElementById('meta-title').value = draft.title || '';
+        document.getElementById('meta-excerpt').value = draft.excerpt || '';
+        document.getElementById('meta-category').value = draft.category || '';
+        slugField.value = draft.slug || '';
+        slugField.dataset.manual = draft.slugManual ? '1' : '';
+        document.getElementById('meta-author').value = draft.author || document.getElementById('meta-author').value;
+        document.getElementById('meta-date').value = draft.date || document.getElementById('meta-date').value || todayISO();
+        document.getElementById('meta-author-bio').value = draft.authorBio || '';
+        document.getElementById('meta-featured').checked = !!draft.featured;
+        editor.innerHTML = draft.contentHtml || convertLegacyDraftContentToHtml(draft.content);
+
+        document.getElementById('custom-css-input').value = draft.customCss || '';
+        document.getElementById('use-custom-style').checked = !!draft.useCustomStyle;
+        document.getElementById('custom-css-area').style.display = draft.useCustomStyle ? 'block' : 'none';
+
+        if (draft.useCustomStyle && draft.customCss) {
+          applyCustomCSS(true);
+        } else {
+          clearCustomCSS();
+        }
+
+        syncPreview();
+        if (draft.coverImage) {
+          setSelectedCoverImageValue(draft.coverImage);
+        }
+
+        resetUndoState(editor.innerHTML);
+        markComposerClean();
+        document.getElementById('draft-banner').style.display = 'flex';
+        App.showToast('Draft restored');
+      }
+
       /* =============================================
          DRAFT SYSTEM
          ============================================= */
@@ -1710,22 +2082,8 @@ More content..."></div>
       var draftAutoSaveTimer = null;
 
       function saveDraft() {
-        var draft = {
-          title: document.getElementById('meta-title').value,
-          excerpt: document.getElementById('meta-excerpt').value,
-          category: document.getElementById('meta-category').value,
-          slug: document.getElementById('meta-slug').value,
-          author: document.getElementById('meta-author').value,
-          date: document.getElementById('meta-date').value,
-          authorBio: document.getElementById('meta-author-bio').value,
-          featured: document.getElementById('meta-featured').checked,
-          content: document.getElementById('editor-textarea').value,
-          customCss: document.getElementById('custom-css-input').value,
-          useCustomStyle: document.getElementById('use-custom-style').checked,
-          savedAt: Date.now()
-        };
         try {
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(serializeComposerState()));
           return true;
         } catch (e) {
           console.error('Draft save failed:', e);
@@ -1751,27 +2109,7 @@ More content..."></div>
       }
 
       function restoreDraft(draft) {
-        document.getElementById('meta-title').value = draft.title || '';
-        document.getElementById('meta-excerpt').value = draft.excerpt || '';
-        document.getElementById('meta-category').value = draft.category || '';
-        document.getElementById('meta-slug').value = draft.slug || '';
-        document.getElementById('meta-author').value = draft.author || '';
-        document.getElementById('meta-date').value = draft.date || '';
-        document.getElementById('meta-author-bio').value = draft.authorBio || '';
-        document.getElementById('meta-featured').checked = draft.featured || false;
-        document.getElementById('editor-textarea').value = draft.content || '';
-        document.getElementById('custom-css-input').value = draft.customCss || '';
-        document.getElementById('use-custom-style').checked = draft.useCustomStyle || false;
-        if (draft.useCustomStyle && draft.customCss) {
-          document.getElementById('custom-css-area').style.display = 'block';
-          customCSSContent = draft.customCss;
-          customCSSApplied = true;
-          var styleEl = document.getElementById('custom-article-style');
-          styleEl.textContent = scopeCSS(draft.customCss, '#compose-preview-wrapper');
-        }
-        updatePreview();
-        document.getElementById('draft-banner').style.display = 'flex';
-        App.showToast('Draft restored');
+        restoreComposerState(draft);
       }
 
       function scheduleDraftAutoSave() {
@@ -1818,6 +2156,13 @@ More content..."></div>
         if (e.key === 'Escape' && composeFindState.open) {
           closeComposeFind();
         }
+      });
+
+      window.addEventListener('beforeunload', function (e) {
+        if (!currentUser || document.getElementById('compose-page').style.display === 'none') return;
+        if (!cleanStateSignature || !isComposerDirty()) return;
+        e.preventDefault();
+        e.returnValue = '';
       });
     })();
   </script>
