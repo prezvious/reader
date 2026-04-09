@@ -563,12 +563,102 @@
 .compose-actions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
   margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.compose-actions__left,
+.compose-actions__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .compose-actions .btn {
   min-width: 160px;
+}
+
+/* Secondary button (Save as draft) */
+.btn--secondary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn--secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-tertiary);
+}
+
+/* ===== DRAFT BANNER ===== */
+.compose-draft-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-6);
+  background: var(--accent-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  animation: draft-slide-in 0.3s var(--ease-out-expo);
+}
+
+@keyframes draft-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.compose-draft-banner svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.compose-draft-banner__text {
+  flex: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.compose-draft-banner__clear {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.compose-draft-banner__clear:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-tertiary);
 }
 
 .compose-actions__status {
@@ -795,6 +885,11 @@
 
   .compose-actions .btn {
     min-width: unset;
+  }
+
+  .compose-draft-banner {
+    flex-wrap: wrap;
+    padding: var(--space-3);
   }
 }
 
