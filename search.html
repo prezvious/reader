@@ -68,12 +68,13 @@
   <main>
     <section class="container" style="padding-top:var(--space-6);padding-bottom:var(--space-16);">
       <div class="search-page__header">
+        <h1 class="search-page__title" id="search-page-title"></h1>
         <div class="search-page__input-wrapper">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input class="search-page__input" id="search-page-input" type="text" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
         </div>
       </div>
-      <div class="search-page__meta" id="search-page-meta"></div>
+      <div class="search-page__meta" id="search-page-meta" aria-live="polite"></div>
       <div class="article-grid" id="search-results-grid"></div>
     </section>
   </main>
@@ -111,9 +112,11 @@
 
       if (query) {
         input.value = query;
+        var titleEl = document.getElementById('search-page-title');
+        if (titleEl) titleEl.textContent = 'Search results for "' + query + '"';
         document.title = query + " — Search — Reader";
         meta.textContent = 'Searching...';
-        
+
         var start = performance.now();
         var dbResults = window.Supabase && window.Supabase.searchArticles ? await window.Supabase.searchArticles(query) : [];
         var staticResults = window.Manifest && window.Manifest.searchArticles ? window.Manifest.searchArticles(query) : [];
@@ -124,7 +127,7 @@
         var end = performance.now();
         var time = ((end - start) / 1000).toFixed(2);
 
-        meta.textContent = allResults.length + ' results · ' + time + 's';
+        meta.textContent = allResults.length + ' result' + (allResults.length !== 1 ? 's' : '') + ' · ' + time + 's';
 
         if (allResults.length === 0) {
           grid.innerHTML = '<div class="search-empty" style="grid-column:1/-1;margin-top:var(--space-8);"><svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty__title">No articles match "' + query + '"</div><div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div></div>';
@@ -134,15 +137,14 @@
             var cat = article.category || 'Uncategorized';
             var excerpt = article.highlighted_excerpt || article.excerpt || '';
             var readTime = window.Manifest ? window.Manifest.calcReadTimeFromText(article.content_html || article.excerpt) + ' min read' : '';
-            return \`
-              <a href="article.html?slug=\${article.slug}" class="article-card">
-                <div class="article-card__content">
-                  <div class="article-card__meta">\${author} · \${cat}</div>
-                  <h3 class="article-card__title">\${article.title}</h3>
-                  <p class="article-card__excerpt">\${excerpt}</p>
-                  <div class="article-card__footer">\${readTime}</div>
-                </div>
-              </a>\`;
+            return '<a href="article.html?slug=' + encodeURIComponent(article.slug) + '" class="article-card">' +
+              '<div class="article-card__content">' +
+                '<div class="article-card__meta">' + author + ' · ' + cat + '</div>' +
+                '<h2 class="article-card__title">' + article.title + '</h2>' +
+                '<p class="article-card__excerpt">' + excerpt + '</p>' +
+                '<div class="article-card__footer">' + readTime + '</div>' +
+              '</div>' +
+            '</a>';
           }).join('');
         }
       }

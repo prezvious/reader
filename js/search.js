@@ -26,13 +26,16 @@
     var overlay = document.createElement('div');
     overlay.className = 'search-overlay';
     overlay.id = 'search-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Search articles');
     overlay.innerHTML = `
       <div class="search-palette">
         <div class="search-input-wrapper">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="search-input" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
+          <input type="text" class="search-input" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-owns="search-results">
         </div>
-        <div class="search-results" id="search-results" role="listbox"></div>
+        <div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>
         <div class="search-keyboard-hints">
           <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
@@ -61,7 +64,9 @@
     }
     overlay.classList.add('search-overlay--open');
     document.body.classList.add('search-open');
-    document.getElementById('search-input').focus();
+    var input = document.getElementById('search-input');
+    if (input) input.setAttribute('aria-expanded', 'true');
+    input.focus();
     isOpen = true;
     if (searchQuery) executeSearch(searchQuery);
   }
@@ -70,6 +75,8 @@
     var overlay = document.getElementById('search-overlay');
     if (overlay) overlay.classList.remove('search-overlay--open');
     document.body.classList.remove('search-open');
+    var input = document.getElementById('search-input');
+    if (input) input.setAttribute('aria-expanded', 'false');
     clearTimeout(debounceTimer);
     isOpen = false;
     var trigger = document.getElementById('search-trigger');
@@ -145,10 +152,12 @@
       toggleOverlay();
       return;
     }
-    
+
     if (!isOpen) return;
 
+    var palette = document.querySelector('.search-palette');
     var items = document.querySelectorAll('.search-result, .search-view-all');
+
     if (e.key === 'Escape') {
       closeOverlay();
     } else if (e.key === 'ArrowDown') {
@@ -168,18 +177,39 @@
       } else if (searchQuery.length >= 2) {
         window.location.href = 'search.html?q=' + encodeURIComponent(searchQuery);
       }
+    } else if (e.key === 'Tab' && palette) {
+      /* Focus trap: cycle within the palette only */
+      var focusable = Array.from(palette.querySelectorAll('input, a, button, [tabindex]:not([tabindex="-1"])'));
+      if (focusable.length === 0) return;
+
+      var firstEl = focusable[0];
+      var lastEl = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
     }
   }
 
   function updateFocus(items) {
+    var input = document.getElementById('search-input');
     items.forEach(function(item, i) {
       if (i === focusedIndex) {
         item.classList.add('search-result--focused');
-        item.focus();
+        item.setAttribute('aria-selected', 'true');
+        /* Use aria-activedescendant for screen readers */
+        if (input) input.setAttribute('aria-activedescendant', item.id);
       } else {
         item.classList.remove('search-result--focused');
+        item.removeAttribute('aria-selected');
       }
     });
+    /* Clear aria-activedescendant when nothing is focused */
+    if (focusedIndex < 0 && input) input.removeAttribute('aria-activedescendant');
   }
 
   function navigateToResults(query) {
