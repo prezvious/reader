@@ -7,6 +7,16 @@
 
 /* ===== ARTICLE-BODY SCOPED TYPOGRAPHY ===== */
 
+.article-body h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  letter-spacing: -0.02em;
+}
+
 .article-body h2 {
   font-family: 'DM Sans', sans-serif;
   font-size: 1.5rem;
@@ -29,6 +39,24 @@
   font-family: 'DM Sans', sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.article-body h5 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.article-body h6 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-top: 1.25em;
   margin-bottom: 0.5em;
 }
