@@ -15,6 +15,7 @@
       "coverImage": "",
       "coverImageAlt": "",
       "publishedAt": "2026-04-07",
+      "updatedAt": "2026-04-09T08:30:00Z",
       "featured": true,
       "folder": "articles/how-reading-slowly-filled-the-gaps-i-didnt-know-i-had/"
     },
@@ -33,6 +34,7 @@
       "coverImage": "",
       "coverImageAlt": "",
       "publishedAt": "2026-03-15",
+      "updatedAt": "2026-04-08T13:00:00Z",
       "featured": true,
       "folder": "articles/the-engineering-mindset/"
     },
@@ -51,6 +53,7 @@
       "coverImage": "",
       "coverImageAlt": "",
       "publishedAt": "2026-03-12",
+      "updatedAt": "2026-04-06T10:15:00Z",
       "featured": false,
       "folder": "articles/first-principles-thinking/"
     },
@@ -69,6 +72,7 @@
       "coverImage": "",
       "coverImageAlt": "",
       "publishedAt": "2026-03-08",
+      "updatedAt": "2026-03-22T09:30:00Z",
       "featured": false,
       "folder": "articles/the-art-of-decisions/"
     },
@@ -87,6 +91,7 @@
       "coverImage": "",
       "coverImageAlt": "",
       "publishedAt": "2026-03-01",
+      "updatedAt": "2026-04-01T18:45:00Z",
       "featured": false,
       "folder": "articles/inversion-problem-solving/"
     }

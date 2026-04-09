@@ -4,7 +4,7 @@
   "fallbackModels": [
     "openrouter/free"
   ],
-  "count": 8,
+  "count": 5,
   "summaries": [
     {
       "slug": "first-principles-thinking",
@@ -33,24 +33,6 @@
     {
       "slug": "the-engineering-mindset",
       "title": "The Three Essential Properties of the Engineering Mindset",
-      "generatedAt": "2026-04-09T06:15:00.000Z",
-      "model": "Seed summary"
-    },
-    {
-      "slug": "the-genius-code-five-thinking-rules-that-made-socrates-da-vinci-and-einstein-unstoppable",
-      "title": "The Genius Code. Five Thinking Rules That Made Socrates, Da Vinci, and Einstein Unstoppable",
-      "generatedAt": "2026-04-09T06:15:00.000Z",
-      "model": "Seed summary"
-    },
-    {
-      "slug": "the-reasons-we-dont-learn-a-language",
-      "title": "The Reasons We Don’t Learn a Language",
-      "generatedAt": "2026-04-09T06:15:00.000Z",
-      "model": "Seed summary"
-    },
-    {
-      "slug": "the-wild-things-we-do-for-love",
-      "title": "the wild things we do for love.",
       "generatedAt": "2026-04-09T06:15:00.000Z",
       "model": "Seed summary"
     }

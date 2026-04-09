@@ -21,6 +21,14 @@ chat-private/
 skills-lock.json
 qa-review.md
 qa-review-two.md
+date-modified.md
+plan.md
+website-design-specification.md
+
+# Generated local output
+.playwright-mcp/
+coverage/
+output/
 
 # OS files
 .DS_Store

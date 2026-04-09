@@ -501,18 +501,17 @@ More content..."></div>
           scheduleDraftAutoSave();
         });
 
-        editor.addEventListener('input', function () {
-          if (isUndoRedoAction) return;
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(function () {
-            syncPreview();
-            scheduleUndoSave();
-            scheduleDraftAutoSave();
-            if (composeFindState.open && composeFindState.query) {
-              performComposeFind(composeFindState.query);
-            }
-          }, 180);
+        document.getElementById('cover-options').addEventListener('change', function (event) {
+          var target = event.target;
+          if (!target || target.name !== 'cover-image') return;
+          setSelectedCoverImageValue(target.value || '');
+          syncPreview();
+          scheduleDraftAutoSave();
         });
+
+        editor.addEventListener('input', scheduleEditorStateSync);
+
+        observeEditorMutations(editor);
 
         editor.addEventListener('paste', handleEditorPaste);
 
@@ -853,6 +852,28 @@ More content..."></div>
         if (composeFindState.open && composeFindState.query) {
           performComposeFind(composeFindState.query);
         }
+      }
+
+      function scheduleEditorStateSync() {
+        if (isUndoRedoAction) return;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          commitEditorMutation();
+        }, 180);
+      }
+
+      function observeEditorMutations(editor) {
+        if (!editor || typeof MutationObserver !== 'function') return;
+
+        var observer = new MutationObserver(function () {
+          scheduleEditorStateSync();
+        });
+
+        observer.observe(editor, {
+          childList: true,
+          subtree: true,
+          characterData: true
+        });
       }
 
       function wrapSelectionWithTag(tagName, attrs) {
@@ -1423,7 +1444,16 @@ More content..."></div>
          ============================================= */
       function prepareArticleHtml(html, coverImage) {
         var normalized = App.normalizeArticleHtml(html || '');
-        return App.renderArticleHtml(normalized, { coverImage: coverImage || '' });
+        if (App && typeof App.renderArticleHtml === 'function') {
+          return App.renderArticleHtml(normalized, { coverImage: coverImage || '' });
+        }
+        if (window.ArticleContentUtils && typeof window.ArticleContentUtils.renderArticleHtml === 'function') {
+          return window.ArticleContentUtils.renderArticleHtml(normalized, { coverImage: coverImage || '' });
+        }
+        if (App && typeof App.sanitizeHtml === 'function') {
+          return App.sanitizeHtml(normalized);
+        }
+        return normalized;
       }
 
       function getSelectedCoverImageValue() {
@@ -1459,14 +1489,17 @@ More content..."></div>
         return uniqueUrls;
       }
 
-      function syncPreview() {
+      function syncPreview(preferredCoverImage) {
         var editor = getEditor();
         var previewBody = document.getElementById('preview-body');
+        var selectedCoverImage = typeof preferredCoverImage === 'string'
+          ? preferredCoverImage.trim()
+          : getSelectedCoverImageValue();
 
-        var safe = prepareArticleHtml(editor.innerHTML, getSelectedCoverImageValue());
+        var safe = prepareArticleHtml(editor.innerHTML, selectedCoverImage);
         previewBody.innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
 
-        updateCoverImagePicker(editor, getSelectedCoverImageValue());
+        updateCoverImagePicker(editor, selectedCoverImage);
       }
 
       /**
@@ -2065,10 +2098,7 @@ More content..."></div>
           clearCustomCSS();
         }
 
-        syncPreview();
-        if (draft.coverImage) {
-          setSelectedCoverImageValue(draft.coverImage);
-        }
+        syncPreview(draft.coverImage || '');
 
         resetUndoState(editor.innerHTML);
         markComposerClean();

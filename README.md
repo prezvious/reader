@@ -1,117 +1,68 @@
 # Reader
 
-Reader is a warm, editorial-style reading site for essays, notes, and long-form pieces. The current version leans harder into a calmer article layout, better spacing, richer typography, a cleaner app shell, and a much more capable writing flow. It still ships as a mostly static site, but it feels closer to a real reading product now instead of a simple demo.
+Reader is an editorial-style reading site built with static HTML, CSS, and vanilla JavaScript. It ships with a small bundled article catalog, prebuilt summary payloads, reader accounts, and a browser-based compose flow for connected deployments.
 
-## What's new in this version
+## Included pages
 
-- The public pages have a more magazine-like feel: narrower reading width, softer surfaces, stronger article hierarchy, and a cleaner browse flow.
-- The article page now includes a precomputed AI summary drawer, quick share actions, bookmark controls, reaction counts, and a more polished reading rhythm.
-- Search is its own page and can combine the shipped article catalog with extra connected content when your private local config is available.
-- The dashboard is more useful now: reading stats, streaks, continue-reading cards, and bookmark snapshots are all easier to scan.
-- The compose experience got a major upgrade with live preview, formatting tools, cover-image selection, optional custom CSS, find/replace, draft autosave, and a publish flow.
-- Static summary payloads live in `data/summaries/`, so the summary drawer can open fast without waiting for a live request.
+- `index.html` for the landing page and featured reads
+- `articles.html` for the full article catalog with sort and view controls
+- `article.html` for the single-article reading experience
+- `search.html` for catalog search
+- `dashboard.html`, `bookmarks.html`, `history.html`, and `profile.html` for signed-in reading activity
+- `signin.html`, `signup.html`, and `verify.html` for account access
+- `compose.html` for writing and publishing when a backend config is available
 
-## What ships in the public repo
+## Local use
 
-- `index.html`, `articles.html`, and `article.html` for the reading flow
-- `dashboard.html`, `bookmarks.html`, `history.html`, `profile.html`, `signin.html`, `signup.html`, and `verify.html` for the account side
-- `compose.html` for writing and publishing articles
-- `articles/` for static article source files
-- `data/summaries/` for prebuilt summary JSON
-- `css/` and `js/` for the styling and browser logic
-- `scripts/` and `tests/` for local tooling and verification
-
-## Running it offline
-
-If you only want to browse the shipped content, offline use is easy.
-
-1. Clone or download the repo.
-2. Open `index.html` directly in your browser, or launch a tiny local server if you prefer cleaner routing and fewer browser restrictions.
-3. Start reading.
-
-Out of the box, the static repo is enough for:
-
-- browsing the landing page and article index
-- reading bundled articles
-- opening the prebuilt AI summaries
-- using the theme toggle
-- searching the shipped catalog
-- writing in the composer and restoring drafts saved in browser storage
-
-If you want a local server, use one of these:
+You can browse the bundled catalog directly from the files, or serve the repo locally for a cleaner browser experience.
 
 ```bash
 node scripts/static-server.js 41731
 ```
 
-```bash
-python -m http.server 8000
-```
+Then open [http://127.0.0.1:41731](http://127.0.0.1:41731).
 
-Then open `http://127.0.0.1:41731` or `http://localhost:8000`.
+The static bundle includes:
 
-## Optional local override
+- the home page and article catalog
+- the bundled article files in `articles/`
+- prebuilt summaries in `data/summaries/`
+- browser-side theme switching
+- local draft persistence in the compose page
 
-The shipped site already includes the browser-side config needed for the hosted auth and data flow to work. If you want to point a local copy at a different project while testing, you can still create a machine-only override:
+## Connected features
+
+Bookmarks, reactions, profile updates, publishing, and connected search require browser config for the Supabase client.
+
+For local work:
 
 1. Copy `js/private-config.example.json` to `js/private-config.local.json`.
-2. Fill in your own URL and client key.
-3. Run the site locally and the local override will take precedence on `localhost` or direct file sessions.
+2. Fill in your own project URL and public client key.
+3. Run the site on `localhost` or open it directly from disk.
 
-That override file is ignored on purpose, so it stays on your machine and out of the public repo.
+For hosted deployments, the browser can also read an injected `window.READER_BACKEND_CONFIG` object before `js/supabase.js` loads.
 
-## Rebuilding summary files
-
-The repo already includes summary JSON, so you do not need to regenerate anything just to browse the site. If you add or rewrite articles and want fresh summaries, set your API key locally and run:
-
-```bash
-OPENROUTER_API_KEY=your_key_here node scripts/generate-article-summaries.mjs --force
-node scripts/validate-summaries.js --prune
-```
-
-On PowerShell:
-
-```powershell
-$env:OPENROUTER_API_KEY = "your_key_here"
-node .\scripts\generate-article-summaries.mjs --force
-node .\scripts\validate-summaries.js --prune
-```
-
-There is also a retry helper if you want a one-command loop:
-
-```powershell
-.\scripts\retry-generate-article-summaries.ps1 -Force
-```
-
-## Project shape
+## Repository layout
 
 ```text
 reader/
-|-- articles/              static article source
-|-- css/                   shared styles and page-specific styles
-|-- data/summaries/        prebuilt summary payloads
-|-- js/                    browser modules and local config template
-|-- scripts/               local utilities
-|-- tests/                 unit and Playwright coverage
-|-- compose.html           article editor and publish flow
+|-- articles/              bundled article source
+|-- css/                   shared and page-specific styles
+|-- data/summaries/        prebuilt article summaries
+|-- js/                    browser modules and config template
+|-- scripts/               local utility scripts
+|-- compose.html           browser editor
 |-- index.html             landing page
 |-- article.html           single article reader
-|-- articles.html          browse view
-|-- dashboard.html         reading dashboard
+|-- articles.html          catalog page
+|-- dashboard.html         reader dashboard
 |-- bookmarks.html         saved articles
 |-- history.html           reading history
 |-- profile.html           profile settings
-|-- search.html            full search page
-|-- manifest.json          static catalog metadata
+|-- search.html            search page
+|-- manifest.json          bundled article metadata
 `-- README.md
 ```
-
-## Tech
-
-- plain HTML, CSS, and vanilla JavaScript
-- static article files plus optional connected content
-- local draft persistence through browser storage
-- Playwright and Node-based checks for local verification
 
 ## License
 

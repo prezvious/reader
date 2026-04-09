@@ -2,10 +2,7 @@
   'use strict';
 
   var LOCAL_CONFIG_PATH = 'js/private-config.local.json';
-  var PUBLIC_CONFIG = window.READER_BACKEND_CONFIG || {
-    url: 'https://wgeckjaxqgkvivskbtrk.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndnZWNramF4cWdrdml2c2tidHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTc3MjUsImV4cCI6MjA5MTA3MzcyNX0.aXll2awgZo1iNQGdDeHUFqy7W-LR0zThdr4TUwBYAD4'
-  };
+  var PUBLIC_CONFIG = window.READER_BACKEND_CONFIG || null;
   var UNAVAILABLE_MESSAGE = 'Connected features are unavailable because the browser config is missing.';
 
   function createAuthStub(message) {
@@ -407,7 +404,7 @@
   async function getPublishedArticles() {
     var result = await client
       .from('articles')
-      .select('id, slug, title, excerpt, category, category_slug, author_name, author_avatar, author_bio, cover_image, cover_image_alt, published_at, featured')
+      .select('id, slug, title, excerpt, category, category_slug, author_name, author_avatar, author_bio, cover_image, cover_image_alt, published_at, updated_at, featured')
       .order('published_at', { ascending: false });
     if (result.error) throw result.error;
     return result.data || [];

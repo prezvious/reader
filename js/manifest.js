@@ -19,7 +19,7 @@
       clearTimeout(timeoutId);
       if (response.ok) {
         var data = await response.json();
-        staticArticles = data.articles || [];
+        staticArticles = (data.articles || []).map(normalizeStaticArticle);
       }
     } catch (e) {
       console.warn('Static manifest load failed:', e);
@@ -42,9 +42,21 @@
     dbArticles.forEach(function (a) { slugMap[a.slug] = a; });
     articles = Object.values(slugMap);
 
-    /* Sort by publishedAt descending */
+    /* Sort by publishedAt descending; invalid dates last.
+       Tie-break on slug for deterministic ordering. */
     articles.sort(function (a, b) {
-      return new Date(b.publishedAt) - new Date(a.publishedAt);
+      var dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : NaN;
+      var dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : NaN;
+      var validA = !isNaN(dateA);
+      var validB = !isNaN(dateB);
+
+      if (validA && validB) {
+        if (dateB !== dateA) return dateB - dateA;
+        return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
+      }
+      if (validA) return -1;
+      if (validB) return 1;
+      return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
     });
 
     window.ARTICLES = articles;
@@ -71,9 +83,35 @@
       coverImage: row.cover_image || '',
       coverImageAlt: row.cover_image_alt || '',
       publishedAt: row.published_at,
+      updatedAt: row.updated_at || row.published_at,
       featured: row.featured,
       folder: '',          /* No folder — content lives in DB */
       source: 'db'         /* Marker for reader.js */
+    };
+  }
+
+  function normalizeStaticArticle(article) {
+    var author = article.author || {};
+
+    return {
+      id: article.id,
+      slug: article.slug,
+      title: article.title || '',
+      excerpt: article.excerpt || '',
+      category: article.category || 'General',
+      categorySlug: article.categorySlug || 'general',
+      author: {
+        name: author.name || 'Anonymous',
+        avatar: author.avatar || '',
+        bio: author.bio || ''
+      },
+      coverImage: article.coverImage || '',
+      coverImageAlt: article.coverImageAlt || '',
+      publishedAt: article.publishedAt || '',
+      updatedAt: article.updatedAt || article.publishedAt || '',
+      featured: !!article.featured,
+      folder: article.folder || '',
+      source: article.source || 'static'
     };
   }
 
@@ -199,6 +237,7 @@
         author_avatar: article.author ? article.author.avatar : '',
         category: article.category,
         published_at: article.publishedAt,
+        updated_at: article.updatedAt,
         featured: article.featured,
         rank: 0,
         source: 'static'
