@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Search Reader articles.">
+  <title>Search — Reader</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/search.css">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
+</head>
+<body data-page="search">
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">Reader</a>
+      <nav class="header__nav">
+        <a href="index.html" class="header__link">Home</a>
+        <a href="articles.html" class="header__link">Articles</a>
+        <a href="dashboard.html" class="header__link">Dashboard</a>
+      </nav>
+      <div class="header__actions">
+        <button class="header__search-trigger" id="search-trigger" aria-label="Search articles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="header__avatar-wrapper" id="avatar-wrapper">
+          <div class="header__avatar" id="header-avatar">
+            <span id="avatar-initials">?</span>
+          </div>
+          <div class="avatar-dropdown__menu" id="avatar-menu">
+            <div class="avatar-dropdown__header">
+              <div class="avatar-dropdown__name" id="menu-name">Loading...</div>
+              <div class="avatar-dropdown__email" id="menu-email"></div>
+            </div>
+            <div class="avatar-dropdown__list">
+              <a href="dashboard.html" class="avatar-dropdown__item">Dashboard</a>
+              <a href="profile.html" class="avatar-dropdown__item">Profile</a>
+              <button class="avatar-dropdown__item avatar-dropdown__signout" id="avatar-signout">Sign out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="header__mobile-menu" id="mobile-menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar__content">
+      <a href="dashboard.html" class="sidebar__link">Dashboard</a>
+      <a href="bookmarks.html" class="sidebar__link">Bookmarks</a>
+      <a href="history.html" class="sidebar__link">Reading History</a>
+      <a href="profile.html" class="sidebar__link">Profile</a>
+    </div>
+    <button class="sidebar__signout" id="sidebar-signout">Sign Out</button>
+  </nav>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <main>
+    <section class="container" style="padding-top:var(--space-6);padding-bottom:var(--space-16);">
+      <div class="search-page__header">
+        <div class="search-page__input-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-page__input" id="search-page-input" type="text" placeholder="Search articles..." aria-label="Search articles" autocomplete="off">
+        </div>
+      </div>
+      <div class="search-page__meta" id="search-page-meta"></div>
+      <div class="article-grid" id="search-results-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <div class="footer__logo">Reader</div>
+          <div class="footer__desc">A curated collection of essays, guides, and long-form articles.</div>
+        </div>
+        <div class="footer__links">
+          <a href="index.html" class="footer__link">Home</a>
+          <a href="articles.html" class="footer__link">Articles</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2026 Reader.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/manifest.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/search.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      var params = new URLSearchParams(window.location.search);
+      var query = params.get('q');
+      var input = document.getElementById('search-page-input');
+      var grid = document.getElementById('search-results-grid');
+      var meta = document.getElementById('search-page-meta');
+
+      if (query) {
+        input.value = query;
+        document.title = query + " — Search — Reader";
+        meta.textContent = 'Searching...';
+        
+        var start = performance.now();
+        var dbResults = window.Supabase && window.Supabase.searchArticles ? await window.Supabase.searchArticles(query) : [];
+        var staticResults = window.Manifest && window.Manifest.searchArticles ? window.Manifest.searchArticles(query) : [];
+
+        var allResults = dbResults.concat(staticResults.filter(function (s) {
+          return !dbResults.some(function (d) { return d.slug === s.slug; });
+        }));
+        var end = performance.now();
+        var time = ((end - start) / 1000).toFixed(2);
+
+        meta.textContent = allResults.length + ' results · ' + time + 's';
+
+        if (allResults.length === 0) {
+          grid.innerHTML = '<div class="search-empty" style="grid-column:1/-1;margin-top:var(--space-8);"><svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty__title">No articles match "' + query + '"</div><div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div></div>';
+        } else {
+          grid.innerHTML = allResults.map(function(article) {
+            var author = article.author_name || 'Unknown';
+            var cat = article.category || 'Uncategorized';
+            var excerpt = article.highlighted_excerpt || article.excerpt || '';
+            var readTime = window.Manifest ? window.Manifest.calcReadTimeFromText(article.content_html || article.excerpt) + ' min read' : '';
+            return \`
+              <a href="article.html?slug=\${article.slug}" class="article-card">
+                <div class="article-card__content">
+                  <div class="article-card__meta">\${author} · \${cat}</div>
+                  <h3 class="article-card__title">\${article.title}</h3>
+                  <p class="article-card__excerpt">\${excerpt}</p>
+                  <div class="article-card__footer">\${readTime}</div>
+                </div>
+              </a>\`;
+          }).join('');
+        }
+      }
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          var val = e.target.value.trim();
+          if (val.length >= 2) {
+            window.location.href = 'search.html?q=' + encodeURIComponent(val);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -326,6 +326,20 @@
     return data;
   }
 
+  async function searchArticles(query) {
+    if (!query || query.length < 2) return [];
+    var sanitized = query.replace(/[<>]/g, '').trim();
+    if (!sanitized) return [];
+    try {
+      var result = await client.rpc('search_articles', { search_query: sanitized });
+      if (result.error) throw result.error;
+      return result.data || [];
+    } catch (err) {
+      console.error('Search query failed:', err);
+      return [];
+    }
+  }
+
   window.Supabase = {
     client: client,
     getProfile: getProfile,
@@ -351,6 +365,7 @@
     deleteArticle: deleteArticle,
     getPublishedArticles: getPublishedArticles,
     getArticleContent: getArticleContent,
-    getArticleBySlug: getArticleBySlug
+    getArticleBySlug: getArticleBySlug,
+    searchArticles: searchArticles
   };
 })();

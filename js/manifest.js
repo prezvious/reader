@@ -177,6 +177,35 @@
     return articles;
   }
 
+  function searchStaticArticles(query) {
+    var terms = query.toLowerCase().split(/\s+/);
+    return window.ARTICLES.filter(function (article) {
+      var searchableText = [
+        article.title,
+        article.excerpt,
+        article.author ? article.author.name : '',
+        article.category,
+        article.author ? article.author.bio : ''
+      ].join(' ').toLowerCase();
+      return terms.some(function (term) {
+        return searchableText.indexOf(term) !== -1;
+      });
+    }).map(function (article) {
+      return {
+        slug: article.slug,
+        title: article.title,
+        excerpt: article.excerpt,
+        author_name: article.author ? article.author.name : '',
+        author_avatar: article.author ? article.author.avatar : '',
+        category: article.category,
+        published_at: article.publishedAt,
+        featured: article.featured,
+        rank: 0,
+        source: 'static'
+      };
+    });
+  }
+
   window.Manifest = {
     load: loadManifest,
     getBySlug: getArticleBySlug,
@@ -187,6 +216,7 @@
     getInitials: getInitials,
     calcReadTime: calcReadTime,
     calcAllReadTimes: calcAllReadTimes,
-    calcReadTimeFromText: calcReadTimeFromText
+    calcReadTimeFromText: calcReadTimeFromText,
+    searchArticles: searchStaticArticles
   };
 })();
