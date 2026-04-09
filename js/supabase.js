@@ -2,7 +2,11 @@
   'use strict';
 
   var LOCAL_CONFIG_PATH = 'js/private-config.local.json';
-  var UNAVAILABLE_MESSAGE = 'Connected features are unavailable until your private local config is added.';
+  var PUBLIC_CONFIG = window.READER_BACKEND_CONFIG || {
+    url: 'https://wgeckjaxqgkvivskbtrk.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndnZWNramF4cWdrdml2c2tidHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTc3MjUsImV4cCI6MjA5MTA3MzcyNX0.aXll2awgZo1iNQGdDeHUFqy7W-LR0zThdr4TUwBYAD4'
+  };
+  var UNAVAILABLE_MESSAGE = 'Connected features are unavailable because the browser config is missing.';
 
   function createAuthStub(message) {
     function authError() {
@@ -97,7 +101,15 @@
     return null;
   }
 
-  function loadPrivateConfig() {
+  function shouldUseLocalOverride() {
+    var protocol = window.location.protocol;
+    var host = window.location.hostname;
+    return protocol === 'file:' || host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0';
+  }
+
+  function loadLocalOverrideConfig() {
+    if (!shouldUseLocalOverride()) return null;
+
     try {
       var request = new XMLHttpRequest();
       request.open('GET', LOCAL_CONFIG_PATH, false);
@@ -118,13 +130,15 @@
     return;
   }
 
-  var privateConfig = loadPrivateConfig();
-  if (!privateConfig || !privateConfig.url || !privateConfig.anonKey) {
+  var localOverride = loadLocalOverrideConfig();
+  var runtimeConfig = localOverride || PUBLIC_CONFIG;
+
+  if (!runtimeConfig || !runtimeConfig.url || !runtimeConfig.anonKey) {
     setUnavailable(UNAVAILABLE_MESSAGE);
     return;
   }
 
-  var client = window.supabase.createClient(privateConfig.url, privateConfig.anonKey);
+  var client = window.supabase.createClient(runtimeConfig.url, runtimeConfig.anonKey);
 
   async function getProfile(userId) {
     var result = await client

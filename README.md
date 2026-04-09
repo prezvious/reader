@@ -50,15 +50,15 @@ python -m http.server 8000
 
 Then open `http://127.0.0.1:41731` or `http://localhost:8000`.
 
-## Connected features
+## Optional local override
 
-Sign-in, synced bookmarks, reading history, profile updates, and publishing rely on a private local config file that is intentionally not committed to this repository.
+The shipped site already includes the browser-side config needed for the hosted auth and data flow to work. If you want to point a local copy at a different project while testing, you can still create a machine-only override:
 
 1. Copy `js/private-config.example.json` to `js/private-config.local.json`.
-2. Fill in your private project URL and key.
-3. Start the site from a local server and use it normally.
+2. Fill in your own URL and client key.
+3. Run the site locally and the local override will take precedence on `localhost` or direct file sessions.
 
-That local file is ignored on purpose, so it stays on your machine and out of the public repo.
+That override file is ignored on purpose, so it stays on your machine and out of the public repo.
 
 ## Rebuilding summary files
 
