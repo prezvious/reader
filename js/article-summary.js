@@ -10,6 +10,7 @@
     requestSlug: '',
     els: null
   };
+  var bundledSummaryIndexPromise = null;
 
   function getEls() {
     if (state.els) return state.els;
@@ -353,8 +354,40 @@
     });
   }
 
+  function loadBundledSummaryIndex() {
+    if (bundledSummaryIndexPromise) return bundledSummaryIndexPromise;
+
+    bundledSummaryIndexPromise = fetchSummaryJson('data/summaries/index.json', 'force-cache')
+      .then(function (payload) {
+        if (!payload || !Array.isArray(payload.summaries)) return null;
+
+        return payload.summaries.reduce(function (lookup, entry) {
+          if (entry && entry.slug) lookup[entry.slug] = true;
+          return lookup;
+        }, {});
+      })
+      .catch(function () {
+        return null;
+      });
+
+    return bundledSummaryIndexPromise;
+  }
+
+  function createEmptySummaryPayload(slug) {
+    return {
+      slug: slug,
+      model: '',
+      generatedAt: '',
+      summaryMarkdown: '',
+      wordCount: 0
+    };
+  }
+
   function loadBundledSummary(slug) {
-    return fetchSummaryJson('data/summaries/' + encodeURIComponent(slug) + '.json', 'force-cache');
+    return loadBundledSummaryIndex().then(function (lookup) {
+      if (lookup && !lookup[slug]) return null;
+      return fetchSummaryJson('data/summaries/' + encodeURIComponent(slug) + '.json', 'force-cache');
+    });
   }
 
   function loadApiSummary(slug) {
@@ -363,7 +396,9 @@
 
   function loadSummaryPayload(slug) {
     if (window.location.protocol === 'file:') {
-      return loadBundledSummary(slug);
+      return loadBundledSummary(slug).then(function (bundledPayload) {
+        return bundledPayload || createEmptySummaryPayload(slug);
+      });
     }
 
     return loadApiSummary(slug)

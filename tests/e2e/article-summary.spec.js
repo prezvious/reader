@@ -105,3 +105,55 @@ test('db-backed articles use the same summary drawer contract as bundled article
   await page.click('#summary-trigger');
   await expect(page.locator('#summary-content')).toContainText('Fresh summary text from the shared API route.');
 });
+
+test('summary fallback skips missing bundled files when the slug is not in the bundled index', async ({ page }) => {
+  const slug = 'unsummarized-db-article';
+  let requestedBundledSummary = false;
+
+  await stubSharedDependencies(page, {
+    publishedArticles: [
+      {
+        id: 100,
+        slug: slug,
+        title: 'Unsummarized DB Article',
+        excerpt: 'No summary has been generated yet.',
+        category: 'Psychology',
+        category_slug: 'psychology',
+        author_name: 'Max',
+        author_avatar: '',
+        author_bio: '',
+        cover_image: '',
+        cover_image_alt: '',
+        published_at: '2026-04-10',
+        updated_at: '2026-04-10T00:00:00Z',
+        featured: false
+      }
+    ],
+    articleContentBySlug: {
+      'unsummarized-db-article': {
+        content_html: '<p>No summary has been generated yet.</p>',
+        custom_css: ''
+      }
+    }
+  });
+
+  page.on('request', function (request) {
+    if (request.url().endsWith('/data/summaries/' + slug + '.json')) {
+      requestedBundledSummary = true;
+    }
+  });
+
+  await page.route('**/api/article-summary?slug=unsummarized-db-article', async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        error: 'Summary generation is unavailable for this article.'
+      })
+    });
+  });
+
+  await page.goto('/article.html?slug=' + slug);
+  await expect(page.locator('#summary-trigger-label')).toHaveText('Summary unavailable');
+  expect(requestedBundledSummary).toBe(false);
+});
