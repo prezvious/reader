@@ -160,6 +160,24 @@
     </div>
   </main>
 
+  <!-- ===== FIND BAR ===== -->
+  <div class="find-bar" id="find-bar" style="display:none;">
+    <div class="find-bar__inner">
+      <svg class="find-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="find-bar__input" id="find-input" type="text" placeholder="Find in article…" autocomplete="off" spellcheck="false">
+      <span class="find-bar__count" id="find-count"></span>
+      <button class="find-bar__nav-btn" id="find-prev" title="Previous (Shift+Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <button class="find-bar__nav-btn" id="find-next" title="Next (Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="find-bar__close" id="find-close" title="Close (Escape)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer__inner">
       <p class="footer__brand">Reader</p>
@@ -363,6 +381,214 @@
         var docHeight = document.documentElement.scrollHeight - window.innerHeight;
         return docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
       }
+
+      /* =============================================
+         FIND IN ARTICLE
+         ============================================= */
+      var findState = {
+        open: false,
+        query: '',
+        matches: [],       /* Array of {node, start, end, markEl} */
+        currentIndex: -1,
+        originalTextNodes: [], /* For restoring original DOM */
+        debounceTimer: null
+      };
+
+      function openFind() {
+        findState.open = true;
+        var bar = document.getElementById('find-bar');
+        bar.style.display = 'block';
+        requestAnimationFrame(function () {
+          bar.classList.add('find-bar--visible');
+        });
+        var input = document.getElementById('find-input');
+        input.focus();
+        /* If there's already text in the input, re-run search */
+        if (input.value) performFind(input.value);
+      }
+
+      function closeFind() {
+        findState.open = false;
+        var bar = document.getElementById('find-bar');
+        bar.classList.remove('find-bar--visible');
+        setTimeout(function () { bar.style.display = 'none'; }, 200);
+        clearHighlights();
+        document.getElementById('find-count').textContent = '';
+      }
+
+      function clearHighlights() {
+        var articleBody = document.getElementById('article-body');
+        if (!articleBody) return;
+        /* Remove all <mark class="find-highlight"> elements and unwrap their text */
+        var marks = articleBody.querySelectorAll('.find-highlight');
+        /* Process in reverse to avoid DOM shifts affecting references */
+        for (var i = marks.length - 1; i >= 0; i--) {
+          var mark = marks[i];
+          var parent = mark.parentNode;
+          /* Move all child text nodes out of <mark> */
+          while (mark.firstChild) {
+            parent.insertBefore(mark.firstChild, mark);
+          }
+          parent.removeChild(mark);
+        }
+        /* Merge adjacent text nodes */
+        articleBody.normalize();
+        findState.matches = [];
+        findState.currentIndex = -1;
+      }
+
+      function performFind(query) {
+        clearHighlights();
+        findState.query = query;
+        if (!query || query.trim() === '') {
+          document.getElementById('find-count').textContent = '';
+          return;
+        }
+
+        var articleBody = document.getElementById('article-body');
+        if (!articleBody) return;
+
+        var lowerQuery = query.toLowerCase();
+        var matches = [];
+
+        /* Use TreeWalker to find all text nodes */
+        var walker = document.createTreeWalker(
+          articleBody,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: function (node) {
+              /* Skip text inside <mark> (shouldn't exist after clearHighlights) */
+              if (node.parentElement && node.parentElement.classList.contains('find-highlight')) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              /* Skip script/style */
+              var tag = node.parentElement ? node.parentElement.tagName : '';
+              if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+        );
+
+        var textNode;
+        while ((textNode = walker.nextNode())) {
+          var text = textNode.textContent;
+          var lowerText = text.toLowerCase();
+          var pos = 0;
+          while ((pos = lowerText.indexOf(lowerQuery, pos)) !== -1) {
+            /* Split the text node and wrap the match in a <mark> */
+            var mark = document.createElement('mark');
+            mark.className = 'find-highlight';
+
+            var beforeText = text.substring(0, pos);
+            var matchText = text.substring(pos, pos + query.length);
+            var afterText = text.substring(pos + query.length);
+
+            /* Replace the original text node */
+            var parentNode = textNode.parentNode;
+            if (beforeText) {
+              parentNode.insertBefore(document.createTextNode(beforeText), textNode);
+            }
+            mark.appendChild(document.createTextNode(matchText));
+            parentNode.insertBefore(mark, textNode);
+            if (afterText) {
+              textNode.textContent = afterText;
+              parentNode.insertBefore(textNode, mark.nextSibling);
+            } else {
+              parentNode.removeChild(textNode);
+            }
+
+            matches.push({ node: mark, start: pos, end: pos + query.length });
+
+            /* Move past this match in the remaining text */
+            pos = pos + query.length;
+            /* Re-read text from the node that follows the mark (the afterText node or the original if no afterText) */
+            text = afterText;
+            lowerText = text.toLowerCase();
+            pos = 0;
+            /* walker will move to next text node on next iteration */
+            break;
+          }
+        }
+
+        findState.matches = matches;
+        findState.currentIndex = matches.length > 0 ? 0 : -1;
+
+        if (matches.length > 0) {
+          updateCurrentMatch();
+          document.getElementById('find-count').textContent = '1 of ' + matches.length;
+        } else {
+          document.getElementById('find-count').textContent = 'No results';
+        }
+      }
+
+      function updateCurrentMatch() {
+        /* Remove current class from all */
+        findState.matches.forEach(function (m) {
+          m.node.classList.remove('find-highlight--current');
+        });
+        if (findState.currentIndex >= 0 && findState.currentIndex < findState.matches.length) {
+          var current = findState.matches[findState.currentIndex];
+          current.node.classList.add('find-highlight--current');
+          current.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      function findNext() {
+        if (findState.matches.length === 0) return;
+        findState.currentIndex = (findState.currentIndex + 1) % findState.matches.length;
+        updateCurrentMatch();
+        document.getElementById('find-count').textContent = (findState.currentIndex + 1) + ' of ' + findState.matches.length;
+      }
+
+      function findPrev() {
+        if (findState.matches.length === 0) return;
+        findState.currentIndex = (findState.currentIndex - 1 + findState.matches.length) % findState.matches.length;
+        updateCurrentMatch();
+        document.getElementById('find-count').textContent = (findState.currentIndex + 1) + ' of ' + findState.matches.length;
+      }
+
+      /* Find bar event listeners */
+      var findBar = document.getElementById('find-bar');
+      if (findBar) {
+        document.getElementById('find-input').addEventListener('input', function () {
+          clearTimeout(findState.debounceTimer);
+          var q = this.value;
+          findState.debounceTimer = setTimeout(function () {
+            performFind(q);
+          }, 150);
+        });
+
+        document.getElementById('find-next').addEventListener('click', findNext);
+        document.getElementById('find-prev').addEventListener('click', findPrev);
+        document.getElementById('find-close').addEventListener('click', closeFind);
+
+        document.getElementById('find-input').addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (e.shiftKey) findPrev();
+            else findNext();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeFind();
+          }
+        });
+      }
+
+      /* Global keyboard shortcuts */
+      document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
+          /* Only if not already focused in an input */
+          var tag = (e.target.tagName || '').toLowerCase();
+          var isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+          if (!isInput) {
+            e.preventDefault();
+            openFind();
+          }
+        }
+        if (e.key === 'Escape' && findState.open) {
+          closeFind();
+        }
+      });
     })();
   </script>
   <script src="js/search.js"></script>

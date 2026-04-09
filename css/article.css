@@ -547,6 +547,150 @@
 }
 
 
+/* ===== FIND BAR ===== */
+.find-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 400;
+  transform: translateY(-100%);
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.find-bar--visible {
+  transform: translateY(0);
+}
+
+.find-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: var(--space-4);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.find-bar__icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.find-bar__input {
+  flex: 1;
+  min-width: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.find-bar__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.find-bar__input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.find-bar__count {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 52px;
+  text-align: center;
+}
+
+.find-bar__nav-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.find-bar__nav-btn:hover {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+  border-color: var(--border);
+}
+
+.find-bar__nav-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.find-bar__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.find-bar__close:hover {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+}
+
+.find-bar__close svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Find highlights */
+.find-highlight {
+  background: rgba(250, 197, 28, 0.35);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.find-highlight--current {
+  background: rgba(250, 197, 28, 0.7);
+  box-shadow: 0 0 0 2px rgba(250, 197, 28, 0.4);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .find-highlight {
+  background: rgba(250, 197, 28, 0.25);
+}
+
+[data-theme="dark"] .find-highlight--current {
+  background: rgba(250, 197, 28, 0.55);
+  box-shadow: 0 0 0 2px rgba(250, 197, 28, 0.3);
+}
+
+
 /* =============================================================
    RESPONSIVE
    ============================================================= */
@@ -608,6 +752,13 @@
 
   .article-byline {
     gap: var(--space-3);
+  }
+
+  /* Find bar mobile */
+  .find-bar__inner {
+    max-width: 100%;
+    margin-right: 0;
+    border-radius: 0;
   }
 }
 

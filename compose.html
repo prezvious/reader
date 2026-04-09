@@ -224,6 +224,29 @@
 
         <!-- Toolbar -->
         <div class="compose-toolbar" id="compose-toolbar">
+          <!-- Undo / Redo -->
+          <button class="compose-toolbar__btn compose-toolbar__btn--undo" id="undo-btn" title="Undo (Ctrl+Z)" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+          <button class="compose-toolbar__btn compose-toolbar__btn--redo" id="redo-btn" title="Redo (Ctrl+Y)" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+          </button>
+          <div class="compose-toolbar__sep"></div>
+
+          <!-- Font Size Selector -->
+          <select class="compose-toolbar__select" id="font-size-select" title="Font Size">
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="19" selected>19</option>
+            <option value="20">20</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="32">32</option>
+          </select>
+          <div class="compose-toolbar__sep"></div>
+
           <button class="compose-toolbar__btn" data-insert="# " title="Heading 1">H1</button>
           <button class="compose-toolbar__btn" data-insert="## " title="Heading 2">H2</button>
           <button class="compose-toolbar__btn" data-insert="### " title="Heading 3">H3</button>
@@ -254,7 +277,10 @@
         <!-- Panels -->
         <div class="compose-panels" id="compose-panels">
           <div class="compose-panel compose-panel--editor" id="editor-panel">
-            <textarea class="compose-textarea" id="editor-textarea" placeholder="Start writing your article here...&#10;&#10;# My Article Title&#10;&#10;First paragraph goes here.&#10;&#10;## Section Heading&#10;&#10;More content..."></textarea>
+            <div class="editor-wrapper" id="editor-wrapper">
+              <div class="editor-overlay" id="editor-overlay"></div>
+              <textarea class="compose-textarea" id="editor-textarea" placeholder="Start writing your article here...&#10;&#10;# My Article Title&#10;&#10;First paragraph goes here.&#10;&#10;## Section Heading&#10;&#10;More content..."></textarea>
+            </div>
           </div>
           <div class="compose-panel compose-panel--preview" id="preview-panel">
             <div class="compose-preview" id="compose-preview-wrapper">
@@ -279,6 +305,38 @@
       </div>
     </section>
   </main>
+
+  <!-- ===== FIND & REPLACE BAR ===== -->
+  <div class="find-bar find-bar--compose" id="find-bar" style="display:none;">
+    <div class="find-bar__inner">
+      <svg class="find-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="find-bar__input" id="find-input" type="text" placeholder="Find…" autocomplete="off" spellcheck="false">
+      <span class="find-bar__count" id="find-count"></span>
+      <button class="find-bar__nav-btn" id="find-prev" title="Previous (Shift+Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <button class="find-bar__nav-btn" id="find-next" title="Next (Enter)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="find-bar__toggle-replace" id="find-toggle-replace" title="Show Replace">
+        Replace
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button class="find-bar__close" id="find-close" title="Close (Escape)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <!-- Replace row (hidden by default) -->
+      <div class="find-bar__replace" id="find-replace-row" style="display:none;">
+        <input class="find-bar__input find-bar__replace-input" id="replace-input" type="text" placeholder="Replace with…" autocomplete="off" spellcheck="false">
+        <label class="find-bar__case-label" title="Case sensitive">
+          <input type="checkbox" id="find-case-sensitive">
+          Aa
+        </label>
+        <button class="find-bar__btn find-bar__replace-btn" id="find-replace-btn" title="Replace">Replace</button>
+        <button class="find-bar__btn find-bar__replace-all-btn" id="find-replace-all-btn" title="Replace All">All</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== PUBLISH MODAL ===== -->
   <div id="publish-modal-overlay" style="display:none;"></div>
@@ -315,6 +373,14 @@
       var customCSSContent = '';
       var detectedImages = [];
       var debounceTimer = null;
+
+      /* ===== UNDO / REDO STATE ===== */
+      var UNDO_MAX = 4;
+      var undoStack = [];
+      var redoStack = [];
+      var undoDebounceTimer = null;
+      var lastSavedContent = null;
+      var isUndoRedoAction = false; /* Prevent auto-save during undo/redo */
 
       /* =============================================
          INITIALIZATION
@@ -387,19 +453,157 @@
           debounceTimer = setTimeout(function () {
             updatePreview();
           }, 200);
+          scheduleUndoSave();
+          /* Update find overlay when content changes */
+          if (composeFindState.open && composeFindState.query) {
+            updateComposeFindOverlay();
+          }
         });
 
-        /* Tab handling on textarea */
+        /* Scroll sync: overlay follows textarea scroll */
+        textarea.addEventListener('scroll', function () {
+          var overlay = document.getElementById('editor-overlay');
+          if (overlay) overlay.style.transform = 'translateY(-' + this.scrollTop + 'px)';
+        });
+
+        /* Tab handling on textarea — real \t + Shift+Tab dedent + multi-line */
         textarea.addEventListener('keydown', function (e) {
           if (e.key === 'Tab') {
             e.preventDefault();
             var start = this.selectionStart;
             var end = this.selectionEnd;
             var value = this.value;
-            this.value = value.substring(0, start) + '  ' + value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 2;
+
+            if (e.shiftKey) {
+              /* Shift+Tab: dedent */
+              var selText = value.substring(start, end);
+              if (selText.indexOf('\n') !== -1) {
+                /* Multi-line: dedent every selected line */
+                var lines = selText.split('\n');
+                var dedented = lines.map(function (line) {
+                  return line.charAt(0) === '\t' ? line.substring(1) : line;
+                }).join('\n');
+                this.value = value.substring(0, start) + dedented + value.substring(end);
+                this.selectionStart = start;
+                this.selectionEnd = start + dedented.length;
+              } else {
+                /* Single line: remove leading tab from the current line */
+                var beforeCursor = value.substring(0, start);
+                var lineStartPos = beforeCursor.lastIndexOf('\n') + 1;
+                if (value.charAt(lineStartPos) === '\t') {
+                  this.value = value.substring(0, lineStartPos) + value.substring(lineStartPos + 1);
+                  this.selectionStart = this.selectionEnd = start - 1;
+                }
+              }
+            } else {
+              /* Tab: indent */
+              var selText = value.substring(start, end);
+              if (selText.indexOf('\n') !== -1) {
+                /* Multi-line: indent each line */
+                var fullText = value;
+                var beforeSel = fullText.substring(0, start);
+                var afterSel = fullText.substring(end);
+                var selLines = selText.split('\n');
+                var indented = selLines.map(function (line) { return '\t' + line; }).join('\n');
+                this.value = beforeSel + indented + afterSel;
+                this.selectionStart = start;
+                this.selectionEnd = start + indented.length;
+              } else {
+                /* Single cursor: insert tab */
+                this.value = value.substring(0, start) + '\t' + value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+              }
+            }
             updatePreview();
           }
+
+          /* Undo/Redo keyboard shortcuts */
+          if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+          }
+          if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+            e.preventDefault();
+            redo();
+            return;
+          }
+        });
+
+        /* Undo / Redo buttons */
+        document.getElementById('undo-btn').addEventListener('click', function () {
+          textarea.focus();
+          undo();
+        });
+        document.getElementById('redo-btn').addEventListener('click', function () {
+          textarea.focus();
+          redo();
+        });
+
+        /* Font size selector */
+        document.getElementById('font-size-select').addEventListener('change', function () {
+          var size = this.value;
+          if (size === String(DEFAULT_FONT_SIZE) || size === '') {
+            resetPreviewFontSize();
+          } else {
+            applyPreviewFontSize(size);
+          }
+          updatePreview();
+        });
+
+        /* ===== FIND & REPLACE ===== */
+        document.getElementById('find-input').addEventListener('input', function () {
+          clearTimeout(composeFindState.debounceTimer);
+          var q = this.value;
+          composeFindState.debounceTimer = setTimeout(function () {
+            performComposeFind(q);
+          }, 150);
+        });
+
+        document.getElementById('find-next').addEventListener('click', findComposeNext);
+        document.getElementById('find-prev').addEventListener('click', findComposePrev);
+        document.getElementById('find-close').addEventListener('click', closeComposeFind);
+
+        document.getElementById('find-input').addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (e.shiftKey) findComposePrev();
+            else findComposeNext();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeComposeFind();
+          }
+        });
+
+        /* Toggle replace row */
+        document.getElementById('find-toggle-replace').addEventListener('click', function () {
+          var row = document.getElementById('find-replace-row');
+          if (composeFindState.replaceOpen) {
+            row.style.display = 'none';
+            composeFindState.replaceOpen = false;
+          } else {
+            row.style.display = 'flex';
+            composeFindState.replaceOpen = true;
+            document.getElementById('replace-input').focus();
+          }
+        });
+
+        /* Replace buttons */
+        document.getElementById('find-replace-btn').addEventListener('click', replaceCurrentComposeFind);
+        document.getElementById('find-replace-all-btn').addEventListener('click', replaceAllComposeFind);
+
+        /* Replace input keyboard shortcuts */
+        document.getElementById('replace-input').addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            closeComposeFind();
+          }
+        });
+
+        /* Case-sensitive checkbox — re-run search */
+        document.getElementById('find-case-sensitive').addEventListener('change', function () {
+          var q = document.getElementById('find-input').value;
+          if (q) performComposeFind(q);
         });
 
         /* Mobile tabs */
@@ -466,6 +670,9 @@
           var btn = e.target.closest('.compose-toolbar__btn');
           if (!btn) return;
 
+          /* Don't handle undo/redo buttons here */
+          if (btn.id === 'undo-btn' || btn.id === 'redo-btn') return;
+
           textarea.focus();
           var start = textarea.selectionStart;
           var end = textarea.selectionEnd;
@@ -482,6 +689,7 @@
             }
             textarea.value = value.substring(0, start) + insertText + value.substring(end);
             textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+            saveUndoState();
             updatePreview();
             return;
           }
@@ -497,6 +705,7 @@
               textarea.value = value.substring(0, start) + wrapText + wrapText + value.substring(end);
               textarea.selectionStart = textarea.selectionEnd = start + wrapText.length;
             }
+            saveUndoState();
             updatePreview();
             return;
           }
@@ -514,6 +723,7 @@
               textarea.value = value.substring(0, start) + openTag + closeTag + value.substring(end);
               textarea.selectionStart = textarea.selectionEnd = start + openTag.length;
             }
+            saveUndoState();
             updatePreview();
             return;
           }
@@ -589,6 +799,299 @@
         }
 
         return result.join('\n');
+      }
+
+      /* =============================================
+         UNDO / REDO
+         ============================================= */
+      function saveUndoState() {
+        if (isUndoRedoAction) return;
+        var content = document.getElementById('editor-textarea').value;
+        if (content === lastSavedContent) return;
+        lastSavedContent = content;
+        undoStack.push(content);
+        if (undoStack.length > UNDO_MAX) undoStack.shift();
+        redoStack = [];
+        updateUndoRedoButtons();
+      }
+
+      function scheduleUndoSave() {
+        clearTimeout(undoDebounceTimer);
+        undoDebounceTimer = setTimeout(function () {
+          saveUndoState();
+        }, 300);
+      }
+
+      function undo() {
+        if (undoStack.length === 0) return;
+        var current = document.getElementById('editor-textarea').value;
+        var previous = undoStack.pop();
+        lastSavedContent = previous;
+        redoStack.push(current);
+        if (redoStack.length > UNDO_MAX) redoStack.shift();
+        isUndoRedoAction = true;
+        document.getElementById('editor-textarea').value = previous;
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        updatePreview();
+      }
+
+      function redo() {
+        if (redoStack.length === 0) return;
+        var current = document.getElementById('editor-textarea').value;
+        var next = redoStack.pop();
+        lastSavedContent = next;
+        undoStack.push(current);
+        if (undoStack.length > UNDO_MAX) undoStack.shift();
+        isUndoRedoAction = true;
+        document.getElementById('editor-textarea').value = next;
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        updatePreview();
+      }
+
+      function updateUndoRedoButtons() {
+        var undoBtn = document.getElementById('undo-btn');
+        var redoBtn = document.getElementById('redo-btn');
+        if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+      }
+
+      /* =============================================
+         PREVIEW FONT SIZE
+         ============================================= */
+      var PREVIEW_STYLE_ID = 'preview-font-size-style';
+      var DEFAULT_FONT_SIZE = 19;
+
+      /* Heading sizes scale proportionally from body, but h1 capped at 32px */
+      function getFontSizeSet(bodySize) {
+        bodySize = Number(bodySize);
+        var ratio = bodySize / DEFAULT_FONT_SIZE;
+        return {
+          body: bodySize + 'px',
+          h1: Math.min(Math.round(32 * ratio), 32) + 'px',   /* cap at H1 max */
+          h2: Math.round(24 * ratio) + 'px',
+          h3: Math.round(20 * ratio) + 'px',
+          h4: Math.round(18 * ratio) + 'px',
+          h5: Math.round(16 * ratio) + 'px',
+          h6: Math.round(14.4 * ratio) + 'px',
+          blockquote: Math.round(20.8 * ratio) + 'px',
+          list: Math.round(19.2 * ratio) + 'px',
+          code: Math.round(13.6 * ratio) + 'px'
+        };
+      }
+
+      function applyPreviewFontSize(size) {
+        var s = getFontSizeSet(size);
+        var style = document.getElementById(PREVIEW_STYLE_ID);
+        if (!style) {
+          style = document.createElement('style');
+          style.id = PREVIEW_STYLE_ID;
+          document.head.appendChild(style);
+        }
+        style.textContent =
+          '#compose-preview-wrapper .article-body p { font-size: ' + s.body + ' !important; }' +
+          '#compose-preview-wrapper .article-body h1 { font-size: ' + s.h1 + ' !important; }' +
+          '#compose-preview-wrapper .article-body h2 { font-size: ' + s.h2 + ' !important; }' +
+          '#compose-preview-wrapper .article-body h3 { font-size: ' + s.h3 + ' !important; }' +
+          '#compose-preview-wrapper .article-body h4 { font-size: ' + s.h4 + ' !important; }' +
+          '#compose-preview-wrapper .article-body h5 { font-size: ' + s.h5 + ' !important; }' +
+          '#compose-preview-wrapper .article-body h6 { font-size: ' + s.h6 + ' !important; }' +
+          '#compose-preview-wrapper .article-body blockquote { font-size: ' + s.blockquote + ' !important; }' +
+          '#compose-preview-wrapper .article-body ul, ' +
+          '#compose-preview-wrapper .article-body ol { font-size: ' + s.list + ' !important; }' +
+          '#compose-preview-wrapper .article-body code { font-size: ' + s.code + ' !important; }';
+      }
+
+      function resetPreviewFontSize() {
+        var style = document.getElementById(PREVIEW_STYLE_ID);
+        if (style) style.textContent = '';
+      }
+
+      /* =============================================
+         FIND & REPLACE (COMPOSE)
+         ============================================= */
+      var composeFindState = {
+        open: false,
+        replaceOpen: false,
+        query: '',
+        matches: [],       /* Array of {start, end} */
+        currentIndex: -1,
+        debounceTimer: null
+      };
+
+      function openComposeFind() {
+        composeFindState.open = true;
+        var bar = document.getElementById('find-bar');
+        bar.style.display = 'block';
+        requestAnimationFrame(function () {
+          bar.classList.add('find-bar--visible');
+        });
+        var input = document.getElementById('find-input');
+        input.focus();
+        if (input.value) performComposeFind(input.value);
+      }
+
+      function closeComposeFind() {
+        composeFindState.open = false;
+        var bar = document.getElementById('find-bar');
+        bar.classList.remove('find-bar--visible');
+        setTimeout(function () { bar.style.display = 'none'; }, 200);
+        clearComposeFindHighlights();
+        document.getElementById('find-count').textContent = '';
+        document.getElementById('editor-overlay').innerHTML = '';
+      }
+
+      function performComposeFind(query) {
+        clearComposeFindHighlights();
+        composeFindState.query = query;
+        var textarea = document.getElementById('editor-textarea');
+        var value = textarea.value;
+        if (!query || query.trim() === '') {
+          document.getElementById('find-count').textContent = '';
+          return;
+        }
+
+        var caseSensitive = document.getElementById('find-case-sensitive').checked;
+        var searchText = caseSensitive ? value : value.toLowerCase();
+        var searchQuery = caseSensitive ? query : query.toLowerCase();
+
+        var matches = [];
+        var pos = 0;
+        while ((pos = searchText.indexOf(searchQuery, pos)) !== -1) {
+          matches.push({ start: pos, end: pos + query.length });
+          pos = pos + searchQuery.length;
+        }
+
+        composeFindState.matches = matches;
+        composeFindState.currentIndex = matches.length > 0 ? 0 : -1;
+
+        if (matches.length > 0) {
+          selectCurrentComposeFind();
+          updateComposeFindOverlay();
+          document.getElementById('find-count').textContent = '1 of ' + matches.length;
+        } else {
+          document.getElementById('find-count').textContent = 'No results';
+        }
+      }
+
+      function selectCurrentComposeFind() {
+        if (composeFindState.currentIndex >= 0 && composeFindState.currentIndex < composeFindState.matches.length) {
+          var match = composeFindState.matches[composeFindState.currentIndex];
+          var textarea = document.getElementById('editor-textarea');
+          textarea.focus();
+          textarea.setSelectionRange(match.start, match.end);
+        }
+      }
+
+      function findComposeNext() {
+        if (composeFindState.matches.length === 0) return;
+        composeFindState.currentIndex = (composeFindState.currentIndex + 1) % composeFindState.matches.length;
+        selectCurrentComposeFind();
+        updateComposeFindOverlay();
+        document.getElementById('find-count').textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+      }
+
+      function findComposePrev() {
+        if (composeFindState.matches.length === 0) return;
+        composeFindState.currentIndex = (composeFindState.currentIndex - 1 + composeFindState.matches.length) % composeFindState.matches.length;
+        selectCurrentComposeFind();
+        updateComposeFindOverlay();
+        document.getElementById('find-count').textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+      }
+
+      function clearComposeFindHighlights() {
+        composeFindState.matches = [];
+        composeFindState.currentIndex = -1;
+      }
+
+      function replaceCurrentComposeFind() {
+        if (composeFindState.currentIndex < 0 || composeFindState.matches.length === 0) return;
+        var match = composeFindState.matches[composeFindState.currentIndex];
+        var textarea = document.getElementById('editor-textarea');
+        var value = textarea.value;
+        var replaceWith = document.getElementById('replace-input').value;
+
+        /* Save undo state before replacing */
+        saveUndoState();
+
+        textarea.value = value.substring(0, match.start) + replaceWith + value.substring(match.end);
+        var newEnd = match.start + replaceWith.length;
+        textarea.setSelectionRange(match.start, newEnd);
+
+        /* Re-run find to update matches */
+        performComposeFind(composeFindState.query);
+        updatePreview();
+      }
+
+      function replaceAllComposeFind() {
+        if (composeFindState.matches.length === 0 || !composeFindState.query) return;
+        var textarea = document.getElementById('editor-textarea');
+        var value = textarea.value;
+        var replaceWith = document.getElementById('replace-input').value;
+
+        /* Save undo state before replacing all — single undo step */
+        saveUndoState();
+
+        var caseSensitive = document.getElementById('find-case-sensitive').checked;
+        var searchQuery = caseSensitive ? composeFindState.query : composeFindState.query.toLowerCase();
+        var searchText = caseSensitive ? value : value.toLowerCase();
+
+        /* Build new string by replacing all matches */
+        var result = '';
+        var lastEnd = 0;
+        var count = 0;
+        var pos = 0;
+        while ((pos = searchText.indexOf(searchQuery, pos)) !== -1) {
+          result += value.substring(lastEnd, pos) + replaceWith;
+          lastEnd = pos + searchQuery.length;
+          pos = lastEnd;
+          count++;
+        }
+        result += value.substring(lastEnd);
+
+        textarea.value = result;
+
+        composeFindState.matches = [];
+        composeFindState.currentIndex = -1;
+        document.getElementById('find-count').textContent = count + ' replaced';
+        updatePreview();
+      }
+
+      /* Compose find overlay — highlights behind the textarea */
+      function updateComposeFindOverlay() {
+        var overlay = document.getElementById('editor-overlay');
+        if (!overlay) return;
+        overlay.innerHTML = '';
+        if (composeFindState.matches.length === 0 || !composeFindState.query) return;
+
+        /* Build highlighted text for the overlay */
+        var textarea = document.getElementById('editor-textarea');
+        var value = textarea.value;
+        var caseSensitive = document.getElementById('find-case-sensitive').checked;
+        var searchText = caseSensitive ? value : value.toLowerCase();
+        var searchQuery = caseSensitive ? composeFindState.query : composeFindState.query.toLowerCase();
+
+        var html = '';
+        var lastEnd = 0;
+        var pos = 0;
+        while ((pos = searchText.indexOf(searchQuery, pos)) !== -1) {
+          /* Text before match */
+          html += escapeHtmlForOverlay(value.substring(lastEnd, pos));
+          /* Match */
+          var isCurrent = (pos === composeFindState.matches[composeFindState.currentIndex].start);
+          html += '<mark class="find-highlight' + (isCurrent ? ' find-highlight--current' : '') + '">' +
+                   escapeHtmlForOverlay(value.substring(pos, pos + composeFindState.query.length)) + '</mark>';
+          lastEnd = pos + searchQuery.length;
+          pos = lastEnd;
+        }
+        html += escapeHtmlForOverlay(value.substring(lastEnd));
+
+        overlay.innerHTML = html;
+      }
+
+      function escapeHtmlForOverlay(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
       /* =============================================
@@ -1160,6 +1663,43 @@
         var day = String(d.getDate()).padStart(2, '0');
         return year + '-' + month + '-' + day;
       }
+
+      /* =============================================
+         GLOBAL KEYBOARD SHORTCUTS (COMPOSE)
+         ============================================= */
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target.tagName || '').toLowerCase();
+        var isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+          /* Ctrl+F: open find bar */
+          if (!isInput || document.activeElement === document.getElementById('editor-textarea')) {
+            e.preventDefault();
+            openComposeFind();
+          }
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+          /* Ctrl+H: open find + replace bar */
+          if (!isInput || document.activeElement === document.getElementById('editor-textarea')) {
+            e.preventDefault();
+            openComposeFind();
+            /* Auto-open replace row */
+            var row = document.getElementById('find-replace-row');
+            if (!composeFindState.replaceOpen) {
+              row.style.display = 'flex';
+              composeFindState.replaceOpen = true;
+              setTimeout(function () {
+                document.getElementById('replace-input').focus();
+              }, 50);
+            }
+          }
+        }
+
+        if (e.key === 'Escape' && composeFindState.open) {
+          closeComposeFind();
+        }
+      });
     })();
   </script>
   <script src="js/search.js"></script>
