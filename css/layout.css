@@ -41,8 +41,28 @@
   letter-spacing: -0.03em;
 }
 
+.header__logo.brand-lockup,
+.sidebar__logo.brand-lockup,
+.footer__brand.brand-lockup,
+.footer__logo.brand-lockup {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
 .header__logo:hover {
   color: var(--text-secondary);
+}
+
+.header__logo:hover .brand-lockup__mark,
+.sidebar__logo:hover .brand-lockup__mark,
+.footer__logo:hover .brand-lockup__mark {
+  transform: translateY(-1px);
+}
+
+.header__logo:hover .brand-lockup__text,
+.sidebar__logo:hover .brand-lockup__text,
+.footer__logo:hover .brand-lockup__text {
+  filter: brightness(1.08);
 }
 
 .header__nav {
@@ -228,6 +248,15 @@
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   letter-spacing: -0.02em;
+}
+
+.footer__logo {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-2);
 }
 
 .footer__nav {

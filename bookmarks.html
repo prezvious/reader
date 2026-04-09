@@ -10,13 +10,17 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
+  <link rel="icon" type="image/png" href="icon/favicon-256.png">
 </head>
 <body data-page="bookmarks">
 
   <header class="header">
     <div class="header__inner">
-      <a href="index.html" class="header__logo">Reader</a>
+      <a href="index.html" class="header__logo brand-lockup">
+        <span class="sr-only">Reader</span>
+        <img src="icon/r-brand-mark.png" class="brand-lockup__mark" width="192" height="192" alt="" aria-hidden="true">
+        <span class="brand-lockup__text" aria-hidden="true">eader</span>
+      </a>
       <nav class="header__nav">
         <a href="index.html" class="header__link">Home</a>
         <a href="articles.html" class="header__link">Articles</a>
@@ -71,7 +75,11 @@
   </header>
 
   <nav class="sidebar" id="sidebar">
-    <a href="index.html" class="sidebar__logo">Reader</a>
+    <a href="index.html" class="sidebar__logo brand-lockup">
+      <span class="sr-only">Reader</span>
+      <img src="icon/r-brand-mark.png" class="brand-lockup__mark" width="192" height="192" alt="" aria-hidden="true">
+      <span class="brand-lockup__text" aria-hidden="true">eader</span>
+    </a>
     <div class="sidebar__user" id="sidebar-user">
       <div class="sidebar__user-avatar" id="sidebar-avatar">
         <span id="sidebar-initials">?</span>
@@ -125,7 +133,11 @@
 
   <footer class="footer">
     <div class="footer__inner">
-      <p class="footer__brand">Reader</p>
+      <p class="footer__brand brand-lockup">
+        <span class="sr-only">Reader</span>
+        <img src="icon/r-brand-mark.png" class="brand-lockup__mark" width="192" height="192" alt="" aria-hidden="true">
+        <span class="brand-lockup__text" aria-hidden="true">eader</span>
+      </p>
       <p class="footer__copy">&copy; 2026 &middot; All rights reserved</p>
     </div>
   </footer>
