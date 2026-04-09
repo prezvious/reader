@@ -1,6 +1,6 @@
 # Reader
 
-Reader is an editorial-style reading site built with static HTML, CSS, and vanilla JavaScript. It ships with a small bundled article catalog, prebuilt summary payloads, reader accounts, and a browser-based compose flow for connected deployments.
+Reader is an editorial-style reading site built with static HTML, CSS, and vanilla JavaScript. It ships with a small bundled article catalog, bundled summary fallbacks, reader accounts, and a browser-based compose flow for connected deployments.
 
 ## Included pages
 
@@ -26,13 +26,13 @@ The static bundle includes:
 
 - the home page and article catalog
 - the bundled article files in `articles/`
-- prebuilt summaries in `data/summaries/`
+- bundled summary fallbacks in `data/summaries/`
 - browser-side theme switching
 - local draft persistence in the compose page
 
 ## Connected features
 
-Bookmarks, reactions, profile updates, publishing, and connected search require browser config for the Supabase client.
+Bookmarks, reactions, profile updates, publishing, connected search, and the deployed summary cache require browser config for the Supabase client.
 
 For local work:
 
@@ -42,13 +42,23 @@ For local work:
 
 For hosted deployments, the browser can also read an injected `window.READER_BACKEND_CONFIG` object before `js/supabase.js` loads.
 
+AI summaries are served through `GET /api/article-summary?slug=<slug>`. In deployed environments, that endpoint expects:
+
+- `OPENROUTER_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Static bundled summaries remain in `data/summaries/` as a fallback for local/static browsing.
+
 ## Repository layout
 
 ```text
 reader/
 |-- articles/              bundled article source
 |-- css/                   shared and page-specific styles
-|-- data/summaries/        prebuilt article summaries
+|-- data/summaries/        bundled summary fallbacks
+|-- api/                   deployed summary endpoint
+|-- lib/                   shared server-side summary logic
 |-- js/                    browser modules and config template
 |-- scripts/               local utility scripts
 |-- compose.html           browser editor

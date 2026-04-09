@@ -1,9 +1,11 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { createArticleSummaryHandler } = require('../lib/article-summary-handler');
 
 const port = Number(process.env.PORT || process.argv[2] || 41731);
 const root = path.resolve(__dirname, '..');
+const articleSummaryHandler = createArticleSummaryHandler({ rootDir: root });
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -23,7 +25,13 @@ function send(res, status, body, headers) {
 }
 
 const server = http.createServer((req, res) => {
-  const requestPath = req.url === '/' ? 'index.html' : req.url.split('?')[0].replace(/^\/+/, '');
+  const requestUrl = new URL(req.url || '/', 'http://127.0.0.1:' + port);
+  if (requestUrl.pathname === '/api/article-summary') {
+    articleSummaryHandler(req, res);
+    return;
+  }
+
+  const requestPath = requestUrl.pathname === '/' ? 'index.html' : requestUrl.pathname.replace(/^\/+/, '');
   const resolvedPath = path.join(root, requestPath);
 
   if (!resolvedPath.startsWith(root)) {

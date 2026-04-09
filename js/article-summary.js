@@ -55,6 +55,10 @@
     return html;
   }
 
+  function normalizeHeadingLine(text) {
+    return String(text || '').replace(/^\*\*(#+\s+.+?)\*\*$/, '$1').trim();
+  }
+
   function renderMarkdown(markdown) {
     if (!markdown || !markdown.trim()) return '';
 
@@ -79,23 +83,37 @@
 
     lines.forEach(function (line) {
       var trimmed = line.trim();
+      var normalizedHeading = normalizeHeadingLine(trimmed);
       if (!trimmed) {
         flushParagraph();
         flushList();
         return;
       }
 
-      if (/^##\s+/.test(trimmed)) {
+      if (/^#\s+/i.test(normalizedHeading) && normalizedHeading.replace(/^#\s+/i, '').toLowerCase() === 'comprehensive summary') {
         flushParagraph();
         flushList();
-        html.push('<h3>' + escapeHtml(trimmed.replace(/^##\s+/, '')) + '</h3>');
         return;
       }
 
-      if (/^###\s+/.test(trimmed)) {
+      if (/^#\s+/.test(normalizedHeading)) {
         flushParagraph();
         flushList();
-        html.push('<h4>' + escapeHtml(trimmed.replace(/^###\s+/, '')) + '</h4>');
+        html.push('<h3>' + escapeHtml(normalizedHeading.replace(/^#\s+/, '')) + '</h3>');
+        return;
+      }
+
+      if (/^##\s+/.test(normalizedHeading)) {
+        flushParagraph();
+        flushList();
+        html.push('<h3>' + escapeHtml(normalizedHeading.replace(/^##\s+/, '')) + '</h3>');
+        return;
+      }
+
+      if (/^###\s+/.test(normalizedHeading)) {
+        flushParagraph();
+        flushList();
+        html.push('<h4>' + escapeHtml(normalizedHeading.replace(/^###\s+/, '')) + '</h4>');
         return;
       }
 
@@ -178,7 +196,7 @@
     if (!els.drawer) return;
 
     if (!state.article) {
-      els.subtitle.textContent = 'A precomputed overview is loading in the background.';
+      els.subtitle.textContent = 'An AI overview will appear here once it is ready.';
       els.chip.textContent = 'Preparing summary';
       els.model.textContent = '';
       return;
@@ -201,7 +219,7 @@
 
     if (state.status === 'loading') {
       els.chip.textContent = 'Preparing summary';
-      els.model.textContent = 'Loading the precomputed result';
+      els.model.textContent = 'Loading a cached summary or generating a fresh one';
       return;
     }
 
@@ -295,14 +313,7 @@
     state.requestSlug = slug;
     render();
 
-    state.request = fetch('data/summaries/' + encodeURIComponent(slug) + '.json', {
-      cache: 'force-cache'
-    })
-      .then(function (response) {
-        if (response.status === 404) return null;
-        if (!response.ok) throw new Error('Failed to load summary JSON');
-        return response.json();
-      })
+    state.request = loadSummaryPayload(slug)
       .then(function (payload) {
         state.summary = payload;
         if (payload && payload.summaryMarkdown && payload.summaryMarkdown.trim()) {
@@ -326,6 +337,46 @@
       });
 
     return state.request;
+  }
+
+  function fetchSummaryJson(url, cacheMode) {
+    return fetch(url, {
+      cache: cacheMode
+    }).then(function (response) {
+      if (response.status === 404) return null;
+      if (!response.ok) {
+        var error = new Error('Failed to load summary JSON');
+        error.status = response.status;
+        throw error;
+      }
+      return response.json();
+    });
+  }
+
+  function loadBundledSummary(slug) {
+    return fetchSummaryJson('data/summaries/' + encodeURIComponent(slug) + '.json', 'force-cache');
+  }
+
+  function loadApiSummary(slug) {
+    return fetchSummaryJson('/api/article-summary?slug=' + encodeURIComponent(slug), 'no-store');
+  }
+
+  function loadSummaryPayload(slug) {
+    if (window.location.protocol === 'file:') {
+      return loadBundledSummary(slug);
+    }
+
+    return loadApiSummary(slug)
+      .then(function (apiPayload) {
+        if (apiPayload) return apiPayload;
+        return loadBundledSummary(slug);
+      })
+      .catch(function (apiError) {
+        return loadBundledSummary(slug).then(function (bundledPayload) {
+          if (bundledPayload) return bundledPayload;
+          throw apiError;
+        });
+      });
   }
 
   function init() {

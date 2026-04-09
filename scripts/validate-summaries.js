@@ -1,83 +1,111 @@
 const fs = require('fs/promises');
 const path = require('path');
+const summaryService = require('../lib/summary-service');
+
+const {
+  loadRuntimeConfig,
+  loadStaticArticles,
+  loadDbArticles,
+  mergeArticles,
+  listSummaryRows,
+  listBundledSummaries,
+  writeBundledSummaryIndex
+} = summaryService;
 
 const root = path.resolve(__dirname, '..');
-const manifestPath = path.join(root, 'manifest.json');
-const summariesDir = path.join(root, 'data', 'summaries');
-const indexPath = path.join(summariesDir, 'index.json');
-const privateConfigPath = path.join(root, 'js', 'private-config.local.json');
 const shouldPrune = process.argv.includes('--prune');
 
-async function loadPrivateConfig() {
-  const source = await fs.readFile(privateConfigPath, 'utf8');
-  const parsed = JSON.parse(source);
-  if (!parsed || !parsed.url || !parsed.anonKey) {
-    throw new Error('Unable to read a valid private local config from js/private-config.local.json');
+async function removeBundledSummary(rootDir, slug) {
+  const summaryPath = path.join(rootDir, 'data', 'summaries', slug + '.json');
+  try {
+    await fs.unlink(summaryPath);
+  } catch (error) {
+    if (!error || error.code !== 'ENOENT') {
+      throw error;
+    }
   }
-  return { url: parsed.url, anonKey: parsed.anonKey };
 }
 
-async function fetchPublishedSlugs() {
-  const { url, anonKey } = await loadPrivateConfig();
-  const response = await fetch(url + '/rest/v1/articles?select=slug', {
-    headers: {
-      apikey: anonKey,
-      Authorization: 'Bearer ' + anonKey
-    }
+function printList(label, entries) {
+  if (!entries.length) return;
+  console.log(label + ':');
+  entries.forEach(function (entry) {
+    console.log('- ' + entry);
   });
-
-  if (!response.ok) {
-    throw new Error('Connected summary validation failed: ' + response.status + ' ' + response.statusText);
-  }
-
-  const rows = await response.json();
-  return new Set((rows || []).map((row) => row.slug).filter(Boolean));
 }
 
 async function main() {
-  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-  const summaryIndex = JSON.parse(await fs.readFile(indexPath, 'utf8'));
-  const staticSlugs = new Set((manifest.articles || []).map((article) => article.slug).filter(Boolean));
-  const dbSlugs = await fetchPublishedSlugs();
-  const knownSlugs = new Set([...staticSlugs, ...dbSlugs]);
+  const runtimeConfig = await loadRuntimeConfig(root, process.env);
+  const staticArticles = await loadStaticArticles(root, { includeHtml: false });
+  let dbArticles = [];
+  let summaryRows = [];
 
-  const orphanSummaries = (summaryIndex.summaries || []).filter((entry) => !knownSlugs.has(entry.slug));
-  const orphanFiles = [];
-
-  for (const entry of orphanSummaries) {
-    const summaryFile = path.join(summariesDir, entry.slug + '.json');
-    try {
-      await fs.access(summaryFile);
-      orphanFiles.push(summaryFile);
-    } catch (error) {
-      /* Missing file is still reported through the index entry below. */
-    }
+  try {
+    dbArticles = await loadDbArticles(runtimeConfig.supabase, { includeHtml: false });
+  } catch (error) {
+    console.warn('Skipping connected articles during validation: ' + (error.message || error));
   }
+
+  try {
+    summaryRows = await listSummaryRows(runtimeConfig.supabase);
+  } catch (error) {
+    console.warn('Skipping remote summary cache validation: ' + (error.message || error));
+  }
+
+  const mergedArticles = mergeArticles(staticArticles, dbArticles);
+  const knownSlugs = new Set(mergedArticles.map((article) => article.slug));
+  const staticSlugs = new Set(staticArticles.map((article) => article.slug));
+  const bundledSummaries = await listBundledSummaries(root);
+  const bundledSlugs = new Set(bundledSummaries.map((summary) => summary.slug));
+  const cacheSlugs = new Set(summaryRows.map((summary) => summary.slug));
+
+  const missingCache = mergedArticles
+    .filter((article) => !cacheSlugs.has(article.slug))
+    .map((article) => article.slug)
+    .sort();
+  const missingBundled = staticArticles
+    .filter((article) => !bundledSlugs.has(article.slug))
+    .map((article) => article.slug)
+    .sort();
+  const orphanBundled = bundledSummaries
+    .filter((summary) => !knownSlugs.has(summary.slug))
+    .map((summary) => summary.slug)
+    .sort();
+  const orphanCache = summaryRows
+    .filter((summary) => !knownSlugs.has(summary.slug))
+    .map((summary) => summary.slug)
+    .sort();
 
   console.log('Static manifest slugs:', staticSlugs.size);
-  console.log('Published DB slugs:', dbSlugs.size);
-  console.log('Indexed summaries:', (summaryIndex.summaries || []).length);
-  console.log('Orphan summaries:', orphanSummaries.length);
+  console.log('Published DB slugs:', dbArticles.length);
+  console.log('Known article slugs:', knownSlugs.size);
+  console.log('Remote cached summaries:', summaryRows.length);
+  console.log('Bundled fallback summaries:', bundledSummaries.length);
+  console.log('Missing remote cache coverage:', missingCache.length);
+  console.log('Missing bundled fallback coverage:', missingBundled.length);
+  console.log('Orphan remote cache rows:', orphanCache.length);
+  console.log('Orphan bundled fallback files:', orphanBundled.length);
 
-  orphanSummaries.forEach((entry) => {
-    console.log('- ' + entry.slug);
-  });
+  printList('Missing remote cache coverage', missingCache);
+  printList('Missing bundled fallback coverage', missingBundled);
+  printList('Orphan remote cache rows', orphanCache);
+  printList('Orphan bundled fallback files', orphanBundled);
 
-  if (!shouldPrune || orphanSummaries.length === 0) {
-    return;
+  if (shouldPrune && orphanBundled.length) {
+    for (const slug of orphanBundled) {
+      await removeBundledSummary(root, slug);
+    }
+
+    const nextBundled = (await listBundledSummaries(root)).filter(function (summary) {
+      return knownSlugs.has(summary.slug);
+    });
+    await writeBundledSummaryIndex(root, nextBundled, runtimeConfig.models);
+    console.log('Pruned orphan bundled summary files.');
   }
 
-  for (const filePath of orphanFiles) {
-    await fs.unlink(filePath);
+  if (missingCache.length || missingBundled.length || orphanCache.length || orphanBundled.length) {
+    process.exitCode = 1;
   }
-
-  const nextSummaries = (summaryIndex.summaries || []).filter((entry) => knownSlugs.has(entry.slug));
-  const nextIndex = Object.assign({}, summaryIndex, {
-    generatedAt: new Date().toISOString(),
-    count: nextSummaries.length,
-    summaries: nextSummaries
-  });
-  await fs.writeFile(indexPath, JSON.stringify(nextIndex, null, 2) + '\n', 'utf8');
 }
 
 main().catch((error) => {

@@ -1821,6 +1821,20 @@ More content..."></div>
       /* =============================================
          PUBLISH
          ============================================= */
+      function warmArticleSummary(slug) {
+        if (!slug) return;
+        if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
+
+        fetch('/api/article-summary?slug=' + encodeURIComponent(slug), {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          keepalive: true
+        }).catch(function (error) {
+          console.warn('Summary warm-up failed:', error);
+        });
+      }
+
       async function publishArticle() {
         /* Validate */
         var title = document.getElementById('meta-title').value.trim();
@@ -1881,12 +1895,14 @@ More content..."></div>
           if (existing) {
             /* Update existing article */
             await Supabase.updateArticle(slug, articleData);
-            App.showToast('Article updated. Rebuild AI summaries before sharing.');
+            App.showToast('Article updated. AI summary refresh started.');
           } else {
             /* Insert new article */
             await Supabase.publishArticle(articleData);
-            App.showToast('Article published. Rebuild AI summaries before sharing.');
+            App.showToast('Article published. AI summary warm-up started.');
           }
+
+          warmArticleSummary(slug);
 
           /* Clear draft after successful publish */
           localStorage.removeItem(DRAFT_KEY);

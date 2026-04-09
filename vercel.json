@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/article-summary.js": {
+      "maxDuration": 60
+    }
+  }
+}
