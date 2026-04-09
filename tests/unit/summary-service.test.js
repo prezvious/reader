@@ -117,3 +117,97 @@ test('resolveSummaryForArticle falls back to a stale bundled summary when regene
   assert.equal(result.stale, true);
   assert.match(result.summary.summaryMarkdown, /Older summary text\./);
 });
+
+test('loadRuntimeConfig falls back to deployment config asset when local files are unavailable', async () => {
+  await resetTestRoot();
+  const originalFetch = global.fetch;
+
+  global.fetch = async function (url) {
+    if (String(url).endsWith('/js/config.json')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async function () {
+          return JSON.stringify({
+            url: 'https://example.supabase.co',
+            anonKey: 'anon-token'
+          });
+        }
+      };
+    }
+
+    return {
+      ok: false,
+      status: 404,
+      text: async function () {
+        return '';
+      }
+    };
+  };
+
+  try {
+    const config = await summaryService.loadRuntimeConfig(TEST_ROOT, {}, {
+      assetBaseUrl: 'https://reader-zeta-six.vercel.app'
+    });
+
+    assert.equal(config.supabase.url, 'https://example.supabase.co');
+    assert.equal(config.supabase.anonKey, 'anon-token');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test('loadStaticArticleBySlug falls back to deployment assets when files are not bundled locally', async () => {
+  await resetTestRoot();
+  const originalFetch = global.fetch;
+
+  global.fetch = async function (url) {
+    const value = String(url);
+    if (value.endsWith('/manifest.json')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async function () {
+          return JSON.stringify({
+            articles: [
+              {
+                slug: 'remote-static-article',
+                title: 'Remote Static Article',
+                folder: 'articles/remote-static-article/'
+              }
+            ]
+          });
+        }
+      };
+    }
+
+    if (value.endsWith('/articles/remote-static-article/index.html')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async function () {
+          return '<p>Remote static body.</p>';
+        }
+      };
+    }
+
+    return {
+      ok: false,
+      status: 404,
+      text: async function () {
+        return '';
+      }
+    };
+  };
+
+  try {
+    const article = await summaryService.loadStaticArticleBySlug(TEST_ROOT, 'remote-static-article', {
+      assetBaseUrl: 'https://reader-zeta-six.vercel.app'
+    });
+
+    assert.equal(article.slug, 'remote-static-article');
+    assert.match(article.html, /Remote static body/);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
