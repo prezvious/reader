@@ -279,7 +279,15 @@
           <div class="compose-panel compose-panel--editor" id="editor-panel">
             <div class="editor-wrapper" id="editor-wrapper">
               <div class="editor-overlay" id="editor-overlay"></div>
-              <textarea class="compose-textarea" id="editor-textarea" placeholder="Start writing your article here...&#10;&#10;# My Article Title&#10;&#10;First paragraph goes here.&#10;&#10;## Section Heading&#10;&#10;More content..."></textarea>
+              <div class="compose-editor" id="editor-content" contenteditable="true" spellcheck="true" data-placeholder="Start writing your article here...
+
+# My Article Title
+
+First paragraph goes here.
+
+## Section Heading
+
+More content..."></div>
             </div>
           </div>
           <div class="compose-panel compose-panel--preview" id="preview-panel">
@@ -447,74 +455,51 @@
         });
 
         /* Editor input → live preview */
-        var textarea = document.getElementById('editor-textarea');
-        textarea.addEventListener('input', function () {
+        var editor = document.getElementById('editor-content');
+        editor.addEventListener('input', function () {
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(function () {
-            updatePreview();
+            scheduleUndoSave();
+            /* Update find overlay when content changes */
+            if (composeFindState.open && composeFindState.query) {
+              updateComposeFindOverlay();
+            }
           }, 200);
-          scheduleUndoSave();
-          /* Update find overlay when content changes */
-          if (composeFindState.open && composeFindState.query) {
-            updateComposeFindOverlay();
-          }
         });
 
-        /* Scroll sync: overlay follows textarea scroll */
-        textarea.addEventListener('scroll', function () {
+        /* Scroll sync: overlay follows editor scroll */
+        editor.addEventListener('scroll', function () {
           var overlay = document.getElementById('editor-overlay');
           if (overlay) overlay.style.transform = 'translateY(-' + this.scrollTop + 'px)';
         });
 
-        /* Tab handling on textarea — real \t + Shift+Tab dedent + multi-line */
-        textarea.addEventListener('keydown', function (e) {
+        /* Tab handling on editor — real \t + Shift+Tab dedent + multi-line */
+        editor.addEventListener('keydown', function (e) {
           if (e.key === 'Tab') {
             e.preventDefault();
-            var start = this.selectionStart;
-            var end = this.selectionEnd;
-            var value = this.value;
-
+            var selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            
+            var range = selection.getRangeAt(0);
+            var selectedText = selection.toString();
+            
             if (e.shiftKey) {
-              /* Shift+Tab: dedent */
-              var selText = value.substring(start, end);
-              if (selText.indexOf('\n') !== -1) {
-                /* Multi-line: dedent every selected line */
-                var lines = selText.split('\n');
-                var dedented = lines.map(function (line) {
-                  return line.charAt(0) === '\t' ? line.substring(1) : line;
-                }).join('\n');
-                this.value = value.substring(0, start) + dedented + value.substring(end);
-                this.selectionStart = start;
-                this.selectionEnd = start + dedented.length;
-              } else {
-                /* Single line: remove leading tab from the current line */
-                var beforeCursor = value.substring(0, start);
-                var lineStartPos = beforeCursor.lastIndexOf('\n') + 1;
-                if (value.charAt(lineStartPos) === '\t') {
-                  this.value = value.substring(0, lineStartPos) + value.substring(lineStartPos + 1);
-                  this.selectionStart = this.selectionEnd = start - 1;
-                }
+              /* Shift+Tab: remove indent */
+              var node = range.startContainer;
+              var blockElement = getBlockElement(node);
+              if (blockElement && blockElement.style.textIndent) {
+                blockElement.style.textIndent = '';
+                blockElement.style.paddingLeft = '';
               }
             } else {
               /* Tab: indent */
-              var selText = value.substring(start, end);
-              if (selText.indexOf('\n') !== -1) {
-                /* Multi-line: indent each line */
-                var fullText = value;
-                var beforeSel = fullText.substring(0, start);
-                var afterSel = fullText.substring(end);
-                var selLines = selText.split('\n');
-                var indented = selLines.map(function (line) { return '\t' + line; }).join('\n');
-                this.value = beforeSel + indented + afterSel;
-                this.selectionStart = start;
-                this.selectionEnd = start + indented.length;
-              } else {
-                /* Single cursor: insert tab */
-                this.value = value.substring(0, start) + '\t' + value.substring(end);
-                this.selectionStart = this.selectionEnd = start + 1;
+              var node = range.startContainer;
+              var blockElement = getBlockElement(node);
+              if (blockElement) {
+                blockElement.style.paddingLeft = '2em';
               }
             }
-            updatePreview();
+            saveUndoState();
           }
 
           /* Undo/Redo keyboard shortcuts */
@@ -532,23 +517,48 @@
 
         /* Undo / Redo buttons */
         document.getElementById('undo-btn').addEventListener('click', function () {
-          textarea.focus();
+          editor.focus();
           undo();
         });
         document.getElementById('redo-btn').addEventListener('click', function () {
-          textarea.focus();
+          editor.focus();
           redo();
         });
 
-        /* Font size selector */
+        /* Font size selector - apply to selected text only */
         document.getElementById('font-size-select').addEventListener('change', function () {
           var size = this.value;
-          if (size === String(DEFAULT_FONT_SIZE) || size === '') {
-            resetPreviewFontSize();
-          } else {
-            applyPreviewFontSize(size);
+          if (!size || size === '') return;
+
+          var selection = window.getSelection();
+          if (!selection.rangeCount || selection.isCollapsed) {
+            App.showToast('Select some text first to change font size');
+            this.value = '19'; /* Reset to default */
+            return;
           }
-          updatePreview();
+
+          /* Apply to selected text using span with inline style */
+          var range = selection.getRangeAt(0);
+          var selectedText = range.toString();
+          
+          /* Delete the selected text */
+          range.deleteContents();
+          
+          /* Create a span with the font size */
+          var span = document.createElement('span');
+          span.style.fontSize = size + 'px';
+          span.textContent = selectedText;
+          
+          /* Insert the span */
+          range.insertNode(span);
+          
+          /* Reselect the text */
+          range.selectNodeContents(span);
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+          editor.focus();
+          saveUndoState();
         });
 
         /* ===== FIND & REPLACE ===== */
@@ -610,7 +620,8 @@
         initTabs();
 
         /* Toolbar buttons */
-        initToolbar(textarea);
+        var editor = document.getElementById('editor-content');
+        initToolbar(editor);
 
         /* Publish */
         document.getElementById('publish-btn').addEventListener('click', function () {
@@ -644,7 +655,6 @@
           editorTab.classList.remove('compose-tabs__btn--active');
           previewPanel.classList.remove('compose-panel--hidden');
           editorPanel.classList.add('compose-panel--hidden');
-          updatePreview();
         });
 
         /* Initial state on mobile */
@@ -663,9 +673,17 @@
       /* =============================================
          TOOLBAR
          ============================================= */
-      function initToolbar(textarea) {
-        var _decodeDiv = document.createElement('div'); // Shared element for entity decoding
+      function getBlockElement(node) {
+        if (!node) return null;
+        var blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'BLOCKQUOTE', 'PRE'];
+        while (node && node.nodeType === Node.ELEMENT_NODE) {
+          if (blockTags.indexOf(node.tagName) !== -1) return node;
+          node = node.parentNode;
+        }
+        return null;
+      }
 
+      function initToolbar(editor) {
         document.getElementById('compose-toolbar').addEventListener('click', function (e) {
           var btn = e.target.closest('.compose-toolbar__btn');
           if (!btn) return;
@@ -673,58 +691,59 @@
           /* Don't handle undo/redo buttons here */
           if (btn.id === 'undo-btn' || btn.id === 'redo-btn') return;
 
-          textarea.focus();
-          var start = textarea.selectionStart;
-          var end = textarea.selectionEnd;
-          var value = textarea.value;
-          var selected = value.substring(start, end);
+          editor.focus();
 
-          /* data-insert: insert text at cursor (beginning of line) */
+          /* data-insert: insert text at cursor (for heading markers like # ) */
           var insertText = btn.getAttribute('data-insert');
           if (insertText) {
-            /* Decode HTML entities */
-            if (insertText.indexOf('&') !== -1) {
-              _decodeDiv.innerHTML = insertText;
-              insertText = _decodeDiv.textContent;
+            /* For heading markers, convert to formatBlock */
+            if (insertText.startsWith('#')) {
+              var level = insertText.match(/^#+/)[0].length;
+              if (level >= 1 && level <= 6) {
+                document.execCommand('formatBlock', false, 'H' + level);
+              } else {
+                document.execCommand('insertText', false, insertText);
+              }
+            } else {
+              document.execCommand('insertText', false, insertText);
             }
-            textarea.value = value.substring(0, start) + insertText + value.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
             saveUndoState();
-            updatePreview();
             return;
           }
 
-          /* data-wrap: wrap selection with marker (e.g. **bold**) */
+          /* data-wrap: wrap selection with bold/italic */
           var wrapText = btn.getAttribute('data-wrap');
           if (wrapText) {
-            if (selected) {
-              textarea.value = value.substring(0, start) + wrapText + selected + wrapText + value.substring(end);
-              textarea.selectionStart = start + wrapText.length;
-              textarea.selectionEnd = end + wrapText.length;
+            if (wrapText === '**') {
+              /* Bold */
+              document.execCommand('bold');
+            } else if (wrapText === '*') {
+              /* Italic */
+              document.execCommand('italic');
             } else {
-              textarea.value = value.substring(0, start) + wrapText + wrapText + value.substring(end);
-              textarea.selectionStart = textarea.selectionEnd = start + wrapText.length;
+              /* Generic wrap - keep old behavior */
+              var selection = window.getSelection();
+              if (selection.rangeCount && !selection.isCollapsed) {
+                var selectedText = selection.toString();
+                document.execCommand('insertText', false, wrapText + selectedText + wrapText);
+              } else {
+                document.execCommand('insertText', false, wrapText + wrapText);
+              }
             }
             saveUndoState();
-            updatePreview();
             return;
           }
 
-          /* data-wrap-tag: wrap selection with HTML tag (e.g. <u>text</u>) */
+          /* data-wrap-tag: wrap selection with HTML tag */
           var wrapTag = btn.getAttribute('data-wrap-tag');
           if (wrapTag) {
-            var openTag = '<' + wrapTag + '>';
-            var closeTag = '</' + wrapTag + '>';
-            if (selected) {
-              textarea.value = value.substring(0, start) + openTag + selected + closeTag + value.substring(end);
-              textarea.selectionStart = start + openTag.length;
-              textarea.selectionEnd = end + openTag.length;
+            if (wrapTag === 'u') {
+              /* Underline */
+              document.execCommand('underline');
             } else {
-              textarea.value = value.substring(0, start) + openTag + closeTag + value.substring(end);
-              textarea.selectionStart = textarea.selectionEnd = start + openTag.length;
+              document.execCommand('formatBlock', false, wrapTag);
             }
             saveUndoState();
-            updatePreview();
             return;
           }
         });
@@ -743,13 +762,12 @@
         customCSSContent = cssInput;
         customCSSApplied = true;
 
-        /* Scope CSS to the preview wrapper */
+        /* Scope CSS to the editor and preview */
         var styleEl = document.getElementById('custom-article-style');
-        styleEl.textContent = scopeCSS(cssInput, '#compose-preview-wrapper');
+        styleEl.textContent = scopeCSS(cssInput, '#editor-content') + '\n' + scopeCSS(cssInput, '#compose-preview-wrapper');
 
         document.getElementById('css-status').textContent = 'Style applied ✓';
         App.showToast('Custom style applied to editor.');
-        updatePreview();
       }
 
       function clearCustomCSS() {
@@ -806,7 +824,7 @@
          ============================================= */
       function saveUndoState() {
         if (isUndoRedoAction) return;
-        var content = document.getElementById('editor-textarea').value;
+        var content = document.getElementById('editor-content').innerHTML;
         if (content === lastSavedContent) return;
         lastSavedContent = content;
         undoStack.push(content);
@@ -824,30 +842,28 @@
 
       function undo() {
         if (undoStack.length === 0) return;
-        var current = document.getElementById('editor-textarea').value;
+        var current = document.getElementById('editor-content').innerHTML;
         var previous = undoStack.pop();
         lastSavedContent = previous;
         redoStack.push(current);
         if (redoStack.length > UNDO_MAX) redoStack.shift();
         isUndoRedoAction = true;
-        document.getElementById('editor-textarea').value = previous;
+        document.getElementById('editor-content').innerHTML = previous;
         isUndoRedoAction = false;
         updateUndoRedoButtons();
-        updatePreview();
       }
 
       function redo() {
         if (redoStack.length === 0) return;
-        var current = document.getElementById('editor-textarea').value;
+        var current = document.getElementById('editor-content').innerHTML;
         var next = redoStack.pop();
         lastSavedContent = next;
         undoStack.push(current);
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         isUndoRedoAction = true;
-        document.getElementById('editor-textarea').value = next;
+        document.getElementById('editor-content').innerHTML = next;
         isUndoRedoAction = false;
         updateUndoRedoButtons();
-        updatePreview();
       }
 
       function updateUndoRedoButtons() {
@@ -855,57 +871,6 @@
         var redoBtn = document.getElementById('redo-btn');
         if (undoBtn) undoBtn.disabled = undoStack.length === 0;
         if (redoBtn) redoBtn.disabled = redoStack.length === 0;
-      }
-
-      /* =============================================
-         PREVIEW FONT SIZE
-         ============================================= */
-      var PREVIEW_STYLE_ID = 'preview-font-size-style';
-      var DEFAULT_FONT_SIZE = 19;
-
-      /* Heading sizes scale proportionally from body, but h1 capped at 32px */
-      function getFontSizeSet(bodySize) {
-        bodySize = Number(bodySize);
-        var ratio = bodySize / DEFAULT_FONT_SIZE;
-        return {
-          body: bodySize + 'px',
-          h1: Math.min(Math.round(32 * ratio), 32) + 'px',   /* cap at H1 max */
-          h2: Math.round(24 * ratio) + 'px',
-          h3: Math.round(20 * ratio) + 'px',
-          h4: Math.round(18 * ratio) + 'px',
-          h5: Math.round(16 * ratio) + 'px',
-          h6: Math.round(14.4 * ratio) + 'px',
-          blockquote: Math.round(20.8 * ratio) + 'px',
-          list: Math.round(19.2 * ratio) + 'px',
-          code: Math.round(13.6 * ratio) + 'px'
-        };
-      }
-
-      function applyPreviewFontSize(size) {
-        var s = getFontSizeSet(size);
-        var style = document.getElementById(PREVIEW_STYLE_ID);
-        if (!style) {
-          style = document.createElement('style');
-          style.id = PREVIEW_STYLE_ID;
-          document.head.appendChild(style);
-        }
-        style.textContent =
-          '#compose-preview-wrapper .article-body p { font-size: ' + s.body + ' !important; }' +
-          '#compose-preview-wrapper .article-body h1 { font-size: ' + s.h1 + ' !important; }' +
-          '#compose-preview-wrapper .article-body h2 { font-size: ' + s.h2 + ' !important; }' +
-          '#compose-preview-wrapper .article-body h3 { font-size: ' + s.h3 + ' !important; }' +
-          '#compose-preview-wrapper .article-body h4 { font-size: ' + s.h4 + ' !important; }' +
-          '#compose-preview-wrapper .article-body h5 { font-size: ' + s.h5 + ' !important; }' +
-          '#compose-preview-wrapper .article-body h6 { font-size: ' + s.h6 + ' !important; }' +
-          '#compose-preview-wrapper .article-body blockquote { font-size: ' + s.blockquote + ' !important; }' +
-          '#compose-preview-wrapper .article-body ul, ' +
-          '#compose-preview-wrapper .article-body ol { font-size: ' + s.list + ' !important; }' +
-          '#compose-preview-wrapper .article-body code { font-size: ' + s.code + ' !important; }';
-      }
-
-      function resetPreviewFontSize() {
-        var style = document.getElementById(PREVIEW_STYLE_ID);
-        if (style) style.textContent = '';
       }
 
       /* =============================================
@@ -945,10 +910,11 @@
       function performComposeFind(query) {
         clearComposeFindHighlights();
         composeFindState.query = query;
-        var textarea = document.getElementById('editor-textarea');
-        var value = textarea.value;
+        var editor = document.getElementById('editor-content');
+        var value = editor.innerText;
         if (!query || query.trim() === '') {
-          document.getElementById('find-count').textContent = '';
+          var countEl = document.getElementById('find-count');
+          if (countEl) countEl.textContent = '';
           return;
         }
 
@@ -969,7 +935,8 @@
         if (matches.length > 0) {
           selectCurrentComposeFind();
           updateComposeFindOverlay();
-          document.getElementById('find-count').textContent = '1 of ' + matches.length;
+          var countEl = document.getElementById('find-count');
+          if (countEl) countEl.textContent = '1 of ' + matches.length;
         } else {
           document.getElementById('find-count').textContent = 'No results';
         }
@@ -977,10 +944,13 @@
 
       function selectCurrentComposeFind() {
         if (composeFindState.currentIndex >= 0 && composeFindState.currentIndex < composeFindState.matches.length) {
-          var match = composeFindState.matches[composeFindState.currentIndex];
-          var textarea = document.getElementById('editor-textarea');
-          textarea.focus();
-          textarea.setSelectionRange(match.start, match.end);
+          var editor = document.getElementById('editor-content');
+          editor.focus();
+          /* The highlights are already shown via the overlay, but we need to scroll to the highlight */
+          var highlights = document.querySelectorAll('.find-highlight--current');
+          if (highlights.length > 0 && highlights[0].scrollIntoView) {
+            highlights[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
         }
       }
 
@@ -989,7 +959,8 @@
         composeFindState.currentIndex = (composeFindState.currentIndex + 1) % composeFindState.matches.length;
         selectCurrentComposeFind();
         updateComposeFindOverlay();
-        document.getElementById('find-count').textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+        var countEl = document.getElementById('find-count');
+        if (countEl) countEl.textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
       }
 
       function findComposePrev() {
@@ -997,7 +968,8 @@
         composeFindState.currentIndex = (composeFindState.currentIndex - 1 + composeFindState.matches.length) % composeFindState.matches.length;
         selectCurrentComposeFind();
         updateComposeFindOverlay();
-        document.getElementById('find-count').textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
+        var countEl = document.getElementById('find-count');
+        if (countEl) countEl.textContent = (composeFindState.currentIndex + 1) + ' of ' + composeFindState.matches.length;
       }
 
       function clearComposeFindHighlights() {
@@ -1007,58 +979,54 @@
 
       function replaceCurrentComposeFind() {
         if (composeFindState.currentIndex < 0 || composeFindState.matches.length === 0) return;
-        var match = composeFindState.matches[composeFindState.currentIndex];
-        var textarea = document.getElementById('editor-textarea');
-        var value = textarea.value;
+        
+        var editor = document.getElementById('editor-content');
         var replaceWith = document.getElementById('replace-input').value;
 
         /* Save undo state before replacing */
         saveUndoState();
 
-        textarea.value = value.substring(0, match.start) + replaceWith + value.substring(match.end);
-        var newEnd = match.start + replaceWith.length;
-        textarea.setSelectionRange(match.start, newEnd);
+        /* Use window.find and replace */
+        var found = window.find(composeFindState.query);
+        if (found) {
+          var selection = window.getSelection();
+          if (selection.rangeCount) {
+            var range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(replaceWith));
+          }
+        }
 
         /* Re-run find to update matches */
         performComposeFind(composeFindState.query);
-        updatePreview();
       }
 
       function replaceAllComposeFind() {
         if (composeFindState.matches.length === 0 || !composeFindState.query) return;
-        var textarea = document.getElementById('editor-textarea');
-        var value = textarea.value;
+        
+        var editor = document.getElementById('editor-content');
         var replaceWith = document.getElementById('replace-input').value;
 
         /* Save undo state before replacing all — single undo step */
         saveUndoState();
 
-        var caseSensitive = document.getElementById('find-case-sensitive').checked;
-        var searchQuery = caseSensitive ? composeFindState.query : composeFindState.query.toLowerCase();
-        var searchText = caseSensitive ? value : value.toLowerCase();
-
-        /* Build new string by replacing all matches */
-        var result = '';
-        var lastEnd = 0;
         var count = 0;
-        var pos = 0;
-        while ((pos = searchText.indexOf(searchQuery, pos)) !== -1) {
-          result += value.substring(lastEnd, pos) + replaceWith;
-          lastEnd = pos + searchQuery.length;
-          pos = lastEnd;
-          count++;
+        while (window.find(composeFindState.query)) {
+          var selection = window.getSelection();
+          if (selection.rangeCount) {
+            var range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(replaceWith));
+            count++;
+          }
         }
-        result += value.substring(lastEnd);
 
-        textarea.value = result;
-
-        composeFindState.matches = [];
-        composeFindState.currentIndex = -1;
-        document.getElementById('find-count').textContent = count + ' replaced';
-        updatePreview();
+        var countEl = document.getElementById('find-count');
+        if (countEl) countEl.textContent = count + ' replaced';
+        clearComposeFindHighlights();
       }
 
-      /* Compose find overlay — highlights behind the textarea */
+      /* Compose find overlay — highlights behind the editor */
       function updateComposeFindOverlay() {
         var overlay = document.getElementById('editor-overlay');
         if (!overlay) return;
@@ -1066,8 +1034,8 @@
         if (composeFindState.matches.length === 0 || !composeFindState.query) return;
 
         /* Build highlighted text for the overlay */
-        var textarea = document.getElementById('editor-textarea');
-        var value = textarea.value;
+        var editor = document.getElementById('editor-content');
+        var value = editor.innerText;
         var caseSensitive = document.getElementById('find-case-sensitive').checked;
         var searchText = caseSensitive ? value : value.toLowerCase();
         var searchQuery = caseSensitive ? composeFindState.query : composeFindState.query.toLowerCase();
@@ -1092,21 +1060,6 @@
 
       function escapeHtmlForOverlay(str) {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      }
-
-      /* =============================================
-         LIVE PREVIEW
-         ============================================= */
-      function updatePreview() {
-        var raw = document.getElementById('editor-textarea').value;
-        var html = parseArticleContent(raw);
-        /* Sanitize the same way the publish path does, so the preview matches
-           what readers will actually see (no surprise stripped tags after publish). */
-        var safe = html ? App.sanitizeHtml(html) : '';
-        document.getElementById('preview-body').innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
-
-        /* Update cover image picker with detected image URLs */
-        updateCoverImagePicker(raw);
       }
 
       /**
@@ -1458,10 +1411,11 @@
           return;
         }
 
-        var content = document.getElementById('editor-textarea').value;
-        if (!content.trim()) {
+        var editor = document.getElementById('editor-content');
+        var content = editor.innerHTML;
+        if (!content.trim() || editor.innerText.trim().length === 0) {
           App.showToast('Please write some article content.');
-          document.getElementById('editor-textarea').focus();
+          editor.focus();
           return;
         }
 
@@ -1474,11 +1428,8 @@
         var featured = document.getElementById('meta-featured').checked;
         var useCustomStyle = document.getElementById('use-custom-style').checked;
 
-        /* Parse content to HTML */
-        var articleHTML = parseArticleContent(content);
-
         /* Sanitize HTML before storage — strips scripts, iframes, event handlers, etc. */
-        articleHTML = App.sanitizeHtml(articleHTML);
+        var articleHTML = App.sanitizeHtml(content);
 
         /* Get the selected cover image */
         var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
@@ -1548,14 +1499,12 @@
          FULL PREVIEW
          ============================================= */
       function openFullPreview() {
-        updatePreview();
-
         var title = document.getElementById('meta-title').value.trim() || 'Untitled';
         var excerpt = document.getElementById('meta-excerpt').value.trim();
         var category = document.getElementById('meta-category').value.trim() || 'General';
         var authorName = document.getElementById('meta-author').value.trim() || 'Anonymous';
         var publishDate = document.getElementById('meta-date').value || todayISO();
-        var bodyHTML = document.getElementById('preview-body').innerHTML;
+        var bodyHTML = document.getElementById('editor-content').innerHTML;
 
         var overlay = document.getElementById('publish-modal-overlay');
         var previewHTML = '<div class="compose-modal-overlay" id="fullpreview-overlay-inner">';
@@ -1673,7 +1622,7 @@
 
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
           /* Ctrl+F: open find bar */
-          if (!isInput || document.activeElement === document.getElementById('editor-textarea')) {
+          if (!isInput || document.activeElement === document.getElementById('editor-content')) {
             e.preventDefault();
             openComposeFind();
           }
@@ -1681,7 +1630,7 @@
 
         if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
           /* Ctrl+H: open find + replace bar */
-          if (!isInput || document.activeElement === document.getElementById('editor-textarea')) {
+          if (!isInput || document.activeElement === document.getElementById('editor-content')) {
             e.preventDefault();
             openComposeFind();
             /* Auto-open replace row */
