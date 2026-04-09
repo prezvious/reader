@@ -615,6 +615,7 @@ More content..."></div>
         });
 
         document.getElementById('cover-options').addEventListener('change', function () {
+          syncPreview();
           scheduleDraftAutoSave();
         });
 
@@ -1420,8 +1421,9 @@ More content..."></div>
       /* =============================================
          LIVE PREVIEW SYNC
          ============================================= */
-      function prepareArticleHtml(html) {
-        return App.sanitizeHtml(App.normalizeArticleHtml(html || ''));
+      function prepareArticleHtml(html, coverImage) {
+        var normalized = App.normalizeArticleHtml(html || '');
+        return App.renderArticleHtml(normalized, { coverImage: coverImage || '' });
       }
 
       function getSelectedCoverImageValue() {
@@ -1461,7 +1463,7 @@ More content..."></div>
         var editor = getEditor();
         var previewBody = document.getElementById('preview-body');
 
-        var safe = prepareArticleHtml(editor.innerHTML);
+        var safe = prepareArticleHtml(editor.innerHTML, getSelectedCoverImageValue());
         previewBody.innerHTML = safe || '<p style="color:var(--text-tertiary);font-style:italic;">Your preview will appear here as you type...</p>';
 
         updateCoverImagePicker(editor, getSelectedCoverImageValue());
@@ -1812,10 +1814,9 @@ More content..."></div>
         var featured = document.getElementById('meta-featured').checked;
         var useCustomStyle = document.getElementById('use-custom-style').checked;
 
-        var articleHTML = prepareArticleHtml(content);
-
         /* Get the selected cover image */
         var coverImage = getSelectedCoverImageValue();
+        var articleHTML = prepareArticleHtml(content, coverImage);
 
         /* Build the database row */
         var articleData = {
@@ -1890,7 +1891,9 @@ More content..."></div>
         var category = document.getElementById('meta-category').value.trim() || 'General';
         var authorName = document.getElementById('meta-author').value.trim() || 'Anonymous';
         var publishDate = document.getElementById('meta-date').value || todayISO();
-        var bodyHTML = prepareArticleHtml(getEditor().innerHTML);
+        var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
+        var coverUrl = coverImageEl ? coverImageEl.value.trim() : '';
+        var bodyHTML = prepareArticleHtml(getEditor().innerHTML, coverUrl);
 
         var overlay = document.getElementById('publish-modal-overlay');
         var previewHTML = '<div class="compose-modal-overlay" id="fullpreview-overlay-inner">';
@@ -1902,8 +1905,6 @@ More content..."></div>
         previewHTML += '<div class="compose-modal__body" style="padding:0;">';
 
         /* Cover image (if selected) */
-        var coverImageEl = document.querySelector('input[name="cover-image"]:checked');
-        var coverUrl = coverImageEl ? coverImageEl.value.trim() : '';
         if (coverUrl) {
           previewHTML += '<div style="position:relative;">';
           previewHTML += '<img src="' + App.escapeHtml(coverUrl) + '" alt="Cover" style="width:100%;max-height:400px;object-fit:cover;display:block;">';

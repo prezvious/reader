@@ -41,3 +41,25 @@ test('scopeArticleCss scopes selectors while preserving keyframes', () => {
   assert.match(scoped, /@media \(min-width: 700px\) \{#article-body \.hero, #article-body p \{/);
   assert.match(scoped, /@keyframes fade \{ 0% \{ opacity: 0; \} 100% \{ opacity: 1; \} \}/);
 });
+
+test('renderArticleHtml converts standalone image URLs into figures', () => {
+  const url = 'https://images.unsplash.com/photo-1711409664431-4e7914ac2370?q=80&w=1332&auto=format';
+  const html = utils.renderArticleHtml(
+    `<p>${url}</p><p>Body copy</p>`,
+    { document: dom.window.document }
+  );
+
+  assert.match(html, /<figure class="article-image"><img src="https:\/\/images\.unsplash\.com\/photo-1711409664431-4e7914ac2370\?q=80&amp;w=1332&amp;auto=format" alt="" loading="lazy"><\/figure>/);
+  assert.match(html, /<p>Body copy<\/p>/);
+});
+
+test('renderArticleHtml removes body media that duplicates the selected cover image', () => {
+  const url = 'https://images.unsplash.com/photo-1711409664431-4e7914ac2370?q=80&w=1332&auto=format';
+  const html = utils.renderArticleHtml(
+    `<p>${url}</p><figure class="article-image"><img src="${url}" alt="" loading="lazy"></figure><p>Body copy</p>`,
+    { document: dom.window.document, coverImage: url }
+  );
+
+  assert.equal(html.includes('images.unsplash.com/photo-1711409664431-4e7914ac2370'), false);
+  assert.match(html, /<p>Body copy<\/p>/);
+});

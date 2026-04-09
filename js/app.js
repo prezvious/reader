@@ -39,6 +39,14 @@
     return css;
   }
 
+  function renderArticleHtml(html, options) {
+    if (!html || typeof html !== 'string') return '';
+    if (contentUtils && typeof contentUtils.renderArticleHtml === 'function') {
+      return contentUtils.renderArticleHtml(html, options);
+    }
+    return sanitizeHtml(html, options);
+  }
+
   /* Shared renderUser — null-safe email, uses createElement to preserve listeners */
   function renderUser(user) {
     var profile = user.profile || {};
@@ -406,6 +414,7 @@
     escapeHtml: escapeHtml,
     sanitizeHtml: sanitizeHtml,
     normalizeArticleHtml: normalizeArticleHtml,
+    renderArticleHtml: renderArticleHtml,
     scopeArticleCss: scopeArticleCss,
     renderUser: renderUser,
     initScrollReveal: initScrollReveal,

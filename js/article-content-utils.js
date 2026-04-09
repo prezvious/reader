@@ -9,6 +9,8 @@
 
   var ALLOWED_FONT_SIZES = ['12', '14', '16', '18', '19', '20', '24', '28', '32'];
   var ALLOWED_CLASS_RE = /^(article-font-size--(?:12|14|16|18|19|20|24|28|32)|article-indent-1|article-image|article-image__inline)$/;
+  var IMAGE_EXT_RE = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?[^\s]*)?(#[^\s]*)?$/i;
+  var IMAGE_HOST_RE = /^https?:\/\/(images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|cdn\.pixabay\.com|res\.cloudinary\.com|live\.staticflickr\.com)\//i;
   var BLOCK_TAGS = {
     P: true,
     H1: true,
@@ -285,6 +287,91 @@
     return false;
   }
 
+  function normalizeUrlForCompare(uri) {
+    if (!uri || typeof uri !== 'string') return '';
+    var trimmed = uri.replace(/\u200B/g, '').trim();
+    if (!trimmed) return '';
+    try {
+      return new URL(trimmed, 'https://reader.local/').href;
+    } catch (error) {
+      return trimmed;
+    }
+  }
+
+  function isImageUrl(uri) {
+    if (!uri || typeof uri !== 'string') return false;
+    var value = uri.replace(/\u200B/g, '').trim();
+    if (!value) return false;
+    return IMAGE_EXT_RE.test(value) || IMAGE_HOST_RE.test(value);
+  }
+
+  function getStandaloneImageUrl(element) {
+    if (!element) return '';
+
+    var children = toArray(element.childNodes);
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      if (child.nodeType === 1 && child.tagName !== 'BR') {
+        return '';
+      }
+    }
+
+    var text = (element.textContent || '').replace(/\u200B/g, '').trim();
+    return isImageUrl(text) ? text : '';
+  }
+
+  function createImageFigure(doc, url) {
+    var figure = doc.createElement('figure');
+    figure.className = 'article-image';
+
+    var img = doc.createElement('img');
+    img.setAttribute('src', url);
+    img.setAttribute('alt', '');
+    img.setAttribute('loading', 'lazy');
+
+    figure.appendChild(img);
+    return figure;
+  }
+
+  function convertStandaloneImageUrls(container, doc) {
+    var blocks = toArray(container.querySelectorAll('p'));
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      if (!block.parentNode) continue;
+      var url = getStandaloneImageUrl(block);
+      if (!url) continue;
+      if (!isSafeUri(url, true)) {
+        removeNode(block);
+        continue;
+      }
+      block.parentNode.replaceChild(createImageFigure(doc, url), block);
+    }
+  }
+
+  function removeDuplicateCoverMedia(container, coverImage) {
+    var normalizedCover = normalizeUrlForCompare(coverImage);
+    if (!normalizedCover) return;
+
+    toArray(container.querySelectorAll('p')).forEach(function (block) {
+      var url = getStandaloneImageUrl(block);
+      if (url && normalizeUrlForCompare(url) === normalizedCover) {
+        removeNode(block);
+      }
+    });
+
+    toArray(container.querySelectorAll('img[src]')).forEach(function (img) {
+      if (normalizeUrlForCompare(img.getAttribute('src') || '') !== normalizedCover) return;
+
+      var parent = img.parentNode;
+      if (parent && parent.tagName === 'FIGURE') {
+        removeNode(parent);
+        return;
+      }
+
+      removeNode(img);
+    });
+  }
+
   function sanitizeHtml(html, options) {
     if (!html || typeof html !== 'string') return '';
     var doc = getDocument(options);
@@ -333,6 +420,24 @@
         continue;
       }
       removeDisallowedAttributes(element);
+    }
+
+    removeEmptyNodes(container);
+    return container.innerHTML;
+  }
+
+  function renderArticleHtml(html, options) {
+    if (!html || typeof html !== 'string') return '';
+
+    var safeHtml = sanitizeHtml(html, options);
+    if (!safeHtml) return '';
+
+    var doc = getDocument(options);
+    var container = createContainer(doc, safeHtml);
+
+    convertStandaloneImageUrls(container, doc);
+    if (options && options.coverImage) {
+      removeDuplicateCoverMedia(container, options.coverImage);
     }
 
     removeEmptyNodes(container);
@@ -490,7 +595,9 @@
 
   return {
     ALLOWED_FONT_SIZES: ALLOWED_FONT_SIZES.slice(),
+    isImageUrl: isImageUrl,
     normalizeArticleHtml: normalizeArticleHtml,
+    renderArticleHtml: renderArticleHtml,
     sanitizeHtml: sanitizeHtml,
     scopeArticleCss: scopeArticleCss,
     splitSelectors: splitSelectors

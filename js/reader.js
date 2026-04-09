@@ -169,7 +169,7 @@
         return response.text();
       })
       .then(function (html) {
-        container.innerHTML = App.sanitizeHtml(html);
+        container.innerHTML = App.renderArticleHtml(html, { coverImage: article.coverImage });
         var readTime = Manifest.calcReadTimeFromText(container.textContent || '');
         updateBylineReadTime(readTime);
         loadArticleStyles(article.folder);
@@ -191,7 +191,7 @@
         }
 
         /* Sanitize stored HTML before injection */
-        container.innerHTML = App.sanitizeHtml(data.content_html);
+        container.innerHTML = App.renderArticleHtml(data.content_html, { coverImage: article.coverImage });
 
         var readTime = Manifest.calcReadTimeFromText(container.textContent || '');
         updateBylineReadTime(readTime);
