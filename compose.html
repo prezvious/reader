@@ -1552,11 +1552,11 @@ More content..."></div>
           if (existing) {
             /* Update existing article */
             await Supabase.updateArticle(slug, articleData);
-            App.showToast('Article updated successfully!');
+            App.showToast('Article updated. Rebuild AI summaries before sharing.');
           } else {
             /* Insert new article */
             await Supabase.publishArticle(articleData);
-            App.showToast('Article published successfully!');
+            App.showToast('Article published. Rebuild AI summaries before sharing.');
           }
 
           /* Clear draft after successful publish */

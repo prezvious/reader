@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-04-09T06:03:44.192Z",
+  "model": "google/gemma-4-31b-it:free",
+  "fallbackModels": [
+    "openrouter/free"
+  ],
+  "count": 8,
+  "summaries": [
+    {
+      "slug": "first-principles-thinking",
+      "title": "Why First Principles Thinking Beats Analogical Reasoning",
+      "generatedAt": "2026-04-09T06:00:12.892Z",
+      "model": "openrouter/free"
+    },
+    {
+      "slug": "how-reading-slowly-filled-the-gaps-i-didnt-know-i-had",
+      "title": "How Reading Slowly Filled the Gaps I Didn't Know I Had",
+      "generatedAt": "2026-04-09T06:03:42.954Z",
+      "model": "openrouter/free"
+    },
+    {
+      "slug": "inversion-problem-solving",
+      "title": "Inversion: The Problem-Solving Technique Nobody Uses",
+      "generatedAt": "2026-04-09T06:15:00.000Z",
+      "model": "Seed summary"
+    },
+    {
+      "slug": "the-art-of-decisions",
+      "title": "The Art of Making Decisions That Stick",
+      "generatedAt": "2026-04-09T06:00:51.459Z",
+      "model": "openrouter/free"
+    },
+    {
+      "slug": "the-engineering-mindset",
+      "title": "The Three Essential Properties of the Engineering Mindset",
+      "generatedAt": "2026-04-09T06:15:00.000Z",
+      "model": "Seed summary"
+    },
+    {
+      "slug": "the-genius-code-five-thinking-rules-that-made-socrates-da-vinci-and-einstein-unstoppable",
+      "title": "The Genius Code. Five Thinking Rules That Made Socrates, Da Vinci, and Einstein Unstoppable",
+      "generatedAt": "2026-04-09T06:15:00.000Z",
+      "model": "Seed summary"
+    },
+    {
+      "slug": "the-reasons-we-dont-learn-a-language",
+      "title": "The Reasons We Don’t Learn a Language",
+      "generatedAt": "2026-04-09T06:15:00.000Z",
+      "model": "Seed summary"
+    },
+    {
+      "slug": "the-wild-things-we-do-for-love",
+      "title": "the wild things we do for love.",
+      "generatedAt": "2026-04-09T06:15:00.000Z",
+      "model": "Seed summary"
+    }
+  ]
+}

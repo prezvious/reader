@@ -140,6 +140,19 @@
     </div>
     <article class="article-body" id="article-body"></article>
 
+    <div class="summary-launcher" id="summary-launcher" hidden>
+      <button class="summary-trigger" id="summary-trigger" type="button" aria-label="Open AI summary" aria-controls="summary-drawer" aria-expanded="false">
+        <span class="summary-trigger__icon-wrap">
+          <img class="summary-trigger__icon" src="icon/summarize.svg" alt="" aria-hidden="true">
+        </span>
+        <span class="summary-trigger__copy">
+          <span class="summary-trigger__eyebrow">AI summary</span>
+          <span class="summary-trigger__label" id="summary-trigger-label">Preparing summary</span>
+        </span>
+        <span class="summary-trigger__status" id="summary-trigger-status" aria-hidden="true"></span>
+      </button>
+    </div>
+
     <div class="article-footer" id="article-footer">
       <div class="reactions-section">
         <p class="reactions-section__title">Reactions</p>
@@ -159,6 +172,52 @@
       </a>
     </div>
   </main>
+
+  <div class="summary-backdrop" id="summary-backdrop" hidden></div>
+  <aside class="summary-drawer" id="summary-drawer" aria-hidden="true" aria-labelledby="summary-title" role="dialog" aria-modal="true">
+    <div class="summary-drawer__header">
+      <div class="summary-drawer__heading">
+        <p class="summary-drawer__eyebrow">Reader Intelligence</p>
+        <h2 class="summary-drawer__title" id="summary-title">Article Summary</h2>
+        <p class="summary-drawer__subtitle" id="summary-subtitle">A precomputed overview is loading in the background.</p>
+      </div>
+      <button class="summary-drawer__close" id="summary-close" type="button" aria-label="Close summary panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="summary-drawer__meta">
+      <span class="summary-chip" id="summary-chip">Preparing summary</span>
+      <span class="summary-drawer__model" id="summary-model"></span>
+    </div>
+
+    <div class="summary-drawer__body">
+      <div class="summary-state summary-state--loading" id="summary-loading">
+        <div class="summary-skeleton">
+          <div class="summary-skeleton__line summary-skeleton__line--short"></div>
+          <div class="summary-skeleton__line"></div>
+          <div class="summary-skeleton__line"></div>
+          <div class="summary-skeleton__line summary-skeleton__line--medium"></div>
+          <div class="summary-skeleton__line summary-skeleton__line--section"></div>
+          <div class="summary-skeleton__line"></div>
+          <div class="summary-skeleton__line summary-skeleton__line--long"></div>
+          <div class="summary-skeleton__line summary-skeleton__line--medium"></div>
+        </div>
+      </div>
+
+      <div class="summary-state summary-state--error" id="summary-error" hidden>
+        <h3 class="summary-state__title">Summary unavailable</h3>
+        <p class="summary-state__text">This article does not have a precomputed AI summary yet.</p>
+      </div>
+
+      <div class="summary-state summary-state--empty" id="summary-empty" hidden>
+        <h3 class="summary-state__title">No summary returned</h3>
+        <p class="summary-state__text">The summary file loaded, but it did not include readable content.</p>
+      </div>
+
+      <div class="summary-content" id="summary-content" hidden></div>
+    </div>
+  </aside>
 
   <!-- ===== FIND BAR ===== -->
   <div class="find-bar" id="find-bar" style="display:none;">
@@ -190,6 +249,7 @@
   <script src="js/auth.js"></script>
   <script src="js/manifest.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/article-summary.js"></script>
   <script src="js/reader.js"></script>
   <script>
     (function () {

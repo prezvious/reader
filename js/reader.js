@@ -18,6 +18,9 @@
       return Manifest.calcReadTime(article).then(function () {
         setPageMetadata(article);
         renderArticleHero(article);
+        if (window.ArticleSummary && typeof window.ArticleSummary.prepare === 'function') {
+          window.ArticleSummary.prepare(article);
+        }
         loadArticleContent(article);
         renderRelatedArticles(article);
       });

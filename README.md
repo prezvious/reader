@@ -65,6 +65,25 @@ reader/
 
 Articles are stored as plain HTML files inside the `articles/` folder. Each article gets its own subfolder with an `index.html` for the content. Then you register it in `manifest.json` with its title, author, category, and other metadata. That's all it takes — no database, no CMS, just files.
 
+## AI Summaries
+
+Article pages can preload a right-side AI summary drawer from static payloads in `data/summaries/`. To rebuild those files, run:
+
+```bash
+OPENROUTER_API_KEY=your_key_here node scripts/generate-article-summaries.mjs --force
+```
+
+The generator tries `google/gemma-4-31b-it:free` first, then falls back to `openrouter/free` if the primary route is rate-limited. You can override the model chain with `OPENROUTER_SUMMARY_MODELS` or `--models`.
+
+For a one-command retry loop on Windows PowerShell:
+
+```powershell
+$env:OPENROUTER_API_KEY="your_key_here"
+.\scripts\retry-generate-article-summaries.ps1 -Force
+```
+
+Run either script after adding or updating articles so the drawer stays in sync.
+
 ## Tech
 
 - Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools
