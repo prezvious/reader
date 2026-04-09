@@ -2,6 +2,7 @@
   'use strict';
 
   var LOCAL_CONFIG_PATH = 'js/private-config.local.json';
+  var PUBLIC_CONFIG_PATH = 'js/config.json';
   var PUBLIC_CONFIG = window.READER_BACKEND_CONFIG || null;
   var UNAVAILABLE_MESSAGE = 'Connected features are unavailable because the browser config is missing.';
 
@@ -122,13 +123,27 @@
     return null;
   }
 
+  function loadPublicConfig() {
+    try {
+      var request = new XMLHttpRequest();
+      request.open('GET', PUBLIC_CONFIG_PATH, false);
+      request.send(null);
+      if (request.status >= 200 && request.status < 300 && request.responseText) {
+        return JSON.parse(request.responseText);
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  }
+
   if (typeof window.supabase === 'undefined') {
     setUnavailable('Reader data client SDK not loaded. Connected features are disabled.');
     return;
   }
 
   var localOverride = loadLocalOverrideConfig();
-  var runtimeConfig = localOverride || PUBLIC_CONFIG;
+  var runtimeConfig = localOverride || PUBLIC_CONFIG || loadPublicConfig();
 
   if (!runtimeConfig || !runtimeConfig.url || !runtimeConfig.anonKey) {
     setUnavailable(UNAVAILABLE_MESSAGE);
