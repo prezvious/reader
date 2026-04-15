@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Reader — A curated collection of essays, guides, and long-form articles.">
+  <meta name="description" content="Reader - A quiet place to read.">
   <meta property="og:title" content="Reader">
-  <meta property="og:description" content="A curated collection of essays, guides, and long-form articles.">
-  <title>Reader — Ideas Worth Reading</title>
+  <meta property="og:description" content="A quiet place to read.">
+  <title>Reader - Worth Reading</title>
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -120,48 +120,11 @@
     <section class="hero">
       <div class="container">
         <p class="hero__label">Editorial</p>
-        <h1 class="hero__title">Ideas worth<br>reading.</h1>
-        <p class="hero__subtitle">A curated collection of essays, guides, and long-form articles on thinking, learning, and living well.</p>
+        <h1 class="hero__title">Worth reading</h1>
+        <p class="hero__subtitle">A quiet place to read</p>
         <a href="articles.html" class="btn btn--primary">Browse Articles
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
-      </div>
-    </section>
-
-    <section class="featured-section">
-      <div class="container">
-        <p class="featured__eyebrow">Featured</p>
-        <h2 class="featured__title">Handpicked reads to start with</h2>
-        <div class="article-grid" id="featured-grid">
-          <!-- Skeleton placeholders -->
-          <div class="skeleton-card">
-            <div class="skeleton-card__image skeleton"></div>
-            <div class="skeleton-card__body">
-              <div class="skeleton-card__line skeleton" style="width:30%;"></div>
-              <div class="skeleton-card__line skeleton-card__line--title skeleton"></div>
-              <div class="skeleton-card__line skeleton"></div>
-              <div class="skeleton-card__line skeleton skeleton-card__line--short"></div>
-            </div>
-          </div>
-          <div class="skeleton-card">
-            <div class="skeleton-card__image skeleton"></div>
-            <div class="skeleton-card__body">
-              <div class="skeleton-card__line skeleton" style="width:30%;"></div>
-              <div class="skeleton-card__line skeleton-card__line--title skeleton"></div>
-              <div class="skeleton-card__line skeleton"></div>
-              <div class="skeleton-card__line skeleton skeleton-card__line--short"></div>
-            </div>
-          </div>
-          <div class="skeleton-card">
-            <div class="skeleton-card__image skeleton"></div>
-            <div class="skeleton-card__body">
-              <div class="skeleton-card__line skeleton" style="width:30%;"></div>
-              <div class="skeleton-card__line skeleton-card__line--title skeleton"></div>
-              <div class="skeleton-card__line skeleton"></div>
-              <div class="skeleton-card__line skeleton skeleton-card__line--short"></div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   </main>
@@ -185,84 +148,18 @@
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      /* Load public content first — no auth gate */
-      Manifest.load().then(function () {
-        return Manifest.calcAllReadTimes();
-      }).then(function () {
-        var featured = Manifest.getFeatured();
-        var grid = document.getElementById('featured-grid');
-        if (!grid || !featured.length) return;
+      Manifest.load().catch(function () { /* Search can still use connected sources */ });
 
-        grid.innerHTML = featured.slice(0, 3).map(function (article, i) {
-          var initials = Manifest.getInitials(article.author.name);
-          var date = Manifest.formatDate(article.publishedAt);
-          var url = App.getArticleUrl(article.slug);
-          var hasImage = article.coverImage && article.coverImage.length > 0;
-          var imageHtml = hasImage
-            ? '<img class="article-card__image" src="' + App.escapeHtml(article.coverImage) + '" alt="' + App.escapeHtml(article.coverImageAlt || article.title) + '" loading="lazy">'
-            : '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
-          var avatarHtml = article.author.avatar
-            ? '<div class="article-card__avatar"><img src="' + App.escapeHtml(article.author.avatar) + '" alt="' + App.escapeHtml(article.author.name) + '" loading="lazy"></div>'
-            : '<div class="article-card__avatar">' + App.escapeHtml(initials) + '</div>';
-
-          return '<article class="article-card reveal" data-slug="' + App.escapeHtml(article.slug) + '" style="transition-delay:' + (i * 0.1) + 's">' +
-            '<a href="' + App.escapeHtml(url) + '" class="article-card__link" aria-label="' + App.escapeHtml(article.title) + ' by ' + App.escapeHtml(article.author.name) + '">' + imageHtml + '</a>' +
-            '<div class="article-card__body">' +
-              '<span class="article-card__category">' + App.escapeHtml(article.category) + '</span>' +
-              '<h2 class="article-card__title">' + App.escapeHtml(article.title) + '</h2>' +
-              '<p class="article-card__excerpt">' + App.escapeHtml(article.excerpt) + '</p>' +
-              '<div class="article-card__meta">' +
-                avatarHtml +
-                '<div class="article-card__info">' +
-                  '<div class="article-card__author">' + App.escapeHtml(article.author.name) + '</div>' +
-                  '<div class="article-card__date">' + App.escapeHtml(date) + '</div>' +
-                '</div>' +
-                '<span class="article-card__read-time">' + (article.readTime || '—') + ' min read</span>' +
-              '</div>' +
-            '</div>' +
-          '</article>';
-        }).join('');
-
-        grid.querySelectorAll('.article-card').forEach(function (card) {
-          card.addEventListener('click', function () {
-            var slug = card.getAttribute('data-slug');
-            if (slug) window.location.href = App.getArticleUrl(slug);
-          });
-        });
-
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.1 });
-        grid.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
-      });
-
-      /* Optionally hydrate user-specific UI if logged in.
-         Use initAuth (no redirect) — this is a public page. */
       Auth.initAuth().then(function (user) {
         if (user) App.renderUser(user);
-      }).catch(function () { /* Not logged in — that's fine for public pages */ });
+      }).catch(function () { /* Not logged in - public page */ });
     });
   </script>
   <style>
     .hero {
       position: relative;
-      padding: var(--space-12) 0 var(--space-10);
+      padding: var(--space-16) 0;
       text-align: center;
-    }
-    .hero::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%);
-      width: min(100%, 320px);
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--border) 50%, transparent);
     }
     .hero__label {
       font-family: 'DM Sans', sans-serif;
@@ -275,46 +172,26 @@
     }
     .hero__title {
       font-family: 'Newsreader', Georgia, serif;
-      font-size: clamp(2.5rem, 2rem + 3vw, 4rem);
+      font-size: clamp(2.35rem, 2rem + 2.2vw, 3.5rem);
       font-weight: 600;
       line-height: 1.1;
       letter-spacing: -0.03em;
       color: var(--text-primary);
       margin-bottom: var(--space-5);
+      text-wrap: balance;
     }
     .hero__subtitle {
       font-family: 'DM Sans', sans-serif;
-      font-size: 1.15rem;
+      font-size: 1rem;
       color: var(--text-secondary);
       line-height: 1.6;
-      max-width: 520px;
+      max-width: 360px;
       margin: 0 auto var(--space-8);
     }
-    .featured-section {
-      padding: var(--space-10) 0;
-    }
-    .featured__eyebrow {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-3);
-    }
-    .featured__title {
-      font-family: 'Newsreader', Georgia, serif;
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-bottom: var(--space-8);
-      letter-spacing: -0.01em;
-    }
     @media (max-width: 767px) {
-      .hero { padding: var(--space-8) 0 var(--space-8); }
+      .hero { padding: var(--space-12) 0; }
       .hero__title { font-size: 2.25rem; }
       .hero__subtitle { font-size: 1rem; }
-      .featured-section { padding: var(--space-8) 0; }
-      .featured__title { font-size: 1.5rem; }
     }
   </style>
   <script src="js/search.js"></script>
