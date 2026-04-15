@@ -5,23 +5,19 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Search Reader articles.">
-  <title>Search — Reader</title>
+  <title>Search â€” Reader</title>
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/search.css">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap" as="style">
-  <link rel="icon" type="image/png" href="icon/favicon-256.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>R</text></svg>">
 </head>
 <body data-page="search">
 
   <header class="header">
     <div class="header__inner">
-      <a href="index.html" class="header__logo brand-lockup">
-        <span class="sr-only">Reader</span>
-        <img src="icon/r-brand-mark.png" class="brand-lockup__mark" width="192" height="192" alt="" aria-hidden="true">
-        <span class="brand-lockup__text" aria-hidden="true">eader</span>
-      </a>
+      <a href="index.html" class="header__logo">Reader</a>
       <nav class="header__nav">
         <a href="index.html" class="header__link">Home</a>
         <a href="articles.html" class="header__link">Articles</a>
@@ -44,27 +40,78 @@
               <div class="avatar-dropdown__email" id="menu-email"></div>
             </div>
             <div class="avatar-dropdown__list">
-              <a href="dashboard.html" class="avatar-dropdown__item">Dashboard</a>
-              <a href="profile.html" class="avatar-dropdown__item">Profile</a>
-              <button class="avatar-dropdown__item avatar-dropdown__signout" id="avatar-signout">Sign out</button>
+              <a href="dashboard.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </a>
+              <a href="bookmarks.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Bookmarks
+              </a>
+              <a href="history.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Reading History
+              </a>
+              <a href="profile.html" class="avatar-dropdown__item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile Settings
+              </a>
+              <div class="avatar-dropdown__divider"></div>
+              <button class="avatar-dropdown__item avatar-dropdown__item--danger" id="menu-signout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
-      <button class="header__mobile-menu" id="mobile-menu" aria-label="Menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
     </div>
   </header>
 
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar__content">
-      <a href="dashboard.html" class="sidebar__link">Dashboard</a>
-      <a href="bookmarks.html" class="sidebar__link">Bookmarks</a>
-      <a href="history.html" class="sidebar__link">Reading History</a>
-      <a href="profile.html" class="sidebar__link">Profile</a>
+    <a href="index.html" class="sidebar__logo">Reader</a>
+    <div class="sidebar__user" id="sidebar-user">
+      <div class="sidebar__user-avatar" id="sidebar-avatar">
+        <span id="sidebar-initials">?</span>
+      </div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar__user-email" id="sidebar-email"></div>
+      </div>
     </div>
-    <button class="sidebar__signout" id="sidebar-signout">Sign Out</button>
+    <div class="sidebar__nav">
+      <a href="index.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="articles.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Articles
+      </a>
+      <a href="dashboard.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="bookmarks.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Bookmarks
+      </a>
+      <a href="history.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Reading History
+      </a>
+      <a href="profile.html" class="sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+    <button class="sidebar__signout" id="sidebar-signout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
   </nav>
   <div class="mobile-overlay" id="mobile-overlay"></div>
 
@@ -78,89 +125,119 @@
         </div>
       </div>
       <div class="search-page__meta" id="search-page-meta" aria-live="polite"></div>
-      <div class="article-grid" id="search-results-grid"></div>
+      <div class="article-grid search-page__results" id="search-results-grid"></div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="container">
-      <div class="footer__inner">
-        <div class="footer__brand">
-          <div class="footer__logo brand-lockup">
-            <span class="sr-only">Reader</span>
-            <img src="icon/r-brand-mark.png" class="brand-lockup__mark" width="192" height="192" alt="" aria-hidden="true">
-            <span class="brand-lockup__text" aria-hidden="true">eader</span>
-          </div>
-          <div class="footer__desc">A curated collection of essays, guides, and long-form articles.</div>
-        </div>
-        <div class="footer__links">
-          <a href="index.html" class="footer__link">Home</a>
-          <a href="articles.html" class="footer__link">Articles</a>
-        </div>
-      </div>
-      <div class="footer__bottom">
-        <span>© 2026 Reader.</span>
-      </div>
+    <div class="footer__inner">
+      <p class="footer__brand">Reader</p>
+      <nav class="footer__nav">
+        <a href="index.html">Home</a>
+        <a href="articles.html">Articles</a>
+        <a href="mailto:saxumfluens@gmail.com">Contact</a>
+      </nav>
+      <p class="footer__copy">&copy; 2026 &middot; All rights reserved</p>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/manifest.js"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/manifest.js"></script>
   <script src="js/app.js"></script>
   <script src="js/search.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async function() {
+    document.addEventListener('DOMContentLoaded', async function () {
       var params = new URLSearchParams(window.location.search);
       var query = params.get('q');
       var input = document.getElementById('search-page-input');
       var grid = document.getElementById('search-results-grid');
       var meta = document.getElementById('search-page-meta');
+      var titleEl = document.getElementById('search-page-title');
 
-      if (query) {
+      try {
+        await Manifest.load();
+        await Manifest.calcAllReadTimes();
+      } catch (err) {
+        console.warn('Search manifest load failed:', err);
+      }
+
+      Auth.initAuth().then(function (user) {
+        if (user) App.renderUser(user);
+      }).catch(function () { /* Public page */ });
+
+      if (!query) {
+        if (titleEl) titleEl.textContent = 'Search the archive';
+        meta.textContent = 'Find essays, guides, and long-form articles across Reader.';
+      } else {
         input.value = query;
-        var titleEl = document.getElementById('search-page-title');
         if (titleEl) titleEl.textContent = 'Search results for "' + query + '"';
-        document.title = query + " — Search — Reader";
+        document.title = query + ' â€” Search â€” Reader';
         meta.textContent = 'Searching...';
 
         var start = performance.now();
-        var dbResults = window.Supabase && window.Supabase.searchArticles ? await window.Supabase.searchArticles(query) : [];
+        var dbResults = [];
+        try {
+          dbResults = window.Supabase && window.Supabase.searchArticles ? await window.Supabase.searchArticles(query) : [];
+        } catch (err) {
+          console.warn('DB search failed:', err);
+        }
         var staticResults = window.Manifest && window.Manifest.searchArticles ? window.Manifest.searchArticles(query) : [];
-
-        var allResults = dbResults.concat(staticResults.filter(function (s) {
-          return !dbResults.some(function (d) { return d.slug === s.slug; });
+        var allResults = dbResults.concat(staticResults.filter(function (item) {
+          return !dbResults.some(function (dbItem) { return dbItem.slug === item.slug; });
         }));
         var end = performance.now();
         var time = ((end - start) / 1000).toFixed(2);
 
-        meta.textContent = allResults.length + ' result' + (allResults.length !== 1 ? 's' : '') + ' · ' + time + 's';
+        meta.textContent = allResults.length + ' result' + (allResults.length !== 1 ? 's' : '') + ' Â· ' + time + 's';
 
         if (allResults.length === 0) {
-          grid.innerHTML = '<div class="search-empty" style="grid-column:1/-1;margin-top:var(--space-8);"><svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty__title">No articles match "' + query + '"</div><div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div></div>';
+          grid.innerHTML = '<div class="search-empty"><svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty__title">No articles match "' + App.escapeHtml(query) + '"</div><div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a>.</div></div>';
         } else {
-          grid.innerHTML = allResults.map(function(article) {
-            var author = article.author_name || 'Unknown';
-            var cat = article.category || 'Uncategorized';
-            var excerpt = article.highlighted_excerpt || article.excerpt || '';
-            var readTime = window.Manifest ? window.Manifest.calcReadTimeFromText(article.content_html || article.excerpt) + ' min read' : '';
-            return '<a href="article.html?slug=' + encodeURIComponent(article.slug) + '" class="article-card">' +
-              '<div class="article-card__content">' +
-                '<div class="article-card__meta">' + author + ' · ' + cat + '</div>' +
-                '<h2 class="article-card__title">' + article.title + '</h2>' +
-                '<p class="article-card__excerpt">' + excerpt + '</p>' +
-                '<div class="article-card__footer">' + readTime + '</div>' +
+          grid.innerHTML = allResults.map(function (result) {
+            var manifestArticle = (window.ARTICLES || []).find(function (item) { return item.slug === result.slug; }) || null;
+            var authorName = manifestArticle && manifestArticle.author ? manifestArticle.author.name : (result.author_name || 'Unknown');
+            var category = manifestArticle ? manifestArticle.category : (result.category || 'Uncategorized');
+            var initials = Manifest.getInitials(authorName);
+            var title = manifestArticle ? manifestArticle.title : result.title;
+            var excerpt = manifestArticle ? manifestArticle.excerpt : (result.excerpt || '');
+            var coverImage = manifestArticle ? manifestArticle.coverImage : '';
+            var coverImageAlt = manifestArticle ? (manifestArticle.coverImageAlt || title) : title;
+            var publishedAt = manifestArticle ? manifestArticle.publishedAt : (result.published_at || result.updated_at || '');
+            var readTimeValue = manifestArticle && manifestArticle.readTime
+              ? manifestArticle.readTime
+              : Manifest.calcReadTimeFromText(result.content_html || excerpt || '');
+            var imageHtml = coverImage
+              ? '<img class="article-card__image" src="' + App.escapeHtml(coverImage) + '" alt="' + App.escapeHtml(coverImageAlt) + '" loading="lazy">'
+              : '<div class="article-card__image article-card__image--placeholder">' + App.escapeHtml(initials) + '</div>';
+
+            return '<article class="article-card">' +
+              '<a href="article.html?slug=' + encodeURIComponent(result.slug) + '" class="article-card__link" aria-label="' + App.escapeHtml(title) + ' by ' + App.escapeHtml(authorName) + '">' +
+                imageHtml +
+              '</a>' +
+              '<div class="article-card__body">' +
+                '<span class="article-card__category">' + App.escapeHtml(category) + '</span>' +
+                '<h2 class="article-card__title">' + App.escapeHtml(title) + '</h2>' +
+                '<p class="article-card__excerpt">' + App.escapeHtml(excerpt) + '</p>' +
+                '<div class="article-card__meta">' +
+                  '<div class="article-card__info">' +
+                    '<div class="article-card__author">' + App.escapeHtml(authorName) + '</div>' +
+                    '<div class="article-card__date">' + App.escapeHtml(Manifest.formatDate(publishedAt)) + '</div>' +
+                  '</div>' +
+                  '<span class="article-card__read-time">' + App.escapeHtml(String(readTimeValue)) + ' min read</span>' +
+                '</div>' +
               '</div>' +
-            '</a>';
+            '</article>';
           }).join('');
         }
       }
 
-      input.addEventListener('keydown', function(e) {
+      input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
-          var val = e.target.value.trim();
-          if (val.length >= 2) {
-            window.location.href = 'search.html?q=' + encodeURIComponent(val);
+          var value = e.target.value.trim();
+          if (value.length >= 2) {
+            window.location.href = 'search.html?q=' + encodeURIComponent(value);
           }
         }
       });

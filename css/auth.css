@@ -30,25 +30,6 @@
   display: block;
 }
 
-.auth-card__logo.brand-lockup {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: max-content;
-  margin-inline: auto;
-}
-
-.auth-card__logo:hover {
-  color: var(--text-secondary);
-}
-
-.auth-card__logo:hover .brand-lockup__mark {
-  transform: translateY(-1px);
-}
-
-.auth-card__logo:hover .brand-lockup__text {
-  filter: brightness(1.08);
-}
 
 .auth-card__title {
   font-family: 'Newsreader', Georgia, serif;
