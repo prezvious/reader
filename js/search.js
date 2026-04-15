@@ -7,18 +7,25 @@
   var results = [];
   var focusedIndex = -1;
 
+  function renderIcon(name, className) {
+    if (window.ReaderIcons && typeof window.ReaderIcons.render === 'function') {
+      return window.ReaderIcons.render(name, className);
+    }
+
+    return '';
+  }
+
   function init() {
     var trigger = document.getElementById('search-trigger');
     if (trigger) {
       trigger.addEventListener('click', toggleOverlay);
     }
-    // Handle triggers across multiple pages if there are multiple elements (though ID should be unique, sometimes it's not)
-    var triggers = document.querySelectorAll('.header__search-trigger');
-    triggers.forEach(function(t) {
-      t.removeEventListener('click', toggleOverlay); // Prevent dupes
-      t.addEventListener('click', toggleOverlay);
+
+    document.querySelectorAll('.header__search-trigger').forEach(function (item) {
+      item.removeEventListener('click', toggleOverlay);
+      item.addEventListener('click', toggleOverlay);
     });
-    
+
     document.addEventListener('keydown', handleKeydown);
   }
 
@@ -29,31 +36,31 @@
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Search articles');
-    overlay.innerHTML = `
-      <div class="search-palette">
-        <div class="search-input-wrapper">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="search-input" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-owns="search-results">
-        </div>
-        <div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>
-        <div class="search-keyboard-hints">
-          <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-          <span><kbd>↵</kbd> open</span>
-          <span><kbd>esc</kbd> close</span>
-        </div>
-      </div>
-    `;
+    overlay.innerHTML =
+      '<div class="search-palette">' +
+        '<div class="search-input-wrapper">' +
+          renderIcon('magnifying-glass') +
+          '<input type="text" class="search-input" id="search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results" aria-owns="search-results">' +
+        '</div>' +
+        '<div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>' +
+        '<div class="search-keyboard-hints">' +
+          '<span><kbd>up</kbd><kbd>down</kbd> navigate</span>' +
+          '<span><kbd>enter</kbd> open</span>' +
+          '<span><kbd>esc</kbd> close</span>' +
+        '</div>' +
+      '</div>';
+
     document.body.appendChild(overlay);
-    
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) closeOverlay();
+
+    overlay.addEventListener('click', function (event) {
+      if (event.target === overlay) closeOverlay();
     });
-    
-    document.getElementById('search-input').addEventListener('input', function(e) {
-      searchQuery = e.target.value;
+
+    document.getElementById('search-input').addEventListener('input', function (event) {
+      searchQuery = event.target.value;
       debouncedSearch(searchQuery);
     });
-    
+
     return overlay;
   }
 
@@ -62,11 +69,16 @@
     if (!overlay) {
       overlay = createOverlay();
     }
+
     overlay.classList.add('search-overlay--open');
     document.body.classList.add('search-open');
+
     var input = document.getElementById('search-input');
-    if (input) input.setAttribute('aria-expanded', 'true');
-    input.focus();
+    if (input) {
+      input.setAttribute('aria-expanded', 'true');
+      input.focus();
+    }
+
     isOpen = true;
     if (searchQuery) executeSearch(searchQuery);
   }
@@ -74,26 +86,35 @@
   function closeOverlay() {
     var overlay = document.getElementById('search-overlay');
     if (overlay) overlay.classList.remove('search-overlay--open');
+
     document.body.classList.remove('search-open');
-    var input = document.getElementById('search-input');
-    if (input) input.setAttribute('aria-expanded', 'false');
     clearTimeout(debounceTimer);
     isOpen = false;
+
+    var input = document.getElementById('search-input');
+    if (input) input.setAttribute('aria-expanded', 'false');
+
     var trigger = document.getElementById('search-trigger');
     if (trigger) trigger.focus();
   }
 
   function toggleOverlay() {
-    if (isOpen) closeOverlay();
-    else openOverlay();
+    if (isOpen) {
+      closeOverlay();
+      return;
+    }
+
+    openOverlay();
   }
 
   function debouncedSearch(query) {
     clearTimeout(debounceTimer);
+
     if (!query || query.length < 2) {
       document.getElementById('search-results').innerHTML = '<div class="search-empty"><div class="search-empty__text">Type at least 2 characters...</div></div>';
       return;
     }
+
     debounceTimer = setTimeout(function () {
       executeSearch(query.trim());
     }, 300);
@@ -101,54 +122,57 @@
 
   async function executeSearch(query) {
     document.getElementById('search-results').innerHTML = '<div class="search-empty"><div class="search-empty__text">Searching...</div></div>';
-    
+
     var dbResults = window.Supabase && window.Supabase.searchArticles ? await window.Supabase.searchArticles(query) : [];
     var staticResults = window.Manifest && window.Manifest.searchArticles ? window.Manifest.searchArticles(query) : [];
 
-    var allResults = dbResults.concat(staticResults.filter(function (s) {
-      return !dbResults.some(function (d) { return d.slug === s.slug; });
+    var allResults = dbResults.concat(staticResults.filter(function (item) {
+      return !dbResults.some(function (dbItem) { return dbItem.slug === item.slug; });
     }));
-    
+
     results = allResults;
     focusedIndex = -1;
     renderResults(results);
   }
 
-  function renderResults(results) {
+  function renderResults(items) {
     var container = document.getElementById('search-results');
-    if (!results || results.length === 0) {
-      container.innerHTML = `<div class="search-empty">
-        <svg class="search-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <div class="search-empty__title">No articles match "${searchQuery}"</div>
-        <div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div>
-      </div>`;
+
+    if (!items || items.length === 0) {
+      container.innerHTML =
+        '<div class="search-empty">' +
+          renderIcon('magnifying-glass', 'search-empty__icon') +
+          '<div class="search-empty__title">No articles match "' + searchQuery + '"</div>' +
+          '<div class="search-empty__text">Try different keywords, or <a href="articles.html">Browse all articles</a></div>' +
+        '</div>';
       return;
     }
 
-    var html = results.slice(0, 5).map(function (r, i) {
-      var highlighted = r.highlighted_excerpt || r.excerpt || '';
-      var author = r.author_name || 'Unknown';
-      var cat = r.category || 'Uncategorized';
-      return `<a href="article.html?slug=${r.slug}" class="search-result" data-index="${i}" role="option" id="search-option-${i}">
-        <span class="search-result__icon">📄</span>
-        <div class="search-result__body">
-          <span class="search-result__title">${r.title}</span>
-          <span class="search-result__meta">${author} · ${cat}</span>
-          <span class="search-result__excerpt">${highlighted}</span>
-        </div>
-      </a>`;
+    var html = items.slice(0, 5).map(function (item, index) {
+      var highlighted = item.highlighted_excerpt || item.excerpt || '';
+      var author = item.author_name || 'Unknown';
+      var category = item.category || 'Uncategorized';
+
+      return '<a href="article.html?slug=' + item.slug + '" class="search-result" data-index="' + index + '" role="option" id="search-option-' + index + '">' +
+        renderIcon('file-text', 'search-result__icon') +
+        '<div class="search-result__body">' +
+          '<span class="search-result__title">' + item.title + '</span>' +
+          '<span class="search-result__meta">' + author + ' | ' + category + '</span>' +
+          '<span class="search-result__excerpt">' + highlighted + '</span>' +
+        '</div>' +
+      '</a>';
     }).join('');
 
-    if (results.length > 5) {
-      html += `<a href="search.html?q=${encodeURIComponent(searchQuery)}" class="search-view-all">View all ${results.length} results →</a>`;
+    if (items.length > 5) {
+      html += '<a href="search.html?q=' + encodeURIComponent(searchQuery) + '" class="search-view-all">View all ' + items.length + ' results</a>';
     }
 
     container.innerHTML = html;
   }
 
-  function handleKeydown(e) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
+  function handleKeydown(event) {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault();
       toggleOverlay();
       return;
     }
@@ -158,38 +182,49 @@
     var palette = document.querySelector('.search-palette');
     var items = document.querySelectorAll('.search-result, .search-view-all');
 
-    if (e.key === 'Escape') {
+    if (event.key === 'Escape') {
       closeOverlay();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
       if (items.length === 0) return;
       focusedIndex = (focusedIndex + 1) % items.length;
       updateFocus(items);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
       if (items.length === 0) return;
       focusedIndex = (focusedIndex - 1 + items.length) % items.length;
       updateFocus(items);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
       if (focusedIndex >= 0 && items[focusedIndex]) {
         window.location.href = items[focusedIndex].getAttribute('href');
       } else if (searchQuery.length >= 2) {
         window.location.href = 'search.html?q=' + encodeURIComponent(searchQuery);
       }
-    } else if (e.key === 'Tab' && palette) {
-      /* Focus trap: cycle within the palette only */
+      return;
+    }
+
+    if (event.key === 'Tab' && palette) {
       var focusable = Array.from(palette.querySelectorAll('input, a, button, [tabindex]:not([tabindex="-1"])'));
       if (focusable.length === 0) return;
 
       var firstEl = focusable[0];
       var lastEl = focusable[focusable.length - 1];
 
-      if (e.shiftKey && document.activeElement === firstEl) {
-        e.preventDefault();
+      if (event.shiftKey && document.activeElement === firstEl) {
+        event.preventDefault();
         lastEl.focus();
-      } else if (!e.shiftKey && document.activeElement === lastEl) {
-        e.preventDefault();
+      } else if (!event.shiftKey && document.activeElement === lastEl) {
+        event.preventDefault();
         firstEl.focus();
       }
     }
@@ -197,18 +232,18 @@
 
   function updateFocus(items) {
     var input = document.getElementById('search-input');
-    items.forEach(function(item, i) {
-      if (i === focusedIndex) {
+
+    items.forEach(function (item, index) {
+      if (index === focusedIndex) {
         item.classList.add('search-result--focused');
         item.setAttribute('aria-selected', 'true');
-        /* Use aria-activedescendant for screen readers */
         if (input) input.setAttribute('aria-activedescendant', item.id);
       } else {
         item.classList.remove('search-result--focused');
         item.removeAttribute('aria-selected');
       }
     });
-    /* Clear aria-activedescendant when nothing is focused */
+
     if (focusedIndex < 0 && input) input.removeAttribute('aria-activedescendant');
   }
 

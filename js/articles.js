@@ -42,6 +42,15 @@
     pageState.view = Utils.coerceView(readStoredPreference(Utils.STORAGE_KEYS.view));
   }
 
+  function readRequestedCategory() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('category') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function getAuthorName(article) {
     return article && article.author && article.author.name ? article.author.name : 'Anonymous';
   }
@@ -226,6 +235,7 @@
     initToolbar();
 
     Manifest.load().then(function () {
+      pageState.category = readRequestedCategory() || pageState.category;
       return Manifest.calcAllReadTimes();
     }).then(function () {
       renderCategoryFilters();

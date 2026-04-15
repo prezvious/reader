@@ -1,6 +1,14 @@
 (function () {
   'use strict';
 
+  function renderIcon(name, className) {
+    if (window.ReaderIcons && typeof window.ReaderIcons.render === 'function') {
+      return window.ReaderIcons.render(name, className);
+    }
+
+    return '';
+  }
+
   function init() {
     var slug = App.getCurrentSlug();
     if (!slug) {
@@ -28,7 +36,7 @@
   }
 
   function setPageMetadata(article) {
-    document.title = article.title + ' — Reader';
+    document.title = article.title + ' - Reader';
 
     var metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', article.excerpt);
@@ -69,8 +77,8 @@
           '<span>' + date + '</span>' +
           '<span class="article-byline__divider">&middot;</span>' +
           '<span class="article-byline__read-time">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
-            (article.readTime || '—') + ' min read' +
+            renderIcon('clock') +
+            (article.readTime || '-') + ' min read' +
           '</span>' +
         '</div>' +
       '</div>';
@@ -321,7 +329,7 @@
                 '<div class="article-card__author">' + App.escapeHtml(a.author.name) + '</div>' +
                 '<div class="article-card__date">' + Manifest.formatDate(a.publishedAt) + '</div>' +
               '</div>' +
-              '<span class="article-card__read-time">' + (a.readTime || '—') + ' min read</span>' +
+              '<span class="article-card__read-time">' + (a.readTime || '-') + ' min read</span>' +
             '</div>' +
           '</div>' +
         '</article>';
@@ -356,7 +364,7 @@
     if (body) {
       body.innerHTML =
         '<div class="article-error">' +
-          '<svg class="article-error__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+          renderIcon('warning-circle', 'article-error__icon') +
           '<h2 class="article-error__title">' + App.escapeHtml(title) + '</h2>' +
           '<p class="article-error__text">' + App.escapeHtml(text) + '</p>' +
           '<a href="articles.html" class="btn btn--primary">Browse all articles</a>' +

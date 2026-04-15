@@ -46,6 +46,12 @@ img, picture, video, canvas, svg {
   max-width: 100%;
 }
 
+svg.ph-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
 input, button, textarea, select {
   font: inherit;
 }
@@ -101,9 +107,9 @@ ul, ol {
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Layout */
-  --header-height: 60px;
-  --content-max: 680px;
-  --page-max: 1200px;
+  --header-height: 72px;
+  --content-max: 720px;
+  --page-max: 1360px;
 
   /* Glass Effect */
   --glass-bg: rgba(255, 255, 255, 0.72);
@@ -115,16 +121,16 @@ ul, ol {
 :root,
 [data-theme="light"] {
   /* Monochrome editorial palette */
-  --bg-primary: #F7F6F2;
-  --bg-secondary: #F0EFEB;
-  --bg-tertiary: #E5E4DE;
+  --bg-primary: #FCFCFA;
+  --bg-secondary: #F6F6F3;
+  --bg-tertiary: #EEEEEA;
   --text-primary: #171715;
-  --text-secondary: #61605B;
-  --text-tertiary: #8A8881;
-  --border: #D7D5CE;
+  --text-secondary: #5D5C57;
+  --text-tertiary: #888680;
+  --border: #E1E1DB;
   --accent: #171715;
   --accent-hover: #2D2C28;
-  --accent-subtle: rgba(23, 23, 21, 0.06);
+  --accent-subtle: rgba(23, 23, 21, 0.045);
   --accent-text: #F7F6F2;
   --accent-surface: var(--bg-secondary);
   --accent-surface-strong: color-mix(in srgb, var(--bg-primary) 88%, white 12%);
@@ -134,8 +140,8 @@ ul, ol {
   --shadow-md: 0 6px 20px rgba(23, 23, 21, 0.06), 0 2px 6px rgba(23, 23, 21, 0.03);
   --shadow-lg: 0 18px 40px rgba(23, 23, 21, 0.08), 0 6px 16px rgba(23, 23, 21, 0.04);
   --overlay: rgba(23, 23, 21, 0.34);
-  --glass-bg: rgba(248, 247, 243, 0.78);
-  --glass-blur: blur(20px) saturate(180%);
+  --glass-bg: rgba(252, 252, 250, 0.92);
+  --glass-blur: blur(14px) saturate(140%);
   --glass-border: 1px solid rgba(23, 23, 21, 0.06);
 }
 
