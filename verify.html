@@ -110,30 +110,9 @@
     }
 
     .btn--verify {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-2);
-      padding: var(--space-3) var(--space-8);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--accent-text);
-      background: var(--accent);
-      border: none;
-      border-radius: var(--radius-btn);
-      cursor: pointer;
-      transition: background-color var(--transition-fast), transform var(--transition-fast);
+      min-width: 16rem;
+      padding-inline: var(--space-8);
       animation: fadeInUp 0.5s ease-out 0.6s both;
-    }
-
-    .btn--verify:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-
-    .btn--verify:active {
-      transform: translateY(0);
     }
 
     .verify-card__footer {
@@ -241,7 +220,7 @@
 
       <div id="provider-badge-container"></div>
 
-      <button class="btn--verify" id="continue-btn">
+      <button class="btn btn--primary btn--verify" id="continue-btn">
         Continue to Dashboard
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>

@@ -96,7 +96,8 @@
     var buttons = document.querySelectorAll('[data-home-tab]');
     buttons.forEach(function (button) {
       var isActive = button.getAttribute('data-home-tab') === state.tab;
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      button.setAttribute('tabindex', isActive ? '0' : '-1');
     });
   }
 

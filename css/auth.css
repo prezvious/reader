@@ -153,10 +153,10 @@
 /* ===== AUTH BUTTONS — Apple-style ===== */
 .btn--auth {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  min-height: 48px;
+  padding: 0.85rem var(--space-4);
   font-size: 0.95rem;
   margin-top: var(--space-2);
-  border-radius: var(--radius-btn);
 }
 
 .btn--auth:disabled {
@@ -221,24 +221,26 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border);
+  min-height: 46px;
+  padding: 0.78rem var(--space-4);
+  border: 1px solid var(--accent-border);
   border-radius: var(--radius-btn);
-  background: var(--bg-secondary);
+  background: var(--accent-surface);
   color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  transition: transform 160ms var(--ease-out-expo), background-color 180ms var(--ease-out-expo), border-color 180ms var(--ease-out-expo), color 180ms var(--ease-out-expo);
 }
 
 .btn--social:hover {
-  background: var(--accent-subtle);
-  border-color: var(--text-tertiary);
+  background: var(--accent-surface-strong);
+  border-color: color-mix(in srgb, var(--text-primary) 16%, var(--border));
+  transform: translateY(-1px);
 }
 
 .btn--social:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .btn--social svg {
