@@ -1,4 +1,6 @@
 {
   "url": "https://your-project.example.com",
-  "anonKey": "your-public-anon-key"
+  "anonKey": "your-public-anon-key",
+  "serviceRoleKey": "your-supabase-service-role-key",
+  "openRouterApiKey": "your-openrouter-api-key"
 }
